@@ -396,10 +396,29 @@ def _seed_initial_tick(
 
     print(f"  Seeding tick_id={tick_id} r={r} k={k} deposit_per_token={deposit_per_token}")
     if dry_run:
-        print(f"    [dry-run] would submit atomic group of {n+1} transactions")
+        print(f"    [dry-run] would submit atomic group of {n+3} transactions (2 budget + {n} ASA transfers + 1 add_tick)")
         return
 
     group = alg.send.new_group()
+
+    # Budget dummy calls must come BEFORE the n ASA transfers so that add_tick
+    # (which reads the n transactions at [group_index - n .. group_index - 1])
+    # sees only the ASA transfers immediately before it.
+    # Each budget call donates 700 opcodes; two are needed for n=5 add_tick.
+    # Unique notes prevent txn ID collision between simulate and send passes.
+    import os as _os
+    for i in range(2):
+        group.add_app_call_method_call(
+            AppCallMethodCallParams(
+                sender=deployer.address,
+                signer=deployer.signer,
+                app_id=app_client.app_id,
+                method=abi.Method.from_signature("budget()void"),
+                args=[],
+                note=_os.urandom(8),
+            )
+        )
+
     for asset_id in token_ids:
         group.add_asset_transfer(
             AssetTransferParams(

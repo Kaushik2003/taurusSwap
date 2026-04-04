@@ -30,6 +30,9 @@ deploy-testnet = { commands = [
 seed-testnet = { commands = [
   "python scripts/seed_testnet_pool.py",
 ], description = "Distribute trader balances and seed initial testnet liquidity" }
+swap-testnet = { commands = [
+  "python scripts/swap_testnet.py",
+], description = "Execute a swap on the deployed OrbitalPool on TestNet" }
 distribute-testnet = { commands = [
   "python scripts/distribute_testnet_assets.py",
 ], description = "Distribute additional testnet pool ASAs to trader wallets" }
