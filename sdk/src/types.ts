@@ -38,6 +38,7 @@ export interface PoolState {
   sqrtN: bigint;          // PRECISION-scaled
   invSqrtN: bigint;       // PRECISION-scaled
 
+  actualReservesRaw: bigint[]; // raw microunits from reserves box (no virtual offset)
   reserves: bigint[];     // AMOUNT_SCALE math reserves (actual/1000 + virtualOffset)
   sumX: bigint;           // AMOUNT_SCALE units
   sumXSq: bigint;         // raw squares of AMOUNT_SCALE values (AMOUNT_SCALE² units)

@@ -1,6 +1,6 @@
 import algosdk from "algosdk";
 import { TradeRecipe } from "../types";
-import { AMOUNT_SCALE } from "../constants";
+import { AMOUNT_SCALE, MIN_TXN_FEE } from "../constants";
 import { computeRequiredBudget } from "./budget";
 import {
   addressToPublicKey,
@@ -9,6 +9,20 @@ import {
   encodePositionBoxKey,
 } from "./box-encoding";
 import { encodeBytesArg, encodeUint64Arg, methodSelector } from "./abi";
+
+const BASE_FEE = MIN_TXN_FEE;
+const SWAP_APP_CALL_FEE = MIN_TXN_FEE * 2n; // app call + one expected inner send
+
+function withFlatFee(
+  sp: algosdk.SuggestedParams,
+  fee: bigint = BASE_FEE,
+): algosdk.SuggestedParams {
+  return {
+    ...sp,
+    flatFee: true,
+    fee,
+  };
+}
 
 // ── Swap: no tick crossing ───────────────────────────────────────────────────
 //
@@ -42,7 +56,7 @@ export async function buildSwapGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -54,7 +68,7 @@ export async function buildSwapGroup(
       receiver: poolAddress,
       amount: amountIn,
       assetIndex: tokenInAsaId,
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp),
     }),
   );
 
@@ -79,7 +93,7 @@ export async function buildSwapGroup(
         { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenInIdx) },
         { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenOutIdx) },
       ],
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp, SWAP_APP_CALL_FEE),
     }),
   );
 
@@ -113,7 +127,7 @@ export async function buildCrossingSwapGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -125,7 +139,7 @@ export async function buildCrossingSwapGroup(
       receiver: poolAddress,
       amount: recipe.totalAmountIn,
       assetIndex: tokenInAsaId,
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp),
     }),
   );
 
@@ -166,7 +180,7 @@ export async function buildCrossingSwapGroup(
       ],
       foreignAssets: [tokenInAsaId, tokenOutAsaId],
       boxes,
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp, SWAP_APP_CALL_FEE),
     }),
   );
 
@@ -207,7 +221,7 @@ export async function buildAddTickGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -220,7 +234,7 @@ export async function buildAddTickGroup(
         receiver: poolAddress,
         amount: depositPerTokenRaw,
         assetIndex: tokenAsaIds[i],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -250,7 +264,7 @@ export async function buildAddTickGroup(
         },
         ...tokenBoxes,
       ],
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp),
     }),
   );
 
@@ -285,7 +299,7 @@ export async function buildRemoveLiquidityGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -316,7 +330,7 @@ export async function buildRemoveLiquidityGroup(
         },
         ...tokenBoxes,
       ],
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp),
     }),
   );
 
@@ -349,7 +363,7 @@ export async function buildClaimFeesGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        suggestedParams: sp,
+        suggestedParams: withFlatFee(sp),
       }),
     );
   }
@@ -374,7 +388,7 @@ export async function buildClaimFeesGroup(
         },
         ...tokenBoxes,
       ],
-      suggestedParams: sp,
+      suggestedParams: withFlatFee(sp),
     }),
   );
 

@@ -88,6 +88,7 @@ export async function readPoolState(
     n,
     sqrtN,
     invSqrtN,
+    actualReservesRaw,
     reserves,
     sumX,
     sumXSq,
