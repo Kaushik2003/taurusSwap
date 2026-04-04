@@ -1,10 +1,21 @@
 import algosdk from "algosdk";
 import { TradeRecipe } from "../types";
+import { AMOUNT_SCALE } from "../constants";
 import { computeRequiredBudget } from "./budget";
-import { encodeBoxMapKey, encodeBoxName } from "./box-encoding";
+import {
+  addressToPublicKey,
+  encodeBoxMapKey,
+  encodeBoxName,
+  encodePositionBoxKey,
+} from "./box-encoding";
 import { encodeBytesArg, encodeUint64Arg, methodSelector } from "./abi";
 
 // ── Swap: no tick crossing ───────────────────────────────────────────────────
+//
+// Group layout:
+//   [budget txns]  [asset transfer of amountIn]  [swap call]
+//
+// All amount arguments are in raw microunits (same as the ASA transfer).
 
 export async function buildSwapGroup(
   client: algosdk.Algodv2,
@@ -14,27 +25,17 @@ export async function buildSwapGroup(
   tokenOutAsaId: number,
   tokenInIdx: number,
   tokenOutIdx: number,
-  amountIn: bigint,
-  computedAmountOut: bigint,
-  minAmountOut: bigint,
+  amountIn: bigint,         // raw microunits
+  computedAmountOut: bigint, // raw microunits
+  minAmountOut: bigint,     // raw microunits
+  n = 2,
 ): Promise<algosdk.Transaction[]> {
   const sp = await client.getTransactionParams().do();
   const poolAddress = algosdk.getApplicationAddress(poolAppId);
   const txns: algosdk.Transaction[] = [];
 
-  // 1. Token transfer to pool
-  txns.push(
-    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-      sender,
-      receiver: poolAddress,
-      amount: amountIn,
-      assetIndex: tokenInAsaId,
-      suggestedParams: sp,
-    }),
-  );
-
-  // 2. Budget padding transactions (before the swap call)
-  const numBudget = computeRequiredBudget(0);
+  // Budget padding
+  const numBudget = computeRequiredBudget(0, n);
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
@@ -46,7 +47,19 @@ export async function buildSwapGroup(
     );
   }
 
-  // 3. swap(token_in_idx, token_out_idx, amount_in, claimed_amount_out, min_amount_out)
+  // Asset transfer to pool (immediately before the swap call)
+  txns.push(
+    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver: poolAddress,
+      amount: amountIn,
+      assetIndex: tokenInAsaId,
+      suggestedParams: sp,
+    }),
+  );
+
+  // swap(token_in_idx, token_out_idx, amount_in, claimed_amount_out, min_amount_out)
+  // All uint64 args are raw microunits — the contract converts internally with to_scaled().
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
       sender,
@@ -60,7 +73,12 @@ export async function buildSwapGroup(
         encodeUint64Arg(minAmountOut),
       ],
       foreignAssets: [tokenInAsaId, tokenOutAsaId],
-      boxes: [{ appIndex: poolAppId, name: encodeBoxName("reserves") }],
+      boxes: [
+        { appIndex: poolAppId, name: encodeBoxName("reserves") },
+        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+        { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenInIdx) },
+        { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenOutIdx) },
+      ],
       suggestedParams: sp,
     }),
   );
@@ -70,6 +88,9 @@ export async function buildSwapGroup(
 }
 
 // ── Swap: with tick crossings ────────────────────────────────────────────────
+//
+// All amounts in the recipe segments must be raw microunits when passed to the
+// contract.  The encodeTradeRecipe function converts from AMOUNT_SCALE units.
 
 export async function buildCrossingSwapGroup(
   client: algosdk.Algodv2,
@@ -78,24 +99,14 @@ export async function buildCrossingSwapGroup(
   tokenInAsaId: number,
   tokenOutAsaId: number,
   recipe: TradeRecipe,
+  n = 2,
 ): Promise<algosdk.Transaction[]> {
   const sp = await client.getTransactionParams().do();
   const poolAddress = algosdk.getApplicationAddress(poolAppId);
   const txns: algosdk.Transaction[] = [];
 
-  // 1. Token transfer to pool
-  txns.push(
-    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-      sender,
-      receiver: poolAddress,
-      amount: recipe.totalAmountIn,
-      assetIndex: tokenInAsaId,
-      suggestedParams: sp,
-    }),
-  );
-
-  // 2. Budget padding
-  const numBudget = computeRequiredBudget(recipe.segments.length);
+  // Budget padding
+  const numBudget = computeRequiredBudget(recipe.segments.length, n);
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
@@ -107,17 +118,40 @@ export async function buildCrossingSwapGroup(
     );
   }
 
-  // 3. Collect box references: reserves + any crossed tick boxes
-  const boxSet = new Set<string>(["reserves"]);
+  // Asset transfer to pool
+  txns.push(
+    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver: poolAddress,
+      amount: recipe.totalAmountIn,
+      assetIndex: tokenInAsaId,
+      suggestedParams: sp,
+    }),
+  );
+
+  // Collect box references: reserves + fee_growth + token boxes + any crossed tick boxes
+  const tokenInBoxKey = encodeBoxMapKey("token:", recipe.tokenInIdx);
+  const tokenOutBoxKey = encodeBoxMapKey("token:", recipe.tokenOutIdx);
+
+  const boxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("reserves") },
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    { appIndex: poolAppId, name: tokenInBoxKey },
+    { appIndex: poolAppId, name: tokenOutBoxKey },
+  ];
+
   for (const seg of recipe.segments) {
     if (seg.tickCrossedId !== null) {
-      boxSet.add(`tick:${seg.tickCrossedId}`);
+      boxes.push({
+        appIndex: poolAppId,
+        name: encodeBoxMapKey("tick:", seg.tickCrossedId),
+      });
     }
   }
 
+  // swap_with_crossings encodes segment amounts in raw microunits
   const recipeBytes = encodeTradeRecipe(recipe);
 
-  // 4. swap_with_crossings(token_in_idx, token_out_idx, total_amount_in, trade_recipe, min_amount_out)
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
       sender,
@@ -127,18 +161,11 @@ export async function buildCrossingSwapGroup(
         encodeUint64Arg(recipe.tokenInIdx),
         encodeUint64Arg(recipe.tokenOutIdx),
         encodeUint64Arg(recipe.totalAmountIn),
-        encodeBytesArg(recipeBytes),   // byte[] ARC-4 arg: 2-byte length + data
+        encodeBytesArg(recipeBytes),
         encodeUint64Arg(recipe.minAmountOut),
       ],
       foreignAssets: [tokenInAsaId, tokenOutAsaId],
-      boxes: [...boxSet].map((name) => {
-        if (name === "reserves") {
-          return { appIndex: poolAppId, name: encodeBoxName("reserves") };
-        }
-        // "tick:N" → BoxMap key: b"tick:" + itob(N)
-        const tickId = parseInt(name.split(":")[1], 10);
-        return { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) };
-      }),
+      boxes,
       suggestedParams: sp,
     }),
   );
@@ -148,9 +175,13 @@ export async function buildCrossingSwapGroup(
 }
 
 // ── Add tick (LP deposit) ────────────────────────────────────────────────────
+//
 // Group layout required by the contract:
-//   [optional budget txns] [n ASA transfers] [add_tick call]
-// The contract reads gtxn[group_index - n + i] for each transfer.
+//   [budget txns]  [n ASA transfers of depositPerTokenRaw]  [add_tick call]
+//
+// The contract reads gtxn[group_index - n + i] for each token transfer.
+// r and k are in AMOUNT_SCALE units.
+// depositPerTokenRaw is in raw microunits.
 
 export async function buildAddTickGroup(
   client: algosdk.Algodv2,
@@ -158,16 +189,18 @@ export async function buildAddTickGroup(
   sender: string,
   n: number,
   tokenAsaIds: number[],
-  depositPerToken: bigint,
-  r: bigint,
-  k: bigint,
+  depositPerTokenRaw: bigint, // raw microunits (= deposit_per_token_scaled * AMOUNT_SCALE)
+  r: bigint,                  // AMOUNT_SCALE units — passed directly to add_tick
+  k: bigint,                  // AMOUNT_SCALE units — passed directly to add_tick
+  nextTickId: number,         // the tick ID that will be created (= current numTicks)
 ): Promise<algosdk.Transaction[]> {
   const sp = await client.getTransactionParams().do();
   const poolAddress = algosdk.getApplicationAddress(poolAppId);
+  const senderPubKey = addressToPublicKey(sender);
   const txns: algosdk.Transaction[] = [];
 
   // Budget transactions come first (before the transfers)
-  const numBudget = computeRequiredBudget(0);
+  const numBudget = computeRequiredBudget(0, n);
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
@@ -185,14 +218,18 @@ export async function buildAddTickGroup(
       algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender,
         receiver: poolAddress,
-        amount: depositPerToken,
+        amount: depositPerTokenRaw,
         assetIndex: tokenAsaIds[i],
         suggestedParams: sp,
       }),
     );
   }
 
-  // add_tick(r, k)
+  // Box references for add_tick:
+  //   - reserves (read + write per-token balances)
+  //   - fee_growth (read checkpoints for new position)
+  //   - pos: box (create new position for sender)
+  //   - token: boxes (verify correct ASA IDs)
   const tokenBoxes = tokenAsaIds.map((_, i) => ({
     appIndex: poolAppId,
     name: encodeBoxMapKey("token:", i),
@@ -206,6 +243,11 @@ export async function buildAddTickGroup(
       foreignAssets: tokenAsaIds,
       boxes: [
         { appIndex: poolAppId, name: encodeBoxName("reserves") },
+        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+        {
+          appIndex: poolAppId,
+          name: encodePositionBoxKey(senderPubKey, nextTickId),
+        },
         ...tokenBoxes,
       ],
       suggestedParams: sp,
@@ -217,6 +259,11 @@ export async function buildAddTickGroup(
 }
 
 // ── Remove liquidity (LP withdrawal) ────────────────────────────────────────
+//
+// Group layout:
+//   [budget txns]  [remove_liquidity call]
+//
+// The contract sends reserves + fees back to the caller via inner transactions.
 
 export async function buildRemoveLiquidityGroup(
   client: algosdk.Algodv2,
@@ -227,9 +274,11 @@ export async function buildRemoveLiquidityGroup(
   shares: bigint,
 ): Promise<algosdk.Transaction[]> {
   const sp = await client.getTransactionParams().do();
+  const senderPubKey = addressToPublicKey(sender);
+  const n = tokenAsaIds.length;
   const txns: algosdk.Transaction[] = [];
 
-  const numBudget = computeRequiredBudget(0);
+  const numBudget = computeRequiredBudget(0, n);
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
@@ -240,6 +289,12 @@ export async function buildRemoveLiquidityGroup(
       }),
     );
   }
+
+  // Token boxes for inner sends and fee_growth for fee settling
+  const tokenBoxes = tokenAsaIds.map((_, i) => ({
+    appIndex: poolAppId,
+    name: encodeBoxMapKey("token:", i),
+  }));
 
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
@@ -253,8 +308,71 @@ export async function buildRemoveLiquidityGroup(
       foreignAssets: tokenAsaIds,
       boxes: [
         { appIndex: poolAppId, name: encodeBoxName("reserves") },
-        { appIndex: poolAppId, name: encodeBoxName("fees") },
+        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
         { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
+        {
+          appIndex: poolAppId,
+          name: encodePositionBoxKey(senderPubKey, tickId),
+        },
+        ...tokenBoxes,
+      ],
+      suggestedParams: sp,
+    }),
+  );
+
+  algosdk.assignGroupID(txns);
+  return txns;
+}
+
+// ── Claim fees ────────────────────────────────────────────────────────────────
+//
+// Settle accrued swap fees for (sender, tickId) without withdrawing principal.
+// Group layout: [budget txns]  [claim_fees call]
+
+export async function buildClaimFeesGroup(
+  client: algosdk.Algodv2,
+  poolAppId: number,
+  sender: string,
+  tokenAsaIds: number[],
+  tickId: number,
+): Promise<algosdk.Transaction[]> {
+  const sp = await client.getTransactionParams().do();
+  const senderPubKey = addressToPublicKey(sender);
+  const n = tokenAsaIds.length;
+  const txns: algosdk.Transaction[] = [];
+
+  // claim_fees iterates n times for fee computation + n inner sends
+  const numBudget = computeRequiredBudget(0, n);
+  for (let i = 0; i < numBudget; i++) {
+    txns.push(
+      algosdk.makeApplicationNoOpTxnFromObject({
+        sender,
+        appIndex: poolAppId,
+        appArgs: [methodSelector("budget")],
+        suggestedParams: sp,
+      }),
+    );
+  }
+
+  const tokenBoxes = tokenAsaIds.map((_, i) => ({
+    appIndex: poolAppId,
+    name: encodeBoxMapKey("token:", i),
+  }));
+
+  txns.push(
+    algosdk.makeApplicationNoOpTxnFromObject({
+      sender,
+      appIndex: poolAppId,
+      appArgs: [methodSelector("claimFees"), encodeUint64Arg(tickId)],
+      foreignAssets: tokenAsaIds,
+      boxes: [
+        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+        { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
+        {
+          appIndex: poolAppId,
+          name: encodePositionBoxKey(senderPubKey, tickId),
+        },
+        ...tokenBoxes,
       ],
       suggestedParams: sp,
     }),
@@ -267,26 +385,57 @@ export async function buildRemoveLiquidityGroup(
 // ── Internal helpers ─────────────────────────────────────────────────────────
 
 /**
- * Encode the trade recipe as a flat byte array.
+ * Encode the trade recipe as a flat byte array for swap_with_crossings.
  *
  * Layout per segment (25 bytes total, matching _SEGMENT_SIZE = 25 in contract):
- *   bytes  0-7:  amount_in  (uint64 big-endian)
- *   bytes  8-15: amount_out (uint64 big-endian)
+ *   bytes  0-7:  amount_in  (uint64 big-endian) — raw microunits
+ *   bytes  8-15: amount_out (uint64 big-endian) — raw microunits
  *   bytes 16-23: tick_crossed_id (uint64 big-endian; 0xffffffffffffffff = no crossing)
  *   byte  24:    new_state  (uint8; 0xff = no crossing)
+ *
+ * The segments inside the recipe are in AMOUNT_SCALE units.
+ * This function converts each amount to raw microunits (× AMOUNT_SCALE) before encoding.
+ *
+ * AMOUNT_SCALE remainder fix:
+ *   The solver works in AMOUNT_SCALE units so Σseg.amountIn = effectiveInScaled.
+ *   Converting back: Σ(seg.amountIn × AMOUNT_SCALE) = effectiveInScaled × AMOUNT_SCALE.
+ *   But effectiveInRaw = effectiveInScaled × AMOUNT_SCALE + remainder (0..999).
+ *   The contract checks Σseg_in_raw == effectiveInRaw, so we add the remainder to the
+ *   last segment to guarantee the sum is exact.
  */
 function encodeTradeRecipe(recipe: TradeRecipe): Uint8Array {
   const SEGMENT_SIZE = 25;
   const buffer = new Uint8Array(recipe.segments.length * SEGMENT_SIZE);
   const view = new DataView(buffer.buffer);
 
+  let encodedInSum = 0n;
+
   recipe.segments.forEach((seg, idx) => {
     const off = idx * SEGMENT_SIZE;
-    view.setBigUint64(off, seg.amountIn);
-    view.setBigUint64(off + 8, seg.amountOut);
-    view.setBigUint64(off + 16, seg.tickCrossedId !== null ? BigInt(seg.tickCrossedId) : 0xffffffffffffffffn);
+    // Convert AMOUNT_SCALE units → raw microunits for the contract
+    const amountInRaw = seg.amountIn * AMOUNT_SCALE;
+    encodedInSum += amountInRaw;
+    view.setBigUint64(off, amountInRaw);
+    view.setBigUint64(off + 8, seg.amountOut * AMOUNT_SCALE);
+    view.setBigUint64(
+      off + 16,
+      seg.tickCrossedId !== null
+        ? BigInt(seg.tickCrossedId)
+        : 0xffffffffffffffffn,
+    );
     buffer[off + 24] = seg.newTickState ?? 0xff;
   });
+
+  // Add any AMOUNT_SCALE truncation remainder to the last segment so that
+  // Σseg_in_raw == recipe.effectiveAmountIn exactly.
+  if (recipe.segments.length > 0) {
+    const remainder = recipe.effectiveAmountIn - encodedInSum;
+    if (remainder > 0n) {
+      const lastOff = (recipe.segments.length - 1) * SEGMENT_SIZE;
+      const lastIn = view.getBigUint64(lastOff);
+      view.setBigUint64(lastOff, lastIn + remainder);
+    }
+  }
 
   return buffer;
 }

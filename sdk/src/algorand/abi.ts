@@ -65,6 +65,13 @@ const METHODS = {
     returns: { type: "void", desc: "" },
   }),
 
+  claimFees: new algosdk.ABIMethod({
+    name: "claim_fees",
+    desc: "Claim accrued swap fees for a position without withdrawing principal.",
+    args: [{ name: "tick_id", type: "uint64", desc: "" }],
+    returns: { type: "void", desc: "" },
+  }),
+
   removeLiquidity: new algosdk.ABIMethod({
     name: "remove_liquidity",
     desc: "",

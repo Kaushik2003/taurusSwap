@@ -1,49 +1,60 @@
-import { PoolState, TickState, PRECISION } from "../../src/index";
+import { PoolState, TickState, AMOUNT_SCALE } from "../../src/index";
 
 /**
  * Builds a demo pool state for testing purposes.
- * Creates a 2-token pool (USDC/USDT) with reasonable initial values.
+ *
+ * Pool: 2 tokens (USDC / USDT), each with 6 decimals.
+ * Seeded at 1 000 tokens each = 1_000_000_000 microunits each.
+ *
+ * All math-space values (reserves, r, k, sumX, etc.) are in AMOUNT_SCALE units
+ * (raw_microunits / 1_000).  sqrtN / invSqrtN are PRECISION-scaled (× 10^9).
  */
 export function buildDemoPoolState(): PoolState {
-  // sqrt(2) scaled by PRECISION
-  const sqrtN = 1_414_213_562n;
-  const invSqrtN = 707_106_781n; // 1/sqrt(2) * PRECISION
+  // PRECISION-scaled sqrt(2) values
+  const sqrtN = 1_414_213_562n;   // floor(sqrt(2) * 10^9)
+  const invSqrtN = 707_106_781n;  // floor(1/sqrt(2) * 10^9)
+  const PRECISION = 1_000_000_000n;
 
-  // Initial reserves: 1000 USDC and 1000 USDT
-  const reserves = [1000n * PRECISION, 1000n * PRECISION];
+  // 1 000 tokens × 10^6 microunits/token = 10^9 microunits
+  // AMOUNT_SCALE unit = 10^9 / 1_000 = 10^6
+  const reserveScaled = 1_000_000n; // AMOUNT_SCALE units
 
-  // Sum of reserves
+  // virtual_offset = 0 for a fresh pool with no partial withdrawals
+  const virtualOffset = 0n;
+  const reserves = [reserveScaled, reserveScaled];
+
   const sumX = reserves[0] + reserves[1];
-  const sumXSq = (reserves[0] * reserves[0]) / PRECISION +
-    (reserves[1] * reserves[1]) / PRECISION;
+  // sumXSq = Σxᵢ² (raw squares of AMOUNT_SCALE values)
+  const sumXSq = reserves[0] * reserves[0] + reserves[1] * reserves[1];
 
-  // Initial radius in the sphere: r = sqrt(sum(x_i^2))
-  // For balanced pool with 1000 each: r ≈ sqrt(2*1000^2) = 1414.2... * PRECISION
-  const rInt = sqrtN * 1000n;
+  // rInt: consolidated interior radius.
+  // For a single balanced interior tick at the equal-price point:
+  //   q = r - r/sqrt(n) = reserveScaled → r = reserveScaled / (1 - 1/sqrt(2))
+  //   q = r * (1 - invSqrtN/PRECISION)
+  //   r ≈ reserveScaled * PRECISION / (PRECISION - invSqrtN)
+  const rInt =
+    (reserveScaled * PRECISION) / (PRECISION - invSqrtN);
 
-  // Bounds for k values
-  const kBound = 10_000n * sqrtN;
-  const sBound = 2000n * PRECISION;
+  // k for interior tick: kMin ≤ k ≤ kMax.  Use the midpoint for demo.
+  const kMin = (rInt * (sqrtN - PRECISION)) / PRECISION;
+  const kMax = (rInt * (2n - 1n) * PRECISION) / sqrtN;
+  const tickK = (kMin + kMax) / 2n;
 
-  // Create interior ticks
+  // Single interior tick so that consolidateTicks() yields rInt == rInt_demo,
+  // matching the reserves that are placed at the equal-price point.
+  // (Two ticks would give consolidated rInt = sum of both radii, which exceeds
+  // what the reserves represent and breaks the Newton solver bracket.)
   const ticks = [
     {
       id: 0,
       r: rInt,
-      k: 5000n * sqrtN,
+      k: tickK,
       state: TickState.INTERIOR,
-      liquidity: 100n * PRECISION,
-      lpAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HVY",
-    },
-    {
-      id: 1,
-      r: (rInt * 11n) / 10n, // 1.1 * rInt
-      k: 7000n * sqrtN,
-      state: TickState.INTERIOR,
-      liquidity: 150n * PRECISION,
-      lpAddress: "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HVY",
+      totalShares: rInt * AMOUNT_SCALE, // demo: 1 share per AMOUNT_SCALE unit of r
     },
   ];
+
+  const totalR = rInt;
 
   return {
     appId: 123456,
@@ -53,75 +64,68 @@ export function buildDemoPoolState(): PoolState {
     reserves,
     sumX,
     sumXSq,
+    virtualOffset,
     rInt,
-    sBound,
-    kBound,
+    sBound: 0n,
+    kBound: 0n,
+    totalR,
+    feeBps: 30n,
+    numTicks: 1,
     ticks,
-    tokenAsaIds: [10_458_941, 312_769_273], // Actual USDC/USDT ASA IDs on Algorand mainnet
+    tokenAsaIds: [10_458_941, 312_769_273],
     tokenDecimals: [6, 6],
+    feeGrowth: [0n, 0n],
   };
 }
 
 /**
- * Formats a scaled amount back to a readable decimal string.
- * @param amount - The amount scaled by PRECISION
- * @returns A human-readable decimal string
+ * Formats a raw microunit amount to a human-readable token string.
+ * @param rawAmount  amount in raw microunits
+ * @param decimals   token decimals (default 6)
  */
-export function formatScaledAmount(amount: bigint): string {
-  const precisionStr = "1000000000"; // PRECISION with 9 zeros
-  const amountStr = amount.toString().padStart(precisionStr.length, "0");
-
-  const integerPart = amountStr.slice(0, -9) || "0";
-  const fractionalPart = amountStr.slice(-9).replace(/0+$/, "");
-
-  if (fractionalPart === "") {
-    return integerPart;
-  }
-
-  return `${integerPart}.${fractionalPart}`;
+export function formatRawAmount(rawAmount: bigint, decimals = 6): string {
+  const divisor = BigInt(10 ** decimals);
+  const whole = rawAmount / divisor;
+  const frac = rawAmount % divisor;
+  return `${whole}.${frac.toString().padStart(decimals, "0")}`;
 }
 
 /**
- * Gets the label for a token at the given index.
- * @param pool - The pool state
- * @param index - The token index
- * @returns The token label (e.g., "USDC", "USDT")
+ * Formats an AMOUNT_SCALE amount to a human-readable token string.
+ * @param scaledAmount  amount in AMOUNT_SCALE units (raw / 1_000)
+ * @param decimals      token decimals (default 6)
  */
-export function getPoolTokenLabel(pool: PoolState, index: number): string {
+export function formatScaledAmount(scaledAmount: bigint, decimals = 6): string {
+  return formatRawAmount(scaledAmount * AMOUNT_SCALE, decimals);
+}
+
+export function getPoolTokenLabel(_pool: PoolState, index: number): string {
   const labels = ["USDC", "USDT"];
   return labels[index] || `TOKEN_${index}`;
 }
 
 /**
- * Parses a decimal string input and scales it to the precision format.
- * @param value - The decimal string to parse (e.g., "25", "100.5")
- * @returns The scaled bigint value, or null if invalid
+ * Parse a human-readable decimal string to raw microunits.
+ * @param value     e.g. "100.5"
+ * @param decimals  token decimals (default 6)
  */
-export function parseScaledInput(value: string): bigint | null {
+export function parseRawAmount(value: string, decimals = 6): bigint | null {
   try {
-    // Remove whitespace
     value = value.trim();
-
-    // Check for valid decimal format
-    if (!/^\d+(\.\d+)?$/.test(value)) {
-      return null;
-    }
-
-    // Split into integer and fractional parts
+    if (!/^\d+(\.\d+)?$/.test(value)) return null;
     const [integerPart, fractionalPart = ""] = value.split(".");
-
-    // Ensure fractional part doesn't exceed PRECISION decimals
-    if (fractionalPart.length > 9) {
-      return null;
-    }
-
-    // Pad fractional part to 9 digits (PRECISION)
-    const paddedFractional = fractionalPart.padEnd(9, "0");
-
-    // Combine and convert to BigInt
-    const combined = integerPart + paddedFractional;
-    return BigInt(combined);
+    if (fractionalPart.length > decimals) return null;
+    const paddedFractional = fractionalPart.padEnd(decimals, "0");
+    return BigInt(integerPart + paddedFractional);
   } catch {
     return null;
   }
+}
+
+/**
+ * Alias for parseRawAmount — parses token string to raw microunits (6 decimals).
+ * Replaces the old PRECISION-scaled version: "25" → 25_000_000n (25 USDC).
+ */
+export function parseScaledInput(value: string): bigint | null {
+  return parseRawAmount(value, 6);
 }

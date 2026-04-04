@@ -8,9 +8,9 @@ import {
 import { estimateOutput, getSwapQuote } from "../src/index";
 
 function buildTradeSafePoolState() {
-  const pool = buildDemoPoolState();
-  pool.ticks[0].k = 10_000n * pool.sqrtN;
-  return pool;
+  // Single-tick demo pool is already balanced at the equal-price point.
+  // No k override needed — the 25 USDC trade (2.5% of reserves) won't cross the tick.
+  return buildDemoPoolState();
 }
 
 describe("Swap quote", () => {

@@ -1,4 +1,4 @@
-import { PRECISION } from "../constants";
+import { AMOUNT_SCALE, PRECISION } from "../constants";
 import { consolidateTicks } from "../math/consolidation";
 import { getPrice } from "../math/sphere";
 import { capitalEfficiency, kFromDepegPrice } from "../math/ticks";
@@ -35,6 +35,12 @@ export function estimateOutput(
   };
 }
 
+/**
+ * Compute capital efficiency for a given depeg price and tick radius.
+ *
+ * @param tickRadius  Tick radius in AMOUNT_SCALE units
+ * @returns  k in AMOUNT_SCALE units; depositPerToken in raw microunits
+ */
 export function getCapitalEfficiencyForDepegPrice(
   poolState: PoolState,
   depegPrice: number,
@@ -56,9 +62,11 @@ export function getCapitalEfficiencyForDepegPrice(
     poolState.invSqrtN,
   );
 
+  // q and xmin are in AMOUNT_SCALE units
   const q = tickRadius - (tickRadius * poolState.invSqrtN) / PRECISION;
   const xmin = (q * PRECISION) / BigInt(Math.round(efficiency * Number(PRECISION)));
-  const depositPerToken = q - xmin;
+  const depositPerTokenScaled = q - xmin;
 
-  return { k, efficiency, depositPerToken };
+  // Return deposit in raw microunits so the frontend can display directly
+  return { k, efficiency, depositPerToken: depositPerTokenScaled * AMOUNT_SCALE };
 }

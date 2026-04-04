@@ -50,7 +50,7 @@ export const INV_SQRT_TABLE: Record<number, bigint> = {
   2: 707_106_781n,
   3: 577_350_269n,
   4: 500_000_000n,
-  5: 447_213_595n,
+  5: 447_213_596n,  // 10^9 // isqrt(5*10^18) = 10^9 // 2236067977 = 447213596
   6: 408_248_290n,
   7: 377_964_473n,
   8: 353_553_391n,
@@ -77,6 +77,23 @@ export const MAX_TICK_CROSSINGS = 20;
 
 // Default slippage tolerance in basis points (0.5%)
 export const DEFAULT_SLIPPAGE_BPS = 50;
+
+// ============================================================
+// AMOUNT_SCALE
+// ============================================================
+// The contract divides raw ASA microunits by this factor before
+// doing any invariant math (sum_x, sum_x_sq, r, k, virtual_offset,
+// r_int, s_bound, k_bound).  Raw reserves and ASA transfer amounts
+// stay in microunits; all math-space values are in AMOUNT_SCALE units.
+//
+// Conversion:
+//   math_unit   = raw_microunit / AMOUNT_SCALE
+//   raw_microunit = math_unit * AMOUNT_SCALE
+//
+// Public SDK functions that accept token amounts from the user take
+// raw microunits.  Internal math operates in AMOUNT_SCALE units.
+// ============================================================
+export const AMOUNT_SCALE = 1_000n;
 
 // Algorand-specific constants
 export const ALGO_MICRO = 1_000_000n;
