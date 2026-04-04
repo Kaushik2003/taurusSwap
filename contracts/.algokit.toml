@@ -1,0 +1,38 @@
+[algokit]
+min_version = "v2.0.0"
+
+[generate.smart-contract]
+description = "Generate a new smart contract for existing project"
+path = ".algokit/generators/create_contract"
+
+[generate.env-file]
+description = "Generate a new generic or Algorand network specific .env file"
+path = ".algokit/generators/create_env_file"
+
+[project]
+type = "contract"
+name = "taurus"
+artifacts = "smart_contracts/artifacts"
+
+[project.deploy]
+command = "python -m smart_contracts deploy"
+
+[project.run]
+build = { commands = [
+  "python -m smart_contracts build",
+], description = "Build OrbitalPool into the Taurus artifacts directory" }
+deploy-localnet = { commands = [
+  "python scripts/deploy_localnet.py",
+], description = "Deploy OrbitalPool to localnet" }
+deploy-testnet = { commands = [
+  "python scripts/deploy_testnet.py",
+], description = "Deploy OrbitalPool to testnet" }
+seed-testnet = { commands = [
+  "python scripts/seed_testnet_pool.py",
+], description = "Distribute trader balances and seed initial testnet liquidity" }
+distribute-testnet = { commands = [
+  "python scripts/distribute_testnet_assets.py",
+], description = "Distribute additional testnet pool ASAs to trader wallets" }
+test = { commands = [
+  "pytest -q",
+], description = "Run the Orbital math, contract, and integration test suite" }

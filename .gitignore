@@ -1,0 +1,58 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checker / linter caches
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local tool/editor config
+.claude/
+.codex/
+.codex.file.bak
+.mcp.json
+.DS_Store
+.idea/
+.vscode/
+
+# Local env/config files
+.env
+.env.*
+*.local
+
+# Build/log output
+build/
+dist/
+.next/
+*.log
+
+# Project planning docs kept local
+TASK_DIVISION.md
+
+# Accidental nested Puya output from incorrect --out-dir usage
+smart_contracts/smart_contracts/
+contracts/smart_contracts/smart_contracts/
+
+.codex
+
+Orbital_AMM_Implementation_Manual.pdf
+
+node_modules/
+
+.algokit/
+.tours/

@@ -1,0 +1,4531 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 0 8 1 1000000000 10000
+    bytecblock 0x7265736572766573 "n" "bootstrapped" 0x6665655f67726f777468 "r_int" "paused" "sum_x" "sum_x_sq" "virtual_offset" "total_r" 0x746f6b656e3a 0x151f7c75 "registered_tokens" "s_bound" "k_bound" 0x7469636b3a "num_ticks" "sqrt_n" "fee_bps" "inv_sqrt_n" 0x706f733a "creator"
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // contract.py:319-320
+    // # ── Scalar global state ────────────────────────────────────────
+    // self.n = GlobalState(UInt64(0))
+    bytec_1 // "n"
+    intc_0 // 0
+    app_global_put
+    // contract.py:321
+    // self.bootstrapped = GlobalState(UInt64(0))
+    bytec_2 // "bootstrapped"
+    intc_0 // 0
+    app_global_put
+    // contract.py:322
+    // self.registered_tokens = GlobalState(UInt64(0))
+    bytec 12 // "registered_tokens"
+    intc_0 // 0
+    app_global_put
+    // contract.py:323
+    // self.sum_x = GlobalState(UInt64(0))
+    bytec 6 // "sum_x"
+    intc_0 // 0
+    app_global_put
+    // contract.py:324
+    // self.sum_x_sq = GlobalState(UInt64(0))
+    bytec 7 // "sum_x_sq"
+    intc_0 // 0
+    app_global_put
+    // contract.py:325
+    // self.r_int = GlobalState(UInt64(0))
+    bytec 4 // "r_int"
+    intc_0 // 0
+    app_global_put
+    // contract.py:326
+    // self.s_bound = GlobalState(UInt64(0))
+    bytec 13 // "s_bound"
+    intc_0 // 0
+    app_global_put
+    // contract.py:327
+    // self.k_bound = GlobalState(UInt64(0))
+    bytec 14 // "k_bound"
+    intc_0 // 0
+    app_global_put
+    // contract.py:328
+    // self.virtual_offset = GlobalState(UInt64(0))
+    bytec 8 // "virtual_offset"
+    intc_0 // 0
+    app_global_put
+    // contract.py:329
+    // self.num_ticks = GlobalState(UInt64(0))
+    bytec 16 // "num_ticks"
+    intc_0 // 0
+    app_global_put
+    // contract.py:330
+    // self.sqrt_n = GlobalState(UInt64(0))
+    bytec 17 // "sqrt_n"
+    intc_0 // 0
+    app_global_put
+    // contract.py:331
+    // self.inv_sqrt_n = GlobalState(UInt64(0))
+    bytec 19 // "inv_sqrt_n"
+    intc_0 // 0
+    app_global_put
+    // contract.py:332
+    // self.paused = GlobalState(UInt64(0))
+    bytec 5 // "paused"
+    intc_0 // 0
+    app_global_put
+    // contract.py:333
+    // self.fee_bps = GlobalState(UInt64(0))
+    bytec 18 // "fee_bps"
+    intc_0 // 0
+    app_global_put
+    // contract.py:334
+    // self.creator = GlobalState(Account())
+    bytec 21 // "creator"
+    global ZeroAddress
+    app_global_put
+    // contract.py:335-337
+    // # NEW in v2: sum of r for ALL ticks (interior + boundary).
+    // # Used for O(1) pro-rata reserve and fee distribution.
+    // self.total_r = GlobalState(UInt64(0))
+    bytec 9 // "total_r"
+    intc_0 // 0
+    app_global_put
+
+main_after_if_else@2:
+    // contract.py:312
+    // class OrbitalPool(ARC4Contract):
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@25
+    pushbytess 0xbec76d87 0xeb150f12 0x423a7167 0x0a8a4676 0xfc4b88b7 0xcaaaaa6b 0x280c1c93 0x03fc3b2a 0xae6496d2 0x71d80013 0x7a3ea800 0xb0de0252 0xa34cdfd9 0x9a13c330 0xd34db2a5 0x2a68d3f7 0x744c71cb 0x4d43509b 0x6f7a0cd2 // method "bootstrap()void", method "budget()void", method "register_token(uint64,uint64)void", method "set_paused(uint64)void", method "set_fee(uint64)void", method "add_tick(uint64,uint64)void", method "claim_fees(uint64)void", method "remove_liquidity(uint64,uint64)void", method "swap(uint64,uint64,uint64,uint64,uint64)void", method "swap_with_crossings(uint64,uint64,uint64,byte[],uint64)void", method "get_pool_info()(uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64)", method "get_tick_info(uint64)(uint64,uint64,uint8,uint64)", method "get_position(address,uint64)(uint64,uint64)", method "get_reserves()byte[]", method "get_fee_growth()byte[]", method "get_registered_tokens()byte[]", method "get_fees_for_position(address,uint64)byte[]", method "list_ticks(uint64,uint64)(uint64,uint64,uint64,uint8,uint64)[]", method "get_price(uint64,uint64)uint64"
+    txna ApplicationArgs 0
+    match bootstrap main_budget_route@6 register_token set_paused set_fee add_tick claim_fees remove_liquidity swap swap_with_crossings get_pool_info get_tick_info get_position get_reserves get_fee_growth get_registered_tokens get_fees_for_position list_ticks get_price
+    err
+
+main_budget_route@6:
+    // contract.py:407
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+main_create_NoOp@25:
+    // contract.py:312
+    // class OrbitalPool(ARC4Contract):
+    pushbytes 0x7efda4d2 // method "create(uint64,uint64,uint64)void"
+    txna ApplicationArgs 0
+    match create
+    err
+
+
+// smart_contracts.orbital_pool.contract.abs_diff(lhs: uint64, rhs: uint64) -> uint64:
+abs_diff:
+    // contract.py:198-199
+    // @subroutine
+    // def abs_diff(lhs: UInt64, rhs: UInt64) -> UInt64:
+    proto 2 1
+    // contract.py:200
+    // if lhs >= rhs:
+    frame_dig -2
+    frame_dig -1
+    >=
+    bz abs_diff_after_if_else@2
+    // contract.py:201
+    // return lhs - rhs
+    frame_dig -2
+    frame_dig -1
+    -
+    retsub
+
+abs_diff_after_if_else@2:
+    // contract.py:202
+    // return rhs - lhs
+    frame_dig -1
+    frame_dig -2
+    -
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.x_min_for_tick(r: uint64, k: uint64, n: uint64, sqrt_n: uint64) -> uint64:
+x_min_for_tick:
+    // contract.py:221-222
+    // @subroutine
+    // def x_min_for_tick(r: UInt64, k: UInt64, n: UInt64, sqrt_n: UInt64) -> UInt64:
+    proto 4 1
+    // contract.py:224
+    // c = (n * r) - mul_div_floor(k, sqrt_n, UInt64(_PRECISION))
+    frame_dig -2
+    frame_dig -4
+    *
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -3
+    frame_dig -1
+    mulw
+    // contract.py:224
+    // c = (n * r) - mul_div_floor(k, sqrt_n, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:224
+    // c = (n * r) - mul_div_floor(k, sqrt_n, UInt64(_PRECISION))
+    dig 1
+    swap
+    -
+    // contract.py:225
+    // discriminant = (n - UInt64(1)) * ((n * r * r) - (c * c))
+    frame_dig -2
+    intc_2 // 1
+    -
+    uncover 2
+    frame_dig -4
+    *
+    dig 2
+    dig 3
+    *
+    -
+    *
+    // contract.py:226
+    // return r - ((c + op.sqrt(discriminant)) // n)
+    sqrt
+    +
+    frame_dig -2
+    /
+    frame_dig -4
+    swap
+    -
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.boundary_radius_calc(r: uint64, k: uint64, sqrt_n: uint64) -> uint64:
+boundary_radius_calc:
+    // contract.py:229-230
+    // @subroutine
+    // def boundary_radius_calc(r: UInt64, k: UInt64, sqrt_n: UInt64) -> UInt64:
+    proto 3 1
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -3
+    frame_dig -1
+    mulw
+    // contract.py:232
+    // r_sqrt_n = mul_div_floor(r, sqrt_n, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:233
+    // offset = abs_diff(k, r_sqrt_n)
+    frame_dig -2
+    swap
+    callsub abs_diff
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    frame_dig -3
+    dup
+    mulw
+    dup
+    cover 3
+    cover 3
+    // contract.py:168
+    // assert high == UInt64(0)
+    !
+    assert
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dup
+    mulw
+    dup
+    cover 2
+    cover 3
+    // contract.py:168
+    // assert high == UInt64(0)
+    !
+    assert
+    // contract.py:236
+    // if r_sq >= off_sq:
+    >=
+    bz boundary_radius_calc_after_if_else@2
+    // contract.py:237
+    // return op.sqrt(r_sq - off_sq)
+    frame_dig 0
+    frame_dig 1
+    -
+    sqrt
+    frame_bury 0
+    retsub
+
+boundary_radius_calc_after_if_else@2:
+    // contract.py:238
+    // return UInt64(0)
+    intc_0 // 0
+    frame_bury 0
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.verify_preceding_transfer(asset_id: uint64, amount: uint64) -> void:
+verify_preceding_transfer:
+    // contract.py:241-242
+    // @subroutine
+    // def verify_preceding_transfer(asset_id: UInt64, amount: UInt64) -> None:
+    proto 2 0
+    // contract.py:244
+    // assert Txn.group_index > UInt64(0)
+    txn GroupIndex
+    assert
+    // contract.py:245
+    // transfer = gtxn.AssetTransferTransaction(Txn.group_index - UInt64(1))
+    txn GroupIndex
+    intc_2 // 1
+    -
+    dup
+    gtxns TypeEnum
+    pushint 4 // axfer
+    ==
+    assert // transaction type is axfer
+    // contract.py:246
+    // assert transfer.sender == Txn.sender
+    dup
+    gtxns Sender
+    txn Sender
+    ==
+    assert
+    // contract.py:247
+    // assert transfer.asset_receiver == Global.current_application_address
+    dup
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    assert
+    // contract.py:248
+    // assert transfer.asset_amount == amount
+    dup
+    gtxns AssetAmount
+    frame_dig -1
+    ==
+    assert
+    // contract.py:249
+    // assert transfer.xfer_asset == Asset(asset_id)
+    gtxns XferAsset
+    frame_dig -2
+    ==
+    assert
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.verify_invariant(sum_x: uint64, sum_x_sq: uint64, n: uint64, r_int: uint64, s_bound: uint64, k_bound: uint64, sqrt_n: uint64, inv_sqrt_n: uint64) -> uint64:
+verify_invariant:
+    // contract.py:252-262
+    // @subroutine
+    // def verify_invariant(
+    //     sum_x: UInt64,
+    //     sum_x_sq: UInt64,
+    //     n: UInt64,
+    //     r_int: UInt64,
+    //     s_bound: UInt64,
+    //     k_bound: UInt64,
+    //     sqrt_n: UInt64,
+    //     inv_sqrt_n: UInt64,
+    // ) -> bool:
+    proto 8 1
+    pushbytes ""
+    dupn 3
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -8
+    frame_dig -1
+    mulw
+    // contract.py:268
+    // alpha_total = mul_div_floor(sum_x, inv_sqrt_n, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    dup
+    // contract.py:269
+    // if alpha_total < k_bound:
+    frame_dig -3
+    <
+    bz verify_invariant_after_if_else@2
+    // contract.py:270
+    // return False
+    intc_0 // 0
+    frame_bury 0
+    retsub
+
+verify_invariant_after_if_else@2:
+    // contract.py:271
+    // alpha_int = alpha_total - k_bound
+    frame_dig 4
+    frame_dig -3
+    -
+    frame_bury 0
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -5
+    frame_dig -2
+    mulw
+    // contract.py:272
+    // r_int_sqrt_n = mul_div_floor(r_int, sqrt_n, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    frame_bury 1
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -8
+    dup
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    frame_dig -6
+    divw
+    dup
+    frame_bury 2
+    // contract.py:275
+    // if sum_x_sq < variance:
+    frame_dig -7
+    >
+    bz verify_invariant_after_if_else@4
+    // contract.py:276
+    // return False
+    intc_0 // 0
+    frame_bury 0
+    retsub
+
+verify_invariant_after_if_else@4:
+    // contract.py:277
+    // w_total_sq = sum_x_sq - variance
+    frame_dig -7
+    frame_dig 2
+    -
+    // contract.py:278
+    // w_total_norm = op.sqrt(w_total_sq)
+    sqrt
+    dup
+    frame_bury 3
+    // contract.py:279
+    // if w_total_norm < s_bound:
+    frame_dig -4
+    <
+    bz verify_invariant_after_if_else@6
+    // contract.py:280
+    // return False
+    intc_0 // 0
+    frame_bury 0
+    retsub
+
+verify_invariant_after_if_else@6:
+    // contract.py:281
+    // w_int_norm = w_total_norm - s_bound
+    frame_dig 3
+    frame_dig -4
+    -
+    // contract.py:283
+    // diff_alpha = abs_diff(alpha_int, r_int_sqrt_n)
+    frame_dig 0
+    frame_dig 1
+    callsub abs_diff
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    frame_dig -5
+    dup
+    mulw
+    // contract.py:175
+    // return mul_div_floor(value, value, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 1
+    uncover 2
+    mulw
+    // contract.py:175
+    // return mul_div_floor(value, value, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 2
+    uncover 3
+    mulw
+    // contract.py:175
+    // return mul_div_floor(value, value, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:285
+    // rhs = square_scaled(diff_alpha) + square_scaled(w_int_norm)
+    +
+    // contract.py:286
+    // return abs_diff(lhs, rhs) <= UInt64(_TOLERANCE)
+    callsub abs_diff
+    pushint 1000
+    <=
+    frame_bury 0
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.send_tokens(asset_id: uint64, receiver: bytes, amount: uint64) -> void:
+send_tokens:
+    // contract.py:289-290
+    // @subroutine
+    // def send_tokens(asset_id: UInt64, receiver: Account, amount: UInt64) -> None:
+    proto 3 0
+    // contract.py:291-296
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id),
+    //     asset_receiver=receiver,
+    //     asset_amount=amount,
+    //     fee=UInt64(0),
+    // ).submit()
+    itxn_begin
+    frame_dig -1
+    itxn_field AssetAmount
+    frame_dig -2
+    itxn_field AssetReceiver
+    frame_dig -3
+    itxn_field XferAsset
+    // contract.py:291
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // contract.py:295
+    // fee=UInt64(0),
+    intc_0 // 0
+    itxn_field Fee
+    // contract.py:291-296
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id),
+    //     asset_receiver=receiver,
+    //     asset_amount=amount,
+    //     fee=UInt64(0),
+    // ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.create[routing]() -> void:
+create:
+    // contract.py:354
+    // @arc4.abimethod(create="require")
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:361
+    // assert n > UInt64(1)
+    dig 2
+    intc_2 // 1
+    >
+    assert
+    // contract.py:363-364
+    // # Validate √n: (√n_scaled)² ≈ n × PRECISION² (floor-sqrt allowed).
+    // expected = n * UInt64(_PRECISION) * UInt64(_PRECISION)
+    dig 2
+    pushint 1000000000000000000
+    *
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 2
+    dig 3
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:366
+    // sqrt_tolerance = (sqrt_n_scaled * UInt64(2)) + UInt64(1)
+    dig 3
+    pushint 2
+    *
+    intc_2 // 1
+    +
+    // contract.py:367
+    // assert abs_diff(actual, expected) <= sqrt_tolerance
+    swap
+    uncover 2
+    callsub abs_diff
+    >=
+    assert
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dup2
+    mulw
+    // contract.py:369-370
+    // # Validate inv_√n: √n × inv_√n ≈ PRECISION².
+    // inv_check = mul_div_floor(sqrt_n_scaled, inv_sqrt_n_scaled, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:371
+    // assert abs_diff(inv_check, UInt64(_PRECISION)) <= UInt64(1)
+    intc_3 // 1000000000
+    callsub abs_diff
+    intc_2 // 1
+    <=
+    assert
+    // contract.py:373
+    // self.n.value = n
+    bytec_1 // "n"
+    uncover 3
+    app_global_put
+    // contract.py:374
+    // self.bootstrapped.value = UInt64(0)
+    bytec_2 // "bootstrapped"
+    intc_0 // 0
+    app_global_put
+    // contract.py:375
+    // self.registered_tokens.value = UInt64(0)
+    bytec 12 // "registered_tokens"
+    intc_0 // 0
+    app_global_put
+    // contract.py:376
+    // self.sum_x.value = UInt64(0)
+    bytec 6 // "sum_x"
+    intc_0 // 0
+    app_global_put
+    // contract.py:377
+    // self.sum_x_sq.value = UInt64(0)
+    bytec 7 // "sum_x_sq"
+    intc_0 // 0
+    app_global_put
+    // contract.py:378
+    // self.r_int.value = UInt64(0)
+    bytec 4 // "r_int"
+    intc_0 // 0
+    app_global_put
+    // contract.py:379
+    // self.s_bound.value = UInt64(0)
+    bytec 13 // "s_bound"
+    intc_0 // 0
+    app_global_put
+    // contract.py:380
+    // self.k_bound.value = UInt64(0)
+    bytec 14 // "k_bound"
+    intc_0 // 0
+    app_global_put
+    // contract.py:381
+    // self.virtual_offset.value = UInt64(0)
+    bytec 8 // "virtual_offset"
+    intc_0 // 0
+    app_global_put
+    // contract.py:382
+    // self.num_ticks.value = UInt64(0)
+    bytec 16 // "num_ticks"
+    intc_0 // 0
+    app_global_put
+    // contract.py:383
+    // self.sqrt_n.value = sqrt_n_scaled
+    bytec 17 // "sqrt_n"
+    uncover 2
+    app_global_put
+    // contract.py:384
+    // self.inv_sqrt_n.value = inv_sqrt_n_scaled
+    bytec 19 // "inv_sqrt_n"
+    swap
+    app_global_put
+    // contract.py:385
+    // self.paused.value = UInt64(0)
+    bytec 5 // "paused"
+    intc_0 // 0
+    app_global_put
+    // contract.py:386
+    // self.fee_bps.value = UInt64(30)  # default 0.30 %
+    bytec 18 // "fee_bps"
+    pushint 30
+    app_global_put
+    // contract.py:387
+    // self.creator.value = Txn.sender
+    bytec 21 // "creator"
+    txn Sender
+    app_global_put
+    // contract.py:388
+    // self.total_r.value = UInt64(0)
+    bytec 9 // "total_r"
+    intc_0 // 0
+    app_global_put
+    // contract.py:354
+    // @arc4.abimethod(create="require")
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.bootstrap[routing]() -> void:
+bootstrap:
+    // contract.py:393
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:394
+    // assert self.bootstrapped.value == UInt64(0)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    !
+    assert
+    // contract.py:396
+    // n = self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    // contract.py:397
+    // created = self.reserves.create(size=n * UInt64(8))
+    intc_1 // 8
+    *
+    dup
+    bytec_0 // 0x7265736572766573
+    swap
+    box_create
+    // contract.py:398
+    // if not created:
+    bnz bootstrap_after_if_else@3
+    // contract.py:399
+    // assert self.reserves.length == n * UInt64(8)
+    bytec_0 // 0x7265736572766573
+    box_len
+    assert // check self.reserves exists
+    dig 1
+    ==
+    assert
+
+bootstrap_after_if_else@3:
+    // contract.py:401
+    // fg_created = self.fee_growth.create(size=n * UInt64(8))
+    bytec_3 // 0x6665655f67726f777468
+    dig 1
+    box_create
+    // contract.py:402
+    // if not fg_created:
+    bnz bootstrap_after_if_else@5
+    // contract.py:403
+    // assert self.fee_growth.length == n * UInt64(8)
+    bytec_3 // 0x6665655f67726f777468
+    box_len
+    assert // check self.fee_growth exists
+    dig 1
+    ==
+    assert
+
+bootstrap_after_if_else@5:
+    // contract.py:405
+    // self.bootstrapped.value = UInt64(1)
+    bytec_2 // "bootstrapped"
+    intc_2 // 1
+    app_global_put
+    // contract.py:390
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.register_token[routing]() -> void:
+register_token:
+    // contract.py:412
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:414
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:415
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:416
+    // assert token_idx < self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    dig 2
+    >
+    assert
+    // contract.py:417
+    // assert token_idx not in self.tokens
+    swap
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    !
+    assert
+    // contract.py:419
+    // self.tokens[token_idx] = asset_id
+    dig 1
+    itob
+    box_put
+    // contract.py:420
+    // self.registered_tokens.value += UInt64(1)
+    intc_0 // 0
+    bytec 12 // "registered_tokens"
+    app_global_get_ex
+    assert // check self.registered_tokens exists
+    intc_2 // 1
+    +
+    bytec 12 // "registered_tokens"
+    swap
+    app_global_put
+    // contract.py:301-306
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id),
+    //     asset_receiver=Global.current_application_address,
+    //     asset_amount=UInt64(0),
+    //     fee=UInt64(0),
+    // ).submit()
+    itxn_begin
+    // contract.py:303
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    // contract.py:304
+    // asset_amount=UInt64(0),
+    intc_0 // 0
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // contract.py:301
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // contract.py:305
+    // fee=UInt64(0),
+    intc_0 // 0
+    itxn_field Fee
+    // contract.py:301-306
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id),
+    //     asset_receiver=Global.current_application_address,
+    //     asset_amount=UInt64(0),
+    //     fee=UInt64(0),
+    // ).submit()
+    itxn_submit
+    // contract.py:412
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.set_paused[routing]() -> void:
+set_paused:
+    // contract.py:425
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:427
+    // assert Txn.sender == self.creator.value
+    txn Sender
+    intc_0 // 0
+    bytec 21 // "creator"
+    app_global_get_ex
+    assert // check self.creator exists
+    ==
+    assert
+    // contract.py:428
+    // self.paused.value = flag
+    bytec 5 // "paused"
+    swap
+    app_global_put
+    // contract.py:425
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.set_fee[routing]() -> void:
+set_fee:
+    // contract.py:430
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:432
+    // assert Txn.sender == self.creator.value
+    txn Sender
+    intc_0 // 0
+    bytec 21 // "creator"
+    app_global_get_ex
+    assert // check self.creator exists
+    ==
+    assert
+    // contract.py:433
+    // assert new_fee_bps <= UInt64(500)  # cap at 5 %
+    dup
+    pushint 500
+    <=
+    assert
+    // contract.py:434
+    // self.fee_bps.value = new_fee_bps
+    bytec 18 // "fee_bps"
+    swap
+    app_global_put
+    // contract.py:430
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.add_tick[routing]() -> void:
+add_tick:
+    intc_0 // 0
+    dup
+    pushbytes ""
+    dup
+    // contract.py:438
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:449
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:450
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:451
+    // assert self.registered_tokens.value == self.n.value
+    intc_0 // 0
+    bytec 12 // "registered_tokens"
+    app_global_get_ex
+    assert // check self.registered_tokens exists
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    cover 5
+    assert // check self.n exists
+    swap
+    dig 1
+    ==
+    assert
+    // contract.py:452
+    // assert r > UInt64(0)
+    dig 2
+    assert
+    // contract.py:455
+    // sqrt_n = self.sqrt_n.value
+    intc_0 // 0
+    bytec 17 // "sqrt_n"
+    app_global_get_ex
+    assert // check self.sqrt_n exists
+    // contract.py:207
+    // return mul_div_floor(r, sqrt_n - UInt64(_PRECISION), UInt64(_PRECISION))
+    dup
+    intc_3 // 1000000000
+    -
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 4
+    mulw
+    // contract.py:207
+    // return mul_div_floor(r, sqrt_n - UInt64(_PRECISION), UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:212
+    // return mul_div_floor(r, (n - UInt64(1)) * UInt64(_PRECISION), sqrt_n)
+    dig 2
+    intc_2 // 1
+    -
+    intc_3 // 1000000000
+    *
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 5
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 3
+    divw
+    // contract.py:459
+    // assert k >= min_k
+    dig 4
+    uncover 2
+    >=
+    assert
+    // contract.py:460
+    // assert k <= max_k
+    dig 3
+    >=
+    assert
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 3
+    // contract.py:218
+    // return r - mul_div_floor(r, UInt64(_PRECISION), sqrt_n)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 2
+    divw
+    // contract.py:218
+    // return r - mul_div_floor(r, UInt64(_PRECISION), sqrt_n)
+    dig 4
+    swap
+    -
+    dup
+    cover 2
+    cover 5
+    // contract.py:463
+    // x_min = x_min_for_tick(r, k, n, sqrt_n)
+    uncover 4
+    uncover 4
+    dig 4
+    uncover 3
+    callsub x_min_for_tick
+    // contract.py:464
+    // assert q >= x_min
+    dup2
+    >=
+    assert
+    // contract.py:465
+    // deposit_per_token = q - x_min
+    swap
+    dig 1
+    -
+    cover 2
+    // contract.py:467
+    // assert Txn.group_index >= n
+    txn GroupIndex
+    dig 2
+    >=
+    assert
+    // contract.py:468
+    // start_index = Txn.group_index - n
+    txn GroupIndex
+    uncover 2
+    -
+    swap
+    // contract.py:470
+    // prior_offset = self.virtual_offset.value
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    cover 3
+    assert // check self.virtual_offset exists
+    // contract.py:471
+    // new_offset = prior_offset + x_min
+    +
+    // contract.py:472-473
+    // # Incrementally update sum_x_sq as we update each reserve.
+    // updated_sum_sq = self.sum_x_sq.value
+    intc_0 // 0
+    bytec 7 // "sum_x_sq"
+    app_global_get_ex
+    assert // check self.sum_x_sq exists
+    // contract.py:475
+    // for index in urange(n):
+    intc_0 // 0
+
+add_tick_for_header@2:
+    // contract.py:475
+    // for index in urange(n):
+    dup
+    dig 8
+    <
+    bz add_tick_after_for@5
+    // contract.py:476
+    // transfer = gtxn.AssetTransferTransaction(start_index + index)
+    dig 4
+    dig 1
+    dup
+    cover 2
+    +
+    dup
+    gtxns TypeEnum
+    pushint 4 // axfer
+    ==
+    assert // transaction type is axfer
+    // contract.py:477
+    // expected_asset = self.tokens[index]
+    dig 1
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    // contract.py:478
+    // assert transfer.sender == Txn.sender
+    dig 1
+    gtxns Sender
+    txn Sender
+    ==
+    assert
+    // contract.py:479
+    // assert transfer.asset_receiver == Global.current_application_address
+    dig 1
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    assert
+    // contract.py:480
+    // assert transfer.asset_amount == deposit_per_token
+    dig 1
+    gtxns AssetAmount
+    dig 9
+    dup
+    cover 3
+    ==
+    assert
+    // contract.py:481
+    // assert transfer.xfer_asset == Asset(expected_asset)
+    uncover 2
+    gtxns XferAsset
+    ==
+    assert
+    // contract.py:154
+    // return index * UInt64(8)
+    dig 1
+    intc_1 // 8
+    *
+    // contract.py:483
+    // current_actual = read_reserve(self.reserves, index)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:484
+    // current_math = current_actual + prior_offset
+    dup
+    dig 8
+    +
+    // contract.py:485
+    // new_actual = current_actual + deposit_per_token
+    swap
+    uncover 3
+    +
+    // contract.py:486
+    // new_math = new_actual + new_offset
+    dup
+    dig 7
+    +
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    swap
+    itob
+    // contract.py:487
+    // write_reserve(self.reserves, index, new_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    uncover 4
+    uncover 2
+    box_replace
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dup
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:488-489
+    // # Offset change affects ALL n reserves, correctly captured here.
+    // updated_sum_sq = updated_sum_sq + square_raw(new_math) - square_raw(current_math)
+    dig 4
+    +
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 1
+    uncover 2
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:488-489
+    // # Offset change affects ALL n reserves, correctly captured here.
+    // updated_sum_sq = updated_sum_sq + square_raw(new_math) - square_raw(current_math)
+    -
+    bury 3
+    // contract.py:475
+    // for index in urange(n):
+    intc_2 // 1
+    +
+    bury 1
+    b add_tick_for_header@2
+
+add_tick_after_for@5:
+    // contract.py:491
+    // tick_id = self.num_ticks.value
+    intc_0 // 0
+    bytec 16 // "num_ticks"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    bury 14
+    assert // check self.num_ticks exists
+    // contract.py:492-493
+    // # shares = deposit_per_token × n.  One share = 1/n of a deposited unit.
+    // shares = deposit_per_token * n
+    dig 6
+    dig 9
+    *
+    // contract.py:499
+    // total_shares=arc4.UInt64(shares),
+    itob
+    dup
+    bury 16
+    // contract.py:495-500
+    // self.ticks[tick_id] = TickData(
+    //     r=arc4.UInt64(r),
+    //     k=arc4.UInt64(k),
+    //     state=arc4.UInt8(0),       # starts INTERIOR
+    //     total_shares=arc4.UInt64(shares),
+    // )
+    dig 12
+    dig 11
+    concat
+    // contract.py:498
+    // state=arc4.UInt8(0),       # starts INTERIOR
+    pushbytes 0x00
+    // contract.py:495-500
+    // self.ticks[tick_id] = TickData(
+    //     r=arc4.UInt64(r),
+    //     k=arc4.UInt64(k),
+    //     state=arc4.UInt8(0),       # starts INTERIOR
+    //     total_shares=arc4.UInt64(shares),
+    // )
+    concat
+    swap
+    concat
+    // contract.py:495
+    // self.ticks[tick_id] = TickData(
+    swap
+    itob
+    bytec 15 // 0x7469636b3a
+    dig 1
+    concat
+    // contract.py:495-500
+    // self.ticks[tick_id] = TickData(
+    //     r=arc4.UInt64(r),
+    //     k=arc4.UInt64(k),
+    //     state=arc4.UInt8(0),       # starts INTERIOR
+    //     total_shares=arc4.UInt64(shares),
+    // )
+    uncover 2
+    box_put
+    // contract.py:502-505
+    // # Create position box: shares (8 bytes) + fee_growth checkpoints (n×8 bytes).
+    // # Checkpoints are set to current fee_growth values so the LP does not
+    // # receive fees accrued before their deposit (no retroactive fee claim).
+    // pos_key = Txn.sender.bytes + op.itob(tick_id)
+    txn Sender
+    swap
+    concat
+    bury 15
+    // contract.py:507
+    // for idx in urange(n):
+    intc_0 // 0
+    bury 13
+
+add_tick_for_header@6:
+    // contract.py:507
+    // for idx in urange(n):
+    dig 12
+    dig 8
+    <
+    bz add_tick_after_for@9
+    // contract.py:154
+    // return index * UInt64(8)
+    dig 12
+    dup
+    intc_1 // 8
+    *
+    // contract.py:508
+    // fg = read_fee_growth(self.fee_growth, idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    // contract.py:509
+    // pos_value = pos_value + op.itob(fg)
+    extract 0 8
+    dig 15
+    swap
+    concat
+    bury 15
+    // contract.py:507
+    // for idx in urange(n):
+    intc_2 // 1
+    +
+    bury 13
+    b add_tick_for_header@6
+
+add_tick_after_for@9:
+    // contract.py:510
+    // self.positions[pos_key] = pos_value
+    bytec 20 // 0x706f733a
+    dig 15
+    concat
+    dup
+    box_del
+    pop
+    dig 14
+    box_put
+    // contract.py:512
+    // self.num_ticks.value = tick_id + UInt64(1)
+    dig 11
+    intc_2 // 1
+    +
+    bytec 16 // "num_ticks"
+    swap
+    app_global_put
+    // contract.py:513
+    // self.r_int.value += r
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    assert // check self.r_int exists
+    dig 10
+    dup
+    cover 2
+    +
+    bytec 4 // "r_int"
+    swap
+    app_global_put
+    // contract.py:514
+    // self.total_r.value += r
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    assert // check self.total_r exists
+    +
+    bytec 9 // "total_r"
+    swap
+    app_global_put
+    // contract.py:515
+    // self.virtual_offset.value = new_offset
+    bytec 8 // "virtual_offset"
+    dig 3
+    app_global_put
+    // contract.py:516-517
+    // # sum_x increases by n×q (deposit + offset change, see module docstring).
+    // self.sum_x.value += n * q
+    intc_0 // 0
+    bytec 6 // "sum_x"
+    app_global_get_ex
+    assert // check self.sum_x exists
+    dig 8
+    dig 8
+    *
+    +
+    bytec 6 // "sum_x"
+    swap
+    app_global_put
+    // contract.py:518
+    // self.sum_x_sq.value = updated_sum_sq
+    bytec 7 // "sum_x_sq"
+    dig 2
+    app_global_put
+    // contract.py:438
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.claim_fees[routing]() -> void:
+claim_fees:
+    pushbytes ""
+    dupn 2
+    // contract.py:520
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:534
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:535
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:536
+    // assert tick_id in self.ticks
+    itob
+    bytec 15 // 0x7469636b3a
+    dig 1
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:538
+    // pos_key = Txn.sender.bytes + op.itob(tick_id)
+    txn Sender
+    uncover 2
+    concat
+    // contract.py:539
+    // assert pos_key in self.positions
+    bytec 20 // 0x706f733a
+    swap
+    concat
+    dup
+    cover 2
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:541
+    // tick = self.ticks[tick_id].copy()
+    swap
+    box_get
+    pop
+    // contract.py:542
+    // tick_r = tick.r.as_uint64()
+    dup
+    intc_0 // 0
+    extract_uint64
+    // contract.py:543
+    // tick_total_shares = tick.total_shares.as_uint64()
+    swap
+    pushint 17
+    extract_uint64
+    // contract.py:544
+    // assert tick_total_shares > UInt64(0)
+    dup
+    assert
+    // contract.py:546
+    // pos_raw = self.positions[pos_key]
+    uncover 2
+    box_get
+    pop
+    dup
+    cover 3
+    // contract.py:547
+    // pos_shares = op.extract_uint64(pos_raw, 0)
+    intc_0 // 0
+    extract_uint64
+    // contract.py:548
+    // assert pos_shares > UInt64(0)
+    dup
+    assert
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    uncover 2
+    dig 1
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    uncover 3
+    divw
+    swap
+    // contract.py:553
+    // n = self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    swap
+    cover 2
+    assert // check self.n exists
+    // contract.py:554-555
+    // # Build new position value with updated checkpoints; send fees in same pass.
+    // new_pos_value = op.itob(pos_shares)  # shares unchanged
+    itob
+    // contract.py:557
+    // for idx in urange(n):
+    intc_0 // 0
+
+claim_fees_for_header@2:
+    // contract.py:557
+    // for idx in urange(n):
+    dup
+    dig 3
+    <
+    bz claim_fees_after_for@9
+    // contract.py:154
+    // return index * UInt64(8)
+    dup
+    intc_1 // 8
+    *
+    // contract.py:558
+    // fg_global = read_fee_growth(self.fee_growth, idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    dup
+    cover 2
+    bury 9
+    // contract.py:559
+    // fg_checkpoint = op.extract_uint64(pos_raw, UInt64(8) + idx * UInt64(8))
+    intc_1 // 8
+    +
+    dig 6
+    swap
+    extract_uint64
+    dup
+    cover 2
+    bury 10
+    // contract.py:560-562
+    // # Checkpoint advances to current value regardless (prevents double-claim
+    // # even if claimable rounds to zero due to fixed-point floor).
+    // new_pos_value = new_pos_value + op.itob(fg_global)
+    dup
+    itob
+    dig 4
+    swap
+    concat
+    bury 4
+    // contract.py:564
+    // if fg_global > fg_checkpoint:
+    <
+    bz claim_fees_after_if_else@7
+    // contract.py:565
+    // fee_delta = fg_global - fg_checkpoint
+    dig 6
+    dig 8
+    -
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 4
+    mulw
+    // contract.py:566
+    // claimable = mul_div_floor(pos_r, fee_delta, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    dup
+    bury 10
+    // contract.py:567
+    // if claimable > UInt64(0):
+    bz claim_fees_after_if_else@7
+    // contract.py:568
+    // send_tokens(self.tokens[idx], Txn.sender, claimable)
+    dup
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    txn Sender
+    dig 10
+    callsub send_tokens
+
+claim_fees_after_if_else@7:
+    // contract.py:557
+    // for idx in urange(n):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b claim_fees_for_header@2
+
+claim_fees_after_for@9:
+    // contract.py:570
+    // self.positions[pos_key] = new_pos_value
+    dig 5
+    dup
+    box_del
+    pop
+    dig 2
+    box_put
+    // contract.py:520
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.remove_liquidity[routing]() -> void:
+remove_liquidity:
+    intc_0 // 0
+    pushbytes ""
+    dupn 8
+    // contract.py:572
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    cover 2
+    // contract.py:592
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:593
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:594
+    // assert self.registered_tokens.value == self.n.value
+    intc_0 // 0
+    bytec 12 // "registered_tokens"
+    app_global_get_ex
+    assert // check self.registered_tokens exists
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    cover 5
+    assert // check self.n exists
+    ==
+    assert
+    // contract.py:595
+    // assert shares > UInt64(0)
+    dup
+    assert
+    // contract.py:596
+    // assert tick_id in self.ticks
+    swap
+    itob
+    bytec 15 // 0x7469636b3a
+    dig 1
+    concat
+    dup
+    cover 3
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:598
+    // pos_key = Txn.sender.bytes + op.itob(tick_id)
+    txn Sender
+    uncover 2
+    concat
+    // contract.py:599
+    // assert pos_key in self.positions
+    bytec 20 // 0x706f733a
+    swap
+    concat
+    dup
+    cover 3
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:601
+    // tick = self.ticks[tick_id].copy()
+    swap
+    box_get
+    pop
+    // contract.py:602
+    // tick_r = tick.r.as_uint64()
+    dup
+    intc_0 // 0
+    extract_uint64
+    dup
+    cover 3
+    cover 4
+    // contract.py:603
+    // tick_k = tick.k.as_uint64()
+    dup
+    intc_1 // 8
+    extract_uint64
+    dup
+    cover 4
+    cover 5
+    // contract.py:604
+    // tick_state = tick.state.as_uint64()
+    dup
+    extract 16 1
+    cover 5
+    dup
+    pushint 16
+    getbyte
+    cover 5
+    // contract.py:605
+    // tick_total_shares = tick.total_shares.as_uint64()
+    pushint 17
+    extract_uint64
+    // contract.py:607
+    // pos_raw = self.positions[pos_key]
+    swap
+    box_get
+    pop
+    dup
+    cover 5
+    // contract.py:608
+    // pos_shares = op.extract_uint64(pos_raw, 0)
+    intc_0 // 0
+    extract_uint64
+    dup
+    cover 5
+    // contract.py:609
+    // assert shares <= pos_shares
+    dig 4
+    dig 1
+    <=
+    assert
+    // contract.py:612
+    // sqrt_n = self.sqrt_n.value
+    intc_0 // 0
+    bytec 17 // "sqrt_n"
+    app_global_get_ex
+    swap
+    cover 6
+    assert // check self.sqrt_n exists
+    // contract.py:613
+    // is_full = shares == pos_shares
+    dig 4
+    ==
+    cover 4
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 1
+    dig 4
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 2
+    divw
+    dup
+    cover 3
+    cover 5
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 3
+    uncover 5
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    uncover 2
+    divw
+    dup
+    cover 4
+    // contract.py:618
+    // remaining_r = tick_r - pos_r
+    swap
+    dig 2
+    -
+    cover 3
+    // contract.py:619
+    // remaining_k = tick_k - pos_k
+    uncover 2
+    swap
+    -
+    swap
+    // contract.py:621-622
+    // # Save old total_r before any mutation (needed for reserve pro-rata).
+    // old_total_r = self.total_r.value
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    cover 3
+    assert // check self.total_r exists
+    // contract.py:623
+    // assert old_total_r >= pos_r
+    <=
+    assert
+    // contract.py:625-626
+    // # ── Step 1: Settle fees (same logic as claim_fees, inline for atomicity) ──
+    // for idx in urange(n):
+    intc_0 // 0
+
+remove_liquidity_for_header@2:
+    // contract.py:625-626
+    // # ── Step 1: Settle fees (same logic as claim_fees, inline for atomicity) ──
+    // for idx in urange(n):
+    dup
+    dig 17
+    <
+    bz remove_liquidity_after_for@9
+    // contract.py:154
+    // return index * UInt64(8)
+    dup
+    intc_1 // 8
+    *
+    // contract.py:627
+    // fg_global = read_fee_growth(self.fee_growth, idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    dup
+    cover 2
+    bury 27
+    // contract.py:628
+    // fg_checkpoint = op.extract_uint64(pos_raw, UInt64(8) + idx * UInt64(8))
+    intc_1 // 8
+    +
+    dig 11
+    swap
+    extract_uint64
+    dup
+    bury 28
+    // contract.py:629
+    // if fg_global > fg_checkpoint:
+    >
+    bz remove_liquidity_after_if_else@7
+    // contract.py:630
+    // fee_delta = fg_global - fg_checkpoint
+    dig 24
+    dig 26
+    -
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 6
+    mulw
+    // contract.py:631
+    // claimable = mul_div_floor(pos_r, fee_delta, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    dup
+    bury 28
+    // contract.py:632
+    // if claimable > UInt64(0):
+    bz remove_liquidity_after_if_else@7
+    // contract.py:633
+    // send_tokens(self.tokens[idx], Txn.sender, claimable)
+    dup
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    txn Sender
+    dig 28
+    callsub send_tokens
+
+remove_liquidity_after_if_else@7:
+    // contract.py:625-626
+    // # ── Step 1: Settle fees (same logic as claim_fees, inline for atomicity) ──
+    // for idx in urange(n):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b remove_liquidity_for_header@2
+
+remove_liquidity_after_for@9:
+    // contract.py:635-636
+    // # ── Step 2: Update consolidation state ────────────────────────
+    // if tick_state == UInt64(0):  # INTERIOR
+    dig 10
+    bnz remove_liquidity_else_body@11
+    // contract.py:637
+    // self.r_int.value -= pos_r
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    assert // check self.r_int exists
+    dig 6
+    -
+    bytec 4 // "r_int"
+    swap
+    app_global_put
+
+remove_liquidity_after_if_else@15:
+    // contract.py:647
+    // self.total_r.value -= pos_r
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    assert // check self.total_r exists
+    dig 6
+    -
+    bytec 9 // "total_r"
+    swap
+    app_global_put
+    // contract.py:649-650
+    // # ── Step 3: Virtual offset ─────────────────────────────────────
+    // old_x_min = x_min_for_tick(tick_r, tick_k, n, sqrt_n)
+    dig 13
+    dig 13
+    dig 18
+    dig 10
+    callsub x_min_for_tick
+    bury 19
+    // contract.py:651
+    // if is_full:
+    dig 6
+    bz remove_liquidity_else_body@17
+    // contract.py:652
+    // new_x_min = UInt64(0)
+    intc_0 // 0
+
+remove_liquidity_after_if_else@18:
+    // contract.py:655
+    // old_offset = self.virtual_offset.value
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    assert // check self.virtual_offset exists
+    // contract.py:656
+    // new_offset = old_offset - (old_x_min - new_x_min)
+    dig 20
+    uncover 2
+    -
+    -
+    dup
+    bury 24
+    // contract.py:657
+    // self.virtual_offset.value = new_offset
+    bytec 8 // "virtual_offset"
+    swap
+    app_global_put
+    // contract.py:659-662
+    // # ── Step 4+5: Reserve payout + recompute aggregates ───────────
+    // # LP receives pos_r / old_total_r of each actual reserve.
+    // # Recompute sum_x and sum_x_sq from scratch at new_offset.
+    // new_sum = UInt64(0)
+    intc_0 // 0
+    bury 22
+    // contract.py:663
+    // new_sum_sq = UInt64(0)
+    intc_0 // 0
+    bury 21
+    // contract.py:664
+    // for idx in urange(n):
+    intc_0 // 0
+    bury 1
+
+remove_liquidity_for_header@19:
+    // contract.py:664
+    // for idx in urange(n):
+    dup
+    dig 17
+    <
+    bz remove_liquidity_after_for@24
+    // contract.py:154
+    // return index * UInt64(8)
+    dup
+    intc_1 // 8
+    *
+    // contract.py:665
+    // old_actual = read_reserve(self.reserves, idx)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dup
+    dig 8
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 5
+    divw
+    dup
+    bury 27
+    // contract.py:667
+    // new_actual = old_actual - lp_share
+    swap
+    dig 1
+    -
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    dup
+    itob
+    // contract.py:668
+    // write_reserve(self.reserves, idx, new_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    uncover 4
+    uncover 2
+    box_replace
+    // contract.py:669
+    // new_math = new_actual + new_offset
+    dig 24
+    +
+    // contract.py:670
+    // new_sum += new_math
+    dig 23
+    dig 1
+    +
+    bury 24
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dup
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:671
+    // new_sum_sq += square_raw(new_math)
+    dig 22
+    +
+    bury 22
+    // contract.py:672
+    // if lp_share > UInt64(0):
+    bz remove_liquidity_after_if_else@22
+    // contract.py:673
+    // send_tokens(self.tokens[idx], Txn.sender, lp_share)
+    dup
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    txn Sender
+    dig 25
+    callsub send_tokens
+
+remove_liquidity_after_if_else@22:
+    // contract.py:664
+    // for idx in urange(n):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b remove_liquidity_for_header@19
+
+remove_liquidity_after_for@24:
+    // contract.py:675
+    // self.sum_x.value = new_sum
+    bytec 6 // "sum_x"
+    dig 22
+    app_global_put
+    // contract.py:676
+    // self.sum_x_sq.value = new_sum_sq
+    bytec 7 // "sum_x_sq"
+    dig 21
+    app_global_put
+    // contract.py:678-679
+    // # ── Step 6: Update / delete tick and position boxes ───────────
+    // if is_full:
+    dig 6
+    bz remove_liquidity_else_body@26
+    // contract.py:680
+    // del self.ticks[tick_id]
+    dig 15
+    box_del
+    pop
+    // contract.py:681
+    // del self.positions[pos_key]
+    dig 14
+    box_del
+    pop
+
+remove_liquidity_after_if_else@31:
+    // contract.py:572
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+remove_liquidity_else_body@26:
+    // contract.py:683
+    // remaining_shares = pos_shares - shares
+    dig 8
+    dig 18
+    -
+    // contract.py:685
+    // r=arc4.UInt64(remaining_r),
+    dig 4
+    itob
+    // contract.py:686
+    // k=arc4.UInt64(remaining_k),
+    dig 4
+    itob
+    // contract.py:688
+    // total_shares=arc4.UInt64(remaining_shares),
+    uncover 2
+    itob
+    dup
+    cover 3
+    bury 31
+    // contract.py:684-689
+    // self.ticks[tick_id] = TickData(
+    //     r=arc4.UInt64(remaining_r),
+    //     k=arc4.UInt64(remaining_k),
+    //     state=tick.state,
+    //     total_shares=arc4.UInt64(remaining_shares),
+    // )
+    concat
+    dig 13
+    concat
+    swap
+    concat
+    dig 16
+    swap
+    box_put
+    // contract.py:692
+    // for idx in urange(n):
+    intc_0 // 0
+    bury 1
+
+remove_liquidity_for_header@27:
+    // contract.py:692
+    // for idx in urange(n):
+    dup
+    dig 17
+    <
+    bz remove_liquidity_after_for@30
+    // contract.py:154
+    // return index * UInt64(8)
+    dupn 2
+    intc_1 // 8
+    *
+    // contract.py:693
+    // fg = read_fee_growth(self.fee_growth, idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    // contract.py:694
+    // new_pos_value = new_pos_value + op.itob(fg)
+    extract 0 8
+    dig 29
+    swap
+    concat
+    bury 29
+    // contract.py:692
+    // for idx in urange(n):
+    intc_2 // 1
+    +
+    bury 1
+    b remove_liquidity_for_header@27
+
+remove_liquidity_after_for@30:
+    // contract.py:695
+    // self.positions[pos_key] = new_pos_value
+    dig 14
+    dup
+    box_del
+    pop
+    dig 28
+    box_put
+    b remove_liquidity_after_if_else@31
+
+remove_liquidity_else_body@17:
+    // contract.py:654
+    // new_x_min = x_min_for_tick(remaining_r, remaining_k, n, sqrt_n)
+    dig 3
+    dig 3
+    dig 18
+    dig 10
+    callsub x_min_for_tick
+    b remove_liquidity_after_if_else@18
+
+remove_liquidity_else_body@11:
+    // contract.py:639
+    // old_s = boundary_radius_calc(tick_r, tick_k, sqrt_n)
+    dig 13
+    dig 13
+    dig 9
+    callsub boundary_radius_calc
+    bury 20
+    // contract.py:640
+    // if is_full:
+    dig 6
+    bz remove_liquidity_else_body@13
+    // contract.py:641
+    // new_s = UInt64(0)
+    intc_0 // 0
+
+remove_liquidity_after_if_else@14:
+    // contract.py:644
+    // self.s_bound.value -= (old_s - new_s)
+    intc_0 // 0
+    bytec 13 // "s_bound"
+    app_global_get_ex
+    assert // check self.s_bound exists
+    dig 21
+    uncover 2
+    -
+    -
+    bytec 13 // "s_bound"
+    swap
+    app_global_put
+    // contract.py:645
+    // self.k_bound.value -= pos_k
+    intc_0 // 0
+    bytec 14 // "k_bound"
+    app_global_get_ex
+    assert // check self.k_bound exists
+    dig 5
+    -
+    bytec 14 // "k_bound"
+    swap
+    app_global_put
+    b remove_liquidity_after_if_else@15
+
+remove_liquidity_else_body@13:
+    // contract.py:643
+    // new_s = boundary_radius_calc(remaining_r, remaining_k, sqrt_n)
+    dig 3
+    dig 3
+    dig 9
+    callsub boundary_radius_calc
+    b remove_liquidity_after_if_else@14
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.swap[routing]() -> void:
+swap:
+    pushbytes ""
+    dup
+    // contract.py:699
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 4
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    cover 4
+    txna ApplicationArgs 5
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:717
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:718
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:719
+    // assert self.registered_tokens.value == self.n.value
+    intc_0 // 0
+    bytec 12 // "registered_tokens"
+    app_global_get_ex
+    assert // check self.registered_tokens exists
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    swap
+    dig 1
+    ==
+    assert
+    // contract.py:720
+    // assert token_in_idx != token_out_idx
+    dig 5
+    dig 5
+    !=
+    assert
+    // contract.py:721
+    // assert token_in_idx < self.n.value
+    dig 5
+    dig 1
+    <
+    assert
+    // contract.py:722
+    // assert token_out_idx < self.n.value
+    dig 4
+    >
+    assert
+    // contract.py:723
+    // assert claimed_amount_out >= min_amount_out
+    dig 1
+    <=
+    assert
+    // contract.py:725
+    // token_in_asset = self.tokens[token_in_idx]
+    dig 3
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    // contract.py:726
+    // token_out_asset = self.tokens[token_out_idx]
+    dig 3
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    cover 5
+    // contract.py:727
+    // verify_preceding_transfer(token_in_asset, amount_in)
+    dig 2
+    callsub verify_preceding_transfer
+    // contract.py:729
+    // fee = mul_div_floor(amount_in, self.fee_bps.value, UInt64(_FEE_DENOMINATOR))
+    intc_0 // 0
+    bytec 18 // "fee_bps"
+    app_global_get_ex
+    assert // check self.fee_bps exists
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 2
+    mulw
+    // contract.py:729
+    // fee = mul_div_floor(amount_in, self.fee_bps.value, UInt64(_FEE_DENOMINATOR))
+    intc 4 // 10000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    dup
+    cover 5
+    // contract.py:730
+    // effective_in = amount_in - fee
+    uncover 2
+    dig 1
+    -
+    // contract.py:732
+    // offset = self.virtual_offset.value
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    assert // check self.virtual_offset exists
+    // contract.py:154
+    // return index * UInt64(8)
+    uncover 5
+    intc_1 // 8
+    *
+    dup
+    cover 6
+    // contract.py:733
+    // old_in_actual = read_reserve(self.reserves, token_in_idx)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:154
+    // return index * UInt64(8)
+    uncover 6
+    intc_1 // 8
+    *
+    // contract.py:734
+    // old_out_actual = read_reserve(self.reserves, token_out_idx)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:735
+    // assert claimed_amount_out <= old_out_actual
+    dig 7
+    dig 1
+    <=
+    assert
+    // contract.py:737
+    // old_in_math = old_in_actual + offset
+    dig 2
+    dig 5
+    +
+    // contract.py:738
+    // old_out_math = old_out_actual + offset
+    dig 1
+    dig 6
+    +
+    // contract.py:739
+    // new_in_actual = old_in_actual + effective_in
+    uncover 4
+    dig 7
+    +
+    // contract.py:740
+    // new_out_actual = old_out_actual - claimed_amount_out
+    uncover 3
+    dig 9
+    -
+    // contract.py:741
+    // new_in_math = new_in_actual + offset
+    dig 1
+    dig 7
+    +
+    // contract.py:742
+    // new_out_math = new_out_actual + offset
+    dig 1
+    uncover 8
+    +
+    // contract.py:743
+    // new_sum = self.sum_x.value + effective_in - claimed_amount_out
+    intc_0 // 0
+    bytec 6 // "sum_x"
+    app_global_get_ex
+    assert // check self.sum_x exists
+    uncover 9
+    +
+    uncover 10
+    -
+    // contract.py:745
+    // self.sum_x_sq.value
+    intc_0 // 0
+    bytec 7 // "sum_x_sq"
+    app_global_get_ex
+    assert // check self.sum_x_sq exists
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 3
+    uncover 4
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:745-746
+    // self.sum_x_sq.value
+    // + square_raw(new_in_math)
+    +
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 6
+    uncover 7
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:745-747
+    // self.sum_x_sq.value
+    // + square_raw(new_in_math)
+    // - square_raw(old_in_math)
+    -
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 2
+    uncover 3
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:745-748
+    // self.sum_x_sq.value
+    // + square_raw(new_in_math)
+    // - square_raw(old_in_math)
+    // + square_raw(new_out_math)
+    +
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 4
+    uncover 5
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:745-749
+    // self.sum_x_sq.value
+    // + square_raw(new_in_math)
+    // - square_raw(old_in_math)
+    // + square_raw(new_out_math)
+    // - square_raw(old_out_math)
+    -
+    // contract.py:755
+    // self.n.value,
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    // contract.py:756
+    // self.r_int.value,
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    assert // check self.r_int exists
+    // contract.py:757
+    // self.s_bound.value,
+    intc_0 // 0
+    bytec 13 // "s_bound"
+    app_global_get_ex
+    assert // check self.s_bound exists
+    // contract.py:758
+    // self.k_bound.value,
+    intc_0 // 0
+    bytec 14 // "k_bound"
+    app_global_get_ex
+    assert // check self.k_bound exists
+    // contract.py:759
+    // self.sqrt_n.value,
+    intc_0 // 0
+    bytec 17 // "sqrt_n"
+    app_global_get_ex
+    assert // check self.sqrt_n exists
+    // contract.py:760
+    // self.inv_sqrt_n.value,
+    intc_0 // 0
+    bytec 19 // "inv_sqrt_n"
+    app_global_get_ex
+    assert // check self.inv_sqrt_n exists
+    // contract.py:752-761
+    // assert verify_invariant(
+    //     new_sum,
+    //     new_sum_sq,
+    //     self.n.value,
+    //     self.r_int.value,
+    //     self.s_bound.value,
+    //     self.k_bound.value,
+    //     self.sqrt_n.value,
+    //     self.inv_sqrt_n.value,
+    // )
+    dig 7
+    dig 7
+    cover 7
+    cover 7
+    callsub verify_invariant
+    assert
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    uncover 3
+    itob
+    // contract.py:763
+    // write_reserve(self.reserves, token_in_idx, new_in_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    uncover 6
+    uncover 2
+    box_replace
+    uncover 2
+    itob
+    // contract.py:764
+    // write_reserve(self.reserves, token_out_idx, new_out_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    uncover 4
+    uncover 2
+    box_replace
+    // contract.py:765
+    // self.sum_x.value = new_sum
+    bytec 6 // "sum_x"
+    uncover 2
+    app_global_put
+    // contract.py:766
+    // self.sum_x_sq.value = new_sum_sq
+    bytec 7 // "sum_x_sq"
+    swap
+    app_global_put
+    // contract.py:768-771
+    // # Accumulate fee into fee_growth (PRECISION-scaled per-r).
+    // # The fee stays in the contract's ASA balance; only the growth rate
+    // # is recorded here.  If total_r == 0 (no LPs), fee becomes protocol dust.
+    // if fee > UInt64(0):
+    bz swap_after_if_else@7
+    // contract.py:772
+    // total_r = self.total_r.value
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    bury 7
+    assert // check self.total_r exists
+    // contract.py:773
+    // if total_r > UInt64(0):
+    bz swap_after_if_else@7
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 1
+    // contract.py:774
+    // fg_increment = mul_div_floor(fee, UInt64(_PRECISION), total_r)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 6
+    divw
+    dup
+    bury 7
+    // contract.py:775
+    // if fg_increment > UInt64(0):
+    bz swap_after_if_else@7
+    // contract.py:776
+    // old_fg = read_fee_growth(self.fee_growth, token_in_idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    dup
+    cover 2
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:777
+    // write_fee_growth(self.fee_growth, token_in_idx, old_fg + fg_increment)
+    dig 7
+    +
+    // contract.py:195
+    // fee_growth.replace(reserve_offset(index), op.itob(value))
+    itob
+    // contract.py:777
+    // write_fee_growth(self.fee_growth, token_in_idx, old_fg + fg_increment)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:195
+    // fee_growth.replace(reserve_offset(index), op.itob(value))
+    cover 2
+    box_replace
+
+swap_after_if_else@7:
+    // contract.py:779
+    // if claimed_amount_out > UInt64(0):
+    dig 3
+    bz swap_after_if_else@9
+    // contract.py:780
+    // send_tokens(token_out_asset, Txn.sender, claimed_amount_out)
+    dig 2
+    txn Sender
+    dig 5
+    callsub send_tokens
+
+swap_after_if_else@9:
+    // contract.py:699
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.swap_with_crossings[routing]() -> void:
+swap_with_crossings:
+    intc_0 // 0
+    dupn 3
+    pushbytes ""
+    dupn 6
+    // contract.py:782
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 4
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    txna ApplicationArgs 5
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    cover 4
+    // contract.py:812
+    // assert self.paused.value == UInt64(0)
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert
+    // contract.py:813
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:814
+    // assert self.registered_tokens.value == self.n.value
+    intc_0 // 0
+    bytec 12 // "registered_tokens"
+    app_global_get_ex
+    assert // check self.registered_tokens exists
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    swap
+    dig 1
+    ==
+    assert
+    // contract.py:815
+    // assert token_in_idx != token_out_idx
+    dig 4
+    dig 4
+    !=
+    assert
+    // contract.py:816
+    // assert token_in_idx < self.n.value
+    dig 4
+    dig 1
+    <
+    assert
+    // contract.py:817
+    // assert token_out_idx < self.n.value
+    dig 3
+    >
+    assert
+    // contract.py:819
+    // token_in_asset = self.tokens[token_in_idx]
+    dig 3
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    // contract.py:820
+    // token_out_asset = self.tokens[token_out_idx]
+    dig 3
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    cover 5
+    // contract.py:821
+    // verify_preceding_transfer(token_in_asset, total_amount_in)
+    dig 2
+    callsub verify_preceding_transfer
+    // contract.py:823
+    // fee = mul_div_floor(total_amount_in, self.fee_bps.value, UInt64(_FEE_DENOMINATOR))
+    intc_0 // 0
+    bytec 18 // "fee_bps"
+    app_global_get_ex
+    assert // check self.fee_bps exists
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 2
+    mulw
+    // contract.py:823
+    // fee = mul_div_floor(total_amount_in, self.fee_bps.value, UInt64(_FEE_DENOMINATOR))
+    intc 4 // 10000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    dup
+    cover 5
+    // contract.py:824
+    // effective_total_in = total_amount_in - fee
+    uncover 2
+    swap
+    -
+    cover 3
+    // contract.py:826
+    // recipe_bytes = trade_recipe.native
+    extract 2 0
+    dup
+    cover 3
+    // contract.py:827
+    // assert recipe_bytes.length > UInt64(0)
+    len
+    dup
+    assert
+    // contract.py:828
+    // assert recipe_bytes.length % UInt64(_SEGMENT_SIZE) == UInt64(0)
+    dup
+    pushint 25
+    %
+    !
+    assert
+    // contract.py:829
+    // num_segments = recipe_bytes.length // UInt64(_SEGMENT_SIZE)
+    pushint 25
+    /
+    cover 2
+    // contract.py:831
+    // n = self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.n exists
+    // contract.py:832
+    // sqrt_n = self.sqrt_n.value
+    intc_0 // 0
+    bytec 17 // "sqrt_n"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.sqrt_n exists
+    // contract.py:833
+    // inv_sqrt_n = self.inv_sqrt_n.value
+    intc_0 // 0
+    bytec 19 // "inv_sqrt_n"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.inv_sqrt_n exists
+    // contract.py:834
+    // offset = self.virtual_offset.value
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.virtual_offset exists
+    // contract.py:836
+    // cur_r_int = self.r_int.value
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.r_int exists
+    // contract.py:837
+    // cur_s_bound = self.s_bound.value
+    intc_0 // 0
+    bytec 13 // "s_bound"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.s_bound exists
+    // contract.py:838
+    // cur_k_bound = self.k_bound.value
+    intc_0 // 0
+    bytec 14 // "k_bound"
+    app_global_get_ex
+    swap
+    cover 3
+    assert // check self.k_bound exists
+    // contract.py:154
+    // return index * UInt64(8)
+    swap
+    intc_1 // 8
+    *
+    dup
+    cover 2
+    // contract.py:840
+    // running_in_actual = read_reserve(self.reserves, token_in_idx)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    swap
+    // contract.py:154
+    // return index * UInt64(8)
+    intc_1 // 8
+    *
+    dup
+    // contract.py:841
+    // running_out_actual = read_reserve(self.reserves, token_out_idx)
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:842
+    // running_sum = self.sum_x.value
+    intc_0 // 0
+    bytec 6 // "sum_x"
+    app_global_get_ex
+    assert // check self.sum_x exists
+    // contract.py:843
+    // running_sum_sq = self.sum_x_sq.value
+    intc_0 // 0
+    bytec 7 // "sum_x_sq"
+    app_global_get_ex
+    assert // check self.sum_x_sq exists
+    // contract.py:845
+    // total_seg_in = UInt64(0)
+    intc_0 // 0
+    // contract.py:846
+    // total_seg_out = UInt64(0)
+    dupn 2
+
+swap_with_crossings_for_header@2:
+    // contract.py:848
+    // for seg_idx in urange(num_segments):
+    dup
+    dig 17
+    <
+    bz swap_with_crossings_after_for@12
+    // contract.py:849
+    // seg_off = seg_idx * UInt64(_SEGMENT_SIZE)
+    dup
+    pushint 25
+    *
+    // contract.py:850
+    // seg_in = op.extract_uint64(recipe_bytes, seg_off)
+    dig 18
+    dup
+    cover 2
+    dig 1
+    extract_uint64
+    // contract.py:851
+    // seg_out = op.extract_uint64(recipe_bytes, seg_off + UInt64(8))
+    dig 1
+    intc_1 // 8
+    +
+    dig 3
+    swap
+    extract_uint64
+    dup
+    cover 4
+    bury 31
+    // contract.py:852
+    // seg_tick_id = op.extract_uint64(recipe_bytes, seg_off + UInt64(16))
+    dig 1
+    pushint 16
+    +
+    dig 3
+    swap
+    extract_uint64
+    dup
+    cover 5
+    bury 31
+    // contract.py:853
+    // seg_new_state = op.getbyte(recipe_bytes, seg_off + UInt64(24))
+    swap
+    pushint 24
+    +
+    uncover 2
+    swap
+    getbyte
+    bury 31
+    // contract.py:855
+    // assert seg_in > UInt64(0)
+    dup
+    assert
+    // contract.py:856
+    // total_seg_in += seg_in
+    dig 5
+    dig 1
+    +
+    dup
+    bury 7
+    // contract.py:857
+    // assert total_seg_in <= effective_total_in
+    dig 22
+    <=
+    assert
+    // contract.py:859
+    // prev_in_math = running_in_actual + offset
+    dig 10
+    dup
+    dig 17
+    dup
+    cover 2
+    +
+    // contract.py:860
+    // prev_out_math = running_out_actual + offset
+    dig 11
+    dup
+    cover 2
+    dig 3
+    +
+    // contract.py:861
+    // assert seg_out <= running_out_actual
+    dig 6
+    dig 3
+    <=
+    assert
+    // contract.py:863
+    // running_in_actual += seg_in
+    uncover 4
+    dig 5
+    +
+    dup
+    bury 16
+    // contract.py:864
+    // running_out_actual -= seg_out
+    uncover 3
+    dig 6
+    -
+    dup
+    cover 2
+    bury 14
+    // contract.py:865
+    // new_in_math = running_in_actual + offset
+    dig 4
+    +
+    // contract.py:866
+    // new_out_math = running_out_actual + offset
+    swap
+    uncover 4
+    +
+    // contract.py:868
+    // running_sum = running_sum + seg_in - seg_out
+    dig 11
+    uncover 5
+    +
+    uncover 5
+    -
+    bury 10
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 1
+    uncover 2
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:870-871
+    // running_sum_sq
+    // + square_raw(new_in_math) - square_raw(prev_in_math)
+    dig 8
+    +
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 3
+    uncover 4
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:870-871
+    // running_sum_sq
+    // + square_raw(new_in_math) - square_raw(prev_in_math)
+    -
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 1
+    uncover 2
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:870-872
+    // running_sum_sq
+    // + square_raw(new_in_math) - square_raw(prev_in_math)
+    // + square_raw(new_out_math) - square_raw(prev_out_math)
+    +
+    // contract.py:167
+    // high, low = op.mulw(value, value)
+    dig 1
+    uncover 2
+    mulw
+    // contract.py:168
+    // assert high == UInt64(0)
+    swap
+    !
+    assert
+    // contract.py:870-872
+    // running_sum_sq
+    // + square_raw(new_in_math) - square_raw(prev_in_math)
+    // + square_raw(new_out_math) - square_raw(prev_out_math)
+    -
+    bury 5
+    // contract.py:875-876
+    // # Handle claimed tick crossing in this segment.
+    // if seg_tick_id != UInt64(_NO_CROSSING):
+    pushint 18446744073709551615
+    !=
+    bz swap_with_crossings_after_if_else@10
+    // contract.py:877
+    // assert seg_tick_id < self.num_ticks.value
+    intc_0 // 0
+    bytec 16 // "num_ticks"
+    app_global_get_ex
+    assert // check self.num_ticks exists
+    dig 26
+    dup
+    uncover 2
+    <
+    assert
+    // contract.py:878
+    // assert seg_tick_id in self.ticks
+    itob
+    bytec 15 // 0x7469636b3a
+    swap
+    concat
+    dup
+    bury 32
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:879
+    // xtick = self.ticks[seg_tick_id].copy()
+    box_get
+    pop
+    dup
+    bury 31
+    // contract.py:880
+    // xtick_r = xtick.r.as_uint64()
+    dup
+    extract 0 8
+    bury 34
+    dup
+    intc_0 // 0
+    extract_uint64
+    bury 24
+    // contract.py:881
+    // xtick_k = xtick.k.as_uint64()
+    dup
+    extract 8 8
+    bury 33
+    dup
+    intc_1 // 8
+    extract_uint64
+    bury 25
+    // contract.py:882
+    // xtick_old_state = xtick.state.as_uint64()
+    pushint 16
+    getbyte
+    // contract.py:884
+    // if seg_new_state == UInt64(1):
+    dig 28
+    intc_2 // 1
+    ==
+    bz swap_with_crossings_else_body@6
+    // contract.py:885-886
+    // # INTERIOR → BOUNDARY crossing.
+    // assert xtick_old_state == UInt64(0)
+    !
+    assert
+    // contract.py:887
+    // cur_r_int -= xtick_r
+    dig 11
+    dig 23
+    dup
+    cover 2
+    -
+    bury 13
+    // contract.py:888
+    // cur_s_bound += boundary_radius_calc(xtick_r, xtick_k, sqrt_n)
+    dig 24
+    dup
+    cover 2
+    dig 17
+    callsub boundary_radius_calc
+    dig 12
+    +
+    bury 12
+    // contract.py:889
+    // cur_k_bound += xtick_k
+    dig 10
+    +
+    bury 10
+
+swap_with_crossings_after_if_else@7:
+    // contract.py:902
+    // state=arc4.UInt8(seg_new_state),
+    dig 27
+    itob
+    dup
+    bitlen
+    intc_1 // 8
+    <=
+    assert // overflow
+    extract 7 1
+    // contract.py:903
+    // total_shares=xtick.total_shares,
+    dig 30
+    extract 17 8
+    // contract.py:898-904
+    // # Persist updated tick state (total_shares unchanged by crossing).
+    // self.ticks[seg_tick_id] = TickData(
+    //     r=xtick.r,
+    //     k=xtick.k,
+    //     state=arc4.UInt8(seg_new_state),
+    //     total_shares=xtick.total_shares,
+    // )
+    dig 34
+    dig 34
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    dig 31
+    swap
+    box_put
+    // contract.py:906-908
+    // # Boundary proximity check: α_int_norm ≈ k/r at the crossing.
+    // # Only meaningful when interior ticks still exist after transition.
+    // if cur_r_int > UInt64(0):
+    dig 11
+    bz swap_with_crossings_after_if_else@10
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 4
+    dig 14
+    mulw
+    // contract.py:909
+    // alpha_total_val = mul_div_floor(running_sum, inv_sqrt_n, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    // contract.py:910
+    // assert alpha_total_val >= cur_k_bound
+    dup
+    dig 11
+    dup
+    cover 3
+    >=
+    assert
+    // contract.py:911
+    // alpha_int = alpha_total_val - cur_k_bound
+    swap
+    -
+    // contract.py:912
+    // alpha_int_norm = mul_div_floor(alpha_int, UInt64(_PRECISION), cur_r_int)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 13
+    divw
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 24
+    // contract.py:913
+    // k_norm = mul_div_floor(xtick_k, UInt64(_PRECISION), xtick_r)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 25
+    divw
+    // contract.py:914
+    // assert abs_diff(alpha_int_norm, k_norm) <= UInt64(_CROSSING_TOLERANCE)
+    callsub abs_diff
+    intc 4 // 10000
+    <=
+    assert
+
+swap_with_crossings_after_if_else@10:
+    // contract.py:916-926
+    // # Verify torus invariant after each segment.
+    // assert verify_invariant(
+    //     running_sum,
+    //     running_sum_sq,
+    //     n,
+    //     cur_r_int,
+    //     cur_s_bound,
+    //     cur_k_bound,
+    //     sqrt_n,
+    //     inv_sqrt_n,
+    // )
+    dig 4
+    dig 4
+    dig 17
+    dig 14
+    dig 14
+    dig 14
+    dig 20
+    dig 20
+    callsub verify_invariant
+    assert
+    // contract.py:928
+    // total_seg_out += seg_out
+    dig 1
+    dig 27
+    +
+    bury 2
+    // contract.py:848
+    // for seg_idx in urange(num_segments):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b swap_with_crossings_for_header@2
+
+swap_with_crossings_else_body@6:
+    // contract.py:891-892
+    // # BOUNDARY → INTERIOR crossing.
+    // assert xtick_old_state == UInt64(1)
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:893
+    // s_contrib = boundary_radius_calc(xtick_r, xtick_k, sqrt_n)
+    dig 22
+    dup
+    dig 25
+    dup
+    cover 3
+    dig 18
+    callsub boundary_radius_calc
+    // contract.py:894
+    // cur_r_int += xtick_r
+    dig 14
+    uncover 2
+    +
+    bury 14
+    // contract.py:895
+    // cur_s_bound -= s_contrib
+    dig 12
+    swap
+    -
+    bury 12
+    // contract.py:896
+    // cur_k_bound -= xtick_k
+    dig 10
+    swap
+    -
+    bury 10
+    b swap_with_crossings_after_if_else@7
+
+swap_with_crossings_after_for@12:
+    // contract.py:930-931
+    // # All segments processed — verify totals.
+    // assert total_seg_in == effective_total_in
+    dig 2
+    dig 19
+    ==
+    assert
+    // contract.py:932
+    // assert total_seg_out >= min_amount_out
+    dig 1
+    dig 22
+    >=
+    assert
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    dig 7
+    itob
+    // contract.py:934-935
+    // # Persist final state.
+    // write_reserve(self.reserves, token_in_idx, running_in_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    dig 10
+    uncover 2
+    box_replace
+    dig 5
+    itob
+    // contract.py:936
+    // write_reserve(self.reserves, token_out_idx, running_out_actual)
+    bytec_0 // 0x7265736572766573
+    // contract.py:185
+    // reserves.replace(reserve_offset(index), op.itob(value))
+    dig 8
+    uncover 2
+    box_replace
+    // contract.py:937
+    // self.sum_x.value = running_sum
+    bytec 6 // "sum_x"
+    dig 5
+    app_global_put
+    // contract.py:938
+    // self.sum_x_sq.value = running_sum_sq
+    bytec 7 // "sum_x_sq"
+    dig 4
+    app_global_put
+    // contract.py:939
+    // self.r_int.value = cur_r_int
+    bytec 4 // "r_int"
+    dig 12
+    app_global_put
+    // contract.py:940
+    // self.s_bound.value = cur_s_bound
+    bytec 13 // "s_bound"
+    dig 11
+    app_global_put
+    // contract.py:941
+    // self.k_bound.value = cur_k_bound
+    bytec 14 // "k_bound"
+    dig 10
+    app_global_put
+    // contract.py:943-944
+    // # Accumulate fee into fee_growth.
+    // if fee > UInt64(0):
+    dig 19
+    bz swap_with_crossings_after_if_else@18
+    // contract.py:945
+    // total_r = self.total_r.value
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    swap
+    dup
+    cover 2
+    bury 27
+    assert // check self.total_r exists
+    // contract.py:946
+    // if total_r > UInt64(0):
+    bz swap_with_crossings_after_if_else@18
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 19
+    // contract.py:947
+    // fg_increment = mul_div_floor(fee, UInt64(_PRECISION), total_r)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    dig 26
+    divw
+    dup
+    bury 30
+    // contract.py:948
+    // if fg_increment > UInt64(0):
+    bz swap_with_crossings_after_if_else@18
+    // contract.py:949
+    // old_fg = read_fee_growth(self.fee_growth, token_in_idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 9
+    dup
+    cover 2
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:950
+    // write_fee_growth(self.fee_growth, token_in_idx, old_fg + fg_increment)
+    dig 30
+    +
+    // contract.py:195
+    // fee_growth.replace(reserve_offset(index), op.itob(value))
+    itob
+    // contract.py:950
+    // write_fee_growth(self.fee_growth, token_in_idx, old_fg + fg_increment)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:195
+    // fee_growth.replace(reserve_offset(index), op.itob(value))
+    cover 2
+    box_replace
+
+swap_with_crossings_after_if_else@18:
+    // contract.py:952
+    // if total_seg_out > UInt64(0):
+    dig 1
+    bz swap_with_crossings_after_if_else@20
+    // contract.py:953
+    // send_tokens(token_out_asset, Txn.sender, total_seg_out)
+    dig 20
+    txn Sender
+    dig 3
+    callsub send_tokens
+
+swap_with_crossings_after_if_else@20:
+    // contract.py:782
+    // @arc4.abimethod
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_pool_info[routing]() -> void:
+get_pool_info:
+    // contract.py:965
+    // n=arc4.UInt64(self.n.value),
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    itob
+    // contract.py:966
+    // r_int=arc4.UInt64(self.r_int.value),
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    assert // check self.r_int exists
+    itob
+    // contract.py:967
+    // s_bound=arc4.UInt64(self.s_bound.value),
+    intc_0 // 0
+    bytec 13 // "s_bound"
+    app_global_get_ex
+    assert // check self.s_bound exists
+    itob
+    // contract.py:968
+    // k_bound=arc4.UInt64(self.k_bound.value),
+    intc_0 // 0
+    bytec 14 // "k_bound"
+    app_global_get_ex
+    assert // check self.k_bound exists
+    itob
+    // contract.py:969
+    // sqrt_n=arc4.UInt64(self.sqrt_n.value),
+    intc_0 // 0
+    bytec 17 // "sqrt_n"
+    app_global_get_ex
+    assert // check self.sqrt_n exists
+    itob
+    // contract.py:970
+    // inv_sqrt_n=arc4.UInt64(self.inv_sqrt_n.value),
+    intc_0 // 0
+    bytec 19 // "inv_sqrt_n"
+    app_global_get_ex
+    assert // check self.inv_sqrt_n exists
+    itob
+    // contract.py:971
+    // num_ticks=arc4.UInt64(self.num_ticks.value),
+    intc_0 // 0
+    bytec 16 // "num_ticks"
+    app_global_get_ex
+    assert // check self.num_ticks exists
+    itob
+    // contract.py:972
+    // fee_bps=arc4.UInt64(self.fee_bps.value),
+    intc_0 // 0
+    bytec 18 // "fee_bps"
+    app_global_get_ex
+    assert // check self.fee_bps exists
+    itob
+    // contract.py:973
+    // virtual_offset=arc4.UInt64(self.virtual_offset.value),
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    assert // check self.virtual_offset exists
+    itob
+    // contract.py:974
+    // paused=arc4.UInt64(self.paused.value),
+    intc_0 // 0
+    bytec 5 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    itob
+    // contract.py:975
+    // sum_x=arc4.UInt64(self.sum_x.value),
+    intc_0 // 0
+    bytec 6 // "sum_x"
+    app_global_get_ex
+    assert // check self.sum_x exists
+    itob
+    // contract.py:976
+    // sum_x_sq=arc4.UInt64(self.sum_x_sq.value),
+    intc_0 // 0
+    bytec 7 // "sum_x_sq"
+    app_global_get_ex
+    assert // check self.sum_x_sq exists
+    itob
+    // contract.py:977
+    // total_r=arc4.UInt64(self.total_r.value),
+    intc_0 // 0
+    bytec 9 // "total_r"
+    app_global_get_ex
+    assert // check self.total_r exists
+    itob
+    // contract.py:964-978
+    // return PoolInfo(
+    //     n=arc4.UInt64(self.n.value),
+    //     r_int=arc4.UInt64(self.r_int.value),
+    //     s_bound=arc4.UInt64(self.s_bound.value),
+    //     k_bound=arc4.UInt64(self.k_bound.value),
+    //     sqrt_n=arc4.UInt64(self.sqrt_n.value),
+    //     inv_sqrt_n=arc4.UInt64(self.inv_sqrt_n.value),
+    //     num_ticks=arc4.UInt64(self.num_ticks.value),
+    //     fee_bps=arc4.UInt64(self.fee_bps.value),
+    //     virtual_offset=arc4.UInt64(self.virtual_offset.value),
+    //     paused=arc4.UInt64(self.paused.value),
+    //     sum_x=arc4.UInt64(self.sum_x.value),
+    //     sum_x_sq=arc4.UInt64(self.sum_x_sq.value),
+    //     total_r=arc4.UInt64(self.total_r.value),
+    // )
+    uncover 12
+    uncover 12
+    concat
+    uncover 11
+    concat
+    uncover 10
+    concat
+    uncover 9
+    concat
+    uncover 8
+    concat
+    uncover 7
+    concat
+    uncover 6
+    concat
+    uncover 5
+    concat
+    uncover 4
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // contract.py:957
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_tick_info[routing]() -> void:
+get_tick_info:
+    // contract.py:980
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:983
+    // assert tick_id in self.ticks
+    itob
+    bytec 15 // 0x7469636b3a
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:984
+    // return self.ticks[tick_id].copy()
+    box_get
+    pop
+    // contract.py:980
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_position[routing]() -> void:
+get_position:
+    // contract.py:986
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:993
+    // pos_key = owner.bytes + op.itob(tick_id)
+    itob
+    swap
+    dig 1
+    concat
+    // contract.py:994
+    // assert pos_key in self.positions
+    bytec 20 // 0x706f733a
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:995
+    // assert tick_id in self.ticks
+    bytec 15 // 0x7469636b3a
+    uncover 2
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:997
+    // tick = self.ticks[tick_id].copy()
+    box_get
+    pop
+    // contract.py:998
+    // tick_r = tick.r.as_uint64()
+    dup
+    intc_0 // 0
+    extract_uint64
+    // contract.py:999
+    // tick_total_shares = tick.total_shares.as_uint64()
+    swap
+    pushint 17
+    extract_uint64
+    // contract.py:1000
+    // assert tick_total_shares > UInt64(0)
+    dup
+    assert
+    // contract.py:1002
+    // pos_raw = self.positions[pos_key]
+    uncover 2
+    box_get
+    pop
+    // contract.py:1003
+    // pos_shares = op.extract_uint64(pos_raw, 0)
+    intc_0 // 0
+    extract_uint64
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    uncover 2
+    dig 1
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    uncover 3
+    divw
+    // contract.py:1007
+    // shares=arc4.UInt64(pos_shares),
+    swap
+    itob
+    // contract.py:1008
+    // position_r=arc4.UInt64(pos_r),
+    swap
+    itob
+    // contract.py:1006-1009
+    // return PositionInfo(
+    //     shares=arc4.UInt64(pos_shares),
+    //     position_r=arc4.UInt64(pos_r),
+    // )
+    concat
+    // contract.py:986
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_reserves[routing]() -> void:
+get_reserves:
+    // contract.py:1018
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:1019
+    // return arc4.DynamicBytes(self.reserves.value)
+    bytec_0 // 0x7265736572766573
+    box_get
+    assert // check self.reserves exists
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // contract.py:1011
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_fee_growth[routing]() -> void:
+get_fee_growth:
+    // contract.py:1029
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:1030
+    // return arc4.DynamicBytes(self.fee_growth.value)
+    bytec_3 // 0x6665655f67726f777468
+    box_get
+    assert // check self.fee_growth exists
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // contract.py:1021
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_registered_tokens[routing]() -> void:
+get_registered_tokens:
+    // contract.py:1035
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:1036
+    // n = self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    // contract.py:1037
+    // result = Bytes(b"")
+    pushbytes 0x
+    // contract.py:1038
+    // for idx in urange(n):
+    intc_0 // 0
+
+get_registered_tokens_for_header@2:
+    // contract.py:1038
+    // for idx in urange(n):
+    dup
+    dig 3
+    <
+    bz get_registered_tokens_after_for@5
+    // contract.py:1039
+    // result = result + op.itob(self.tokens[idx])
+    dupn 2
+    itob
+    bytec 10 // 0x746f6b656e3a
+    swap
+    concat
+    box_get
+    assert // check self.tokens entry exists
+    btoi
+    itob
+    dig 3
+    swap
+    concat
+    bury 3
+    // contract.py:1038
+    // for idx in urange(n):
+    intc_2 // 1
+    +
+    bury 1
+    b get_registered_tokens_for_header@2
+
+get_registered_tokens_after_for@5:
+    // contract.py:1040
+    // return arc4.DynamicBytes(result)
+    dig 1
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // contract.py:1032
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_fees_for_position[routing]() -> void:
+get_fees_for_position:
+    pushbytes ""
+    dupn 2
+    // contract.py:1042
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:1052
+    // pos_key = owner.bytes + op.itob(tick_id)
+    itob
+    swap
+    dig 1
+    concat
+    // contract.py:1053
+    // assert pos_key in self.positions
+    bytec 20 // 0x706f733a
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:1054
+    // assert tick_id in self.ticks
+    bytec 15 // 0x7469636b3a
+    uncover 2
+    concat
+    dup
+    box_len
+    bury 1
+    assert
+    // contract.py:1056
+    // tick = self.ticks[tick_id].copy()
+    box_get
+    pop
+    // contract.py:1057
+    // tick_r = tick.r.as_uint64()
+    dup
+    intc_0 // 0
+    extract_uint64
+    // contract.py:1058
+    // tick_total_shares = tick.total_shares.as_uint64()
+    swap
+    pushint 17
+    extract_uint64
+    // contract.py:1059
+    // assert tick_total_shares > UInt64(0)
+    dup
+    assert
+    // contract.py:1061
+    // pos_raw = self.positions[pos_key]
+    uncover 2
+    box_get
+    pop
+    dup
+    cover 3
+    // contract.py:1062
+    // pos_shares = op.extract_uint64(pos_raw, 0)
+    intc_0 // 0
+    extract_uint64
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    uncover 2
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    uncover 2
+    divw
+    // contract.py:1065
+    // n = self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    // contract.py:1066
+    // result = Bytes(b"")
+    pushbytes 0x
+    // contract.py:1067
+    // for idx in urange(n):
+    intc_0 // 0
+
+get_fees_for_position_for_header@2:
+    // contract.py:1067
+    // for idx in urange(n):
+    dup
+    dig 3
+    <
+    bz get_fees_for_position_after_for@7
+    // contract.py:154
+    // return index * UInt64(8)
+    dup
+    intc_1 // 8
+    *
+    // contract.py:1068
+    // fg_global = read_fee_growth(self.fee_growth, idx)
+    bytec_3 // 0x6665655f67726f777468
+    // contract.py:190
+    // return op.extract_uint64(fee_growth.extract(reserve_offset(index), UInt64(8)), 0)
+    dig 1
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    dup
+    cover 2
+    bury 8
+    // contract.py:1069
+    // fg_checkpoint = op.extract_uint64(pos_raw, UInt64(8) + idx * UInt64(8))
+    intc_1 // 8
+    +
+    dig 6
+    swap
+    extract_uint64
+    dup
+    bury 9
+    // contract.py:1070
+    // claimable = UInt64(0)
+    intc_0 // 0
+    bury 10
+    // contract.py:1071
+    // if fg_global > fg_checkpoint:
+    >
+    bz get_fees_for_position_after_if_else@5
+    // contract.py:1072
+    // fee_delta = fg_global - fg_checkpoint
+    dig 5
+    dig 7
+    -
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    dig 4
+    mulw
+    // contract.py:1073
+    // claimable = mul_div_floor(pos_r, fee_delta, UInt64(_PRECISION))
+    intc_3 // 1000000000
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    divw
+    bury 8
+
+get_fees_for_position_after_if_else@5:
+    // contract.py:1074
+    // result = result + op.itob(claimable)
+    dig 7
+    itob
+    dig 2
+    swap
+    concat
+    bury 2
+    // contract.py:1067
+    // for idx in urange(n):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b get_fees_for_position_for_header@2
+
+get_fees_for_position_after_for@7:
+    // contract.py:1075
+    // return arc4.DynamicBytes(result)
+    dig 1
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // contract.py:1042
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.list_ticks[routing]() -> void:
+list_ticks:
+    intc_0 // 0
+    dup
+    pushbytes ""
+    // contract.py:1077
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:1087
+    // result = arc4.DynamicArray[TickEntry]()
+    pushbytes 0x0000
+    // contract.py:1088
+    // num_ticks = self.num_ticks.value
+    intc_0 // 0
+    bytec 16 // "num_ticks"
+    app_global_get_ex
+    assert // check self.num_ticks exists
+    // contract.py:1089
+    // for idx in urange(limit):
+    intc_0 // 0
+
+list_ticks_for_header@2:
+    // contract.py:1089
+    // for idx in urange(limit):
+    dup
+    dig 4
+    <
+    bz list_ticks_after_for@9
+    // contract.py:1090
+    // tick_id = start + idx
+    dig 4
+    dig 1
+    +
+    dup
+    bury 7
+    // contract.py:1091
+    // if tick_id < num_ticks:
+    dig 2
+    <
+    bz list_ticks_after_if_else@7
+    // contract.py:1092
+    // if tick_id in self.ticks:
+    dig 5
+    itob
+    dup
+    bury 8
+    bytec 15 // 0x7469636b3a
+    swap
+    concat
+    dup
+    bury 9
+    box_len
+    bury 1
+    bz list_ticks_after_if_else@7
+    // contract.py:1093
+    // tick = self.ticks[tick_id].copy()
+    dig 7
+    box_get
+    assert // check self.ticks entry exists
+    // contract.py:1097
+    // r=tick.r,
+    dup
+    extract 0 8
+    // contract.py:1098
+    // k=tick.k,
+    dig 1
+    extract 8 8
+    // contract.py:1099
+    // state=tick.state,
+    dig 2
+    extract 16 1
+    // contract.py:1100
+    // total_shares=tick.total_shares,
+    uncover 3
+    extract 17 8
+    // contract.py:1095-1101
+    // TickEntry(
+    //     tick_id=arc4.UInt64(tick_id),
+    //     r=tick.r,
+    //     k=tick.k,
+    //     state=tick.state,
+    //     total_shares=tick.total_shares,
+    // )
+    dig 10
+    uncover 4
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // contract.py:1094-1102
+    // result.append(
+    //     TickEntry(
+    //         tick_id=arc4.UInt64(tick_id),
+    //         r=tick.r,
+    //         k=tick.k,
+    //         state=tick.state,
+    //         total_shares=tick.total_shares,
+    //     )
+    // )
+    dig 3
+    dup
+    uncover 2
+    concat // on error: max array length exceeded
+    swap
+    intc_0 // 0
+    extract_uint16
+    intc_2 // 1
+    +
+    itob
+    extract 6 2
+    replace2 0
+    bury 3
+
+list_ticks_after_if_else@7:
+    // contract.py:1089
+    // for idx in urange(limit):
+    dup
+    intc_2 // 1
+    +
+    bury 1
+    b list_ticks_for_header@2
+
+list_ticks_after_for@9:
+    // contract.py:1077
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    dig 3
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts.orbital_pool.contract.OrbitalPool.get_price[routing]() -> void:
+get_price:
+    // contract.py:1105
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contract.py:1120
+    // assert self.bootstrapped.value == UInt64(1)
+    intc_0 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    intc_2 // 1
+    ==
+    assert
+    // contract.py:1121
+    // assert token_in_idx < self.n.value
+    intc_0 // 0
+    bytec_1 // "n"
+    app_global_get_ex
+    assert // check self.n exists
+    dig 2
+    dig 1
+    <
+    assert
+    // contract.py:1122
+    // assert token_out_idx < self.n.value
+    dig 1
+    >
+    assert
+    // contract.py:1123
+    // assert token_in_idx != token_out_idx
+    dup2
+    !=
+    assert
+    // contract.py:1125
+    // offset = self.virtual_offset.value
+    intc_0 // 0
+    bytec 8 // "virtual_offset"
+    app_global_get_ex
+    assert // check self.virtual_offset exists
+    // contract.py:1126
+    // r = self.r_int.value
+    intc_0 // 0
+    bytec 4 // "r_int"
+    app_global_get_ex
+    assert // check self.r_int exists
+    // contract.py:154
+    // return index * UInt64(8)
+    uncover 3
+    intc_1 // 8
+    *
+    // contract.py:1127
+    // x_in = read_reserve(self.reserves, token_in_idx) + offset
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:1127
+    // x_in = read_reserve(self.reserves, token_in_idx) + offset
+    dig 2
+    +
+    // contract.py:154
+    // return index * UInt64(8)
+    uncover 3
+    intc_1 // 8
+    *
+    // contract.py:1128
+    // x_out = read_reserve(self.reserves, token_out_idx) + offset
+    bytec_0 // 0x7265736572766573
+    // contract.py:180
+    // return op.extract_uint64(reserves.extract(reserve_offset(index), UInt64(8)), 0)
+    swap
+    intc_1 // 8
+    box_extract
+    intc_0 // 0
+    extract_uint64
+    // contract.py:1128
+    // x_out = read_reserve(self.reserves, token_out_idx) + offset
+    uncover 3
+    +
+    // contract.py:1130
+    // assert r > x_in
+    dig 2
+    dig 2
+    >
+    assert
+    // contract.py:1131
+    // assert r > x_out
+    dig 2
+    dig 1
+    >
+    assert
+    // contract.py:1132
+    // price = mul_div_floor(r - x_in, UInt64(_PRECISION), r - x_out)
+    dig 2
+    uncover 2
+    -
+    cover 2
+    -
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    swap
+    // contract.py:1132
+    // price = mul_div_floor(r - x_in, UInt64(_PRECISION), r - x_out)
+    intc_3 // 1000000000
+    // contract.py:160
+    // high, low = op.mulw(lhs, rhs)
+    mulw
+    // contract.py:161
+    // return op.divw(high, low, denominator)
+    uncover 2
+    divw
+    // contract.py:1133
+    // return arc4.UInt64(price)
+    itob
+    // contract.py:1105
+    // @arc4.abimethod(readonly=True)
+    bytec 11 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return

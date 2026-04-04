@@ -1,0 +1,9 @@
+"""Shared fixed-point constants for the Orbital math simulator."""
+
+PRECISION = 10**9
+ROOT_PRECISION = 10**18
+TOLERANCE = 1_000
+MAX_NEWTON_ITERS = 50
+DERIVATIVE_EPS = max(1, PRECISION // 10**6)
+MAX_BISECTION_STEPS = 80
+MAX_BRACKET_SAMPLES = 64
