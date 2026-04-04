@@ -1,15 +1,23 @@
-import { Plus, Wallet, ArrowRight, BookOpen, Zap, Shield } from 'lucide-react';
+import { Plus, Wallet, ArrowRight, BookOpen, Zap, Shield, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
-import { pools, demoPositions } from '@/data/mock';
-import { formatCurrency } from '@/lib/format';
-import TokenIcon from '@/components/shared/TokenIcon';
 import { useWallet } from '@txnlab/use-wallet-react';
+import { usePoolState } from '@/hooks/usePoolState';
+import { useAllPositions } from '@/hooks/usePosition';
+import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
 
 export default function Pool() {
   const { activeAddress } = useWallet();
   const isWalletConnected = !!activeAddress;
   const { toggleWalletModal } = useAppStore();
+
+  const { data: pool, isLoading: poolLoading, error: poolError, refetch } = usePoolState();
+  const {
+    data: positions = [],
+    isLoading: positionsLoading,
+  } = useAllPositions(activeAddress ?? null, pool?.numTicks ?? 0);
+
+  const activePositions = positions.filter(p => p.shares > 0n);
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8">
@@ -18,12 +26,26 @@ export default function Pool() {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Your positions</h1>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={() => refetch()}
+                className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+                title="Refresh pool state"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
               <Button variant="outline" className="rounded-2xl border-border" size="sm">
                 <Plus className="w-4 h-4 mr-1" /> New position
               </Button>
             </div>
           </div>
+
+          {/* Pool error */}
+          {poolError && (
+            <div className="glass-panel p-4 mb-4 text-sm text-destructive">
+              Failed to load pool: {poolError.message}
+            </div>
+          )}
 
           {!isWalletConnected ? (
             <div className="glass-panel p-10 text-center mb-8">
@@ -36,44 +58,76 @@ export default function Pool() {
                 Connect Wallet
               </Button>
             </div>
+          ) : positionsLoading ? (
+            <div className="glass-panel p-10 text-center mb-8">
+              <Loader2 className="w-8 h-8 text-muted-foreground mx-auto mb-3 animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading your positions…</p>
+            </div>
+          ) : activePositions.length === 0 ? (
+            <div className="glass-panel p-10 text-center mb-8">
+              <p className="text-sm text-muted-foreground mb-2">No active liquidity positions found.</p>
+              <p className="text-xs text-muted-foreground">Add liquidity to start earning fees.</p>
+            </div>
           ) : (
             <div className="space-y-3 mb-8">
-              {demoPositions.map(pos => (
-                <div key={pos.id} className="glass-panel-hover p-5 cursor-pointer">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex -space-x-2">
-                        <TokenIcon token={pos.pool.token0} size={28} />
-                        <TokenIcon token={pos.pool.token1} size={28} />
+              {activePositions.map(pos => {
+                const totalClaimable = pos.claimableFees.reduce((a, b) => a + b, 0n);
+                return (
+                  <div key={pos.tickId} className="glass-panel-hover p-5 cursor-pointer">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex -space-x-2">
+                          {pool && Array.from({ length: pool.n }, (_, i) => (
+                            <div
+                              key={i}
+                              className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-black text-white"
+                              style={{ background: getTokenColor(i) }}
+                            >
+                              {getTokenSymbol(pool, i)[0]}
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <span className="text-sm font-semibold text-foreground">
+                            {pool ? Array.from({ length: pool.n }, (_, i) => getTokenSymbol(pool, i)).join('/') : '…'}
+                          </span>
+                          <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            Tick #{pos.tickId}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 rounded-full text-[10px] font-medium bg-success/10 text-success">
+                        Active
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-0.5">Your shares</p>
+                        <p className="text-foreground font-medium">{pos.shares.toString()}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-semibold text-foreground">{pos.pool.token0.symbol}/{pos.pool.token1.symbol}</span>
-                        <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{pos.pool.feeTier}%</span>
+                        <p className="text-muted-foreground text-xs mb-0.5">Position r</p>
+                        <p className="text-foreground font-medium">{rawToDisplay(pos.positionR * 1000n)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-0.5">Claimable fees</p>
+                        <p className="text-foreground font-medium">{rawToDisplay(totalClaimable)}</p>
                       </div>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-[10px] font-medium ${pos.inRange ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                      {pos.inRange ? 'In range' : 'Out of range'}
-                    </div>
+                    {pool && pos.claimableFees.some(f => f > 0n) && (
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        {pos.claimableFees.map((fee, i) =>
+                          fee > 0n ? (
+                            <span key={i} className="mr-3">
+                              {getTokenSymbol(pool, i)}: {rawToDisplay(fee)}
+                            </span>
+                          ) : null
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground text-xs mb-0.5">Liquidity</p>
-                      <p className="text-foreground font-medium">{formatCurrency(pos.liquidity)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-xs mb-0.5">Uncollected fees</p>
-                      <p className="text-foreground font-medium">{formatCurrency(pos.uncollectedFees)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-xs mb-0.5">APR</p>
-                      <p className="percentage-up font-medium">{pos.apr.toFixed(2)}%</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Range: {formatCurrency(pos.minPrice)} — {formatCurrency(pos.maxPrice)}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -94,33 +148,50 @@ export default function Pool() {
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar — live pool stats */}
         <div className="w-full lg:w-80 shrink-0">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Top pools by TVL</h3>
-          <div className="space-y-2">
-            {pools.slice(0, 6).map(p => (
-              <div key={p.id} className="glass-panel-hover p-3 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-1.5">
-                      <TokenIcon token={p.token0} size={20} />
-                      <TokenIcon token={p.token1} size={20} />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">{p.token0.symbol}/{p.token1.symbol}</span>
-                    <span className="text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground">{p.version}</span>
-                  </div>
-                  <span className="text-xs percentage-up">{p.apr.toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between mt-1.5 text-xs text-muted-foreground">
-                  <span>TVL {formatCurrency(p.tvl, true)}</span>
-                  <span>{p.feeTier}% fee</span>
-                </div>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Orbital AMM pool</h3>
+          {poolLoading ? (
+            <div className="glass-panel p-6 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+            </div>
+          ) : pool ? (
+            <div className="glass-panel p-4 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">App ID</span>
+                <span className="font-mono text-foreground">{pool.appId}</span>
               </div>
-            ))}
-          </div>
-          <button className="w-full mt-3 text-sm text-primary hover:text-primary/80 transition-colors font-medium text-center py-2">
-            Explore all pools →
-          </button>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Tokens (n)</span>
+                <span className="text-foreground font-medium">{pool.n}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Fee tier</span>
+                <span className="text-foreground font-medium">{Number(pool.feeBps) / 100}%</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Active ticks</span>
+                <span className="text-foreground font-medium">{pool.ticks.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Interior radius</span>
+                <span className="text-foreground font-medium">{rawToDisplay(pool.rInt * 1000n)}</span>
+              </div>
+              <div className="border-t border-border/30 pt-3">
+                <p className="text-xs text-muted-foreground mb-2 font-medium">Token reserves</p>
+                {pool.tokenAsaIds.map((asaId, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full" style={{ background: getTokenColor(i) }} />
+                      <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
+                      <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
+                    </div>
+                    <span className="text-muted-foreground">{rawToDisplay((pool.reserves[i] - pool.virtualOffset) * 1000n)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

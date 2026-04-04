@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, Send, ArrowDownToLine, CreditCard, MoreHorizontal, TrendingUp, Activity, Image } from 'lucide-react';
+import { Wallet, Send, ArrowDownToLine, CreditCard, MoreHorizontal, TrendingUp, Activity, Image, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
 import { demoWalletAssets, demoTransactions, portfolioChartData } from '@/data/mock';
@@ -7,8 +7,11 @@ import { formatCurrency, formatPercent, timeAgo } from '@/lib/format';
 import TokenIcon from '@/components/shared/TokenIcon';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useWallet } from '@txnlab/use-wallet-react';
+import { usePoolState } from '@/hooks/usePoolState';
+import { useAllPositions } from '@/hooks/usePosition';
+import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
 
-type Tab = 'overview' | 'tokens' | 'nfts' | 'activity';
+type Tab = 'overview' | 'tokens' | 'nfts' | 'activity' | 'lp';
 type Timeframe = '1H' | '1D' | '1W' | '1M' | '1Y' | 'All';
 
 export default function Portfolio() {
@@ -18,6 +21,13 @@ export default function Portfolio() {
   const walletAddress = activeAddress ? `${activeAddress.slice(0, 4)}...${activeAddress.slice(-4)}` : '';
   const [tab, setTab] = useState<Tab>('overview');
   const [timeframe, setTimeframe] = useState<Timeframe>('1M');
+
+  const { data: pool } = usePoolState();
+  const { data: positions = [], isLoading: positionsLoading } = useAllPositions(
+    activeAddress ?? null,
+    pool?.numTicks ?? 0,
+  );
+  const activePositions = positions.filter(p => p.shares > 0n);
 
   const totalValue = demoWalletAssets.reduce((s, a) => s + a.value, 0);
   const dailyChange = totalValue * 0.0234;
@@ -58,13 +68,13 @@ export default function Portfolio() {
 
       {/* Tabs */}
       <div className="flex items-center gap-6 mb-6 border-b border-border/50">
-        {(['overview', 'tokens', 'nfts', 'activity'] as Tab[]).map(t => (
+        {(['overview', 'tokens', 'nfts', 'activity', 'lp'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`pb-3 text-sm font-medium capitalize transition-colors border-b-2 ${tab === t ? 'text-foreground border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
           >
-            {t === 'nfts' ? 'NFTs' : t}
+            {t === 'nfts' ? 'NFTs' : t === 'lp' ? 'LP Positions' : t}
           </button>
         ))}
       </div>
@@ -241,6 +251,70 @@ export default function Portfolio() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === 'lp' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground mb-1">Orbital AMM liquidity positions</p>
+          {positionsLoading ? (
+            <div className="glass-panel p-10 text-center">
+              <Loader2 className="w-6 h-6 text-muted-foreground mx-auto mb-2 animate-spin" />
+              <p className="text-sm text-muted-foreground">Scanning positions…</p>
+            </div>
+          ) : activePositions.length === 0 ? (
+            <div className="glass-panel p-10 text-center">
+              <p className="text-sm text-muted-foreground">No active LP positions found.</p>
+            </div>
+          ) : (
+            activePositions.map(pos => {
+              const totalFees = pos.claimableFees.reduce((a, b) => a + b, 0n);
+              return (
+                <div key={pos.tickId} className="glass-panel p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {pool && Array.from({ length: pool.n }, (_, i) => (
+                        <div
+                          key={i}
+                          className="w-5 h-5 rounded-full border border-background"
+                          style={{ background: getTokenColor(i), marginLeft: i > 0 ? '-6px' : 0 }}
+                        />
+                      ))}
+                      <span className="text-sm font-semibold text-foreground ml-1">
+                        {pool ? Array.from({ length: pool.n }, (_, i) => getTokenSymbol(pool, i)).join('/') : '…'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Tick #{pos.tickId}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Shares</p>
+                      <p className="font-medium text-foreground">{pos.shares.toString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Position r</p>
+                      <p className="font-medium text-foreground">{rawToDisplay(pos.positionR * 1000n)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Claimable fees</p>
+                      <p className="font-medium text-foreground">{rawToDisplay(totalFees)}</p>
+                    </div>
+                  </div>
+                  {pool && pos.claimableFees.some(f => f > 0n) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {pos.claimableFees.map((fee, i) =>
+                        fee > 0n ? (
+                          <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            {getTokenSymbol(pool, i)}: {rawToDisplay(fee)}
+                          </span>
+                        ) : null
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
     </div>

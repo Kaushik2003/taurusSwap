@@ -16,6 +16,7 @@
     "@algorandfoundation/algokit-client-generator": "^6.0.1",
     "@blockshake/defly-connect": "^1.2.1",
     "@hookform/resolvers": "^3.10.0",
+    "@orbital-amm/sdk": "file:../sdk",
     "@perawallet/connect": "^1.5.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
