@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plus, Wallet, ArrowRight, BookOpen, Zap, Shield, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
@@ -5,11 +6,14 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
 import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
+import { PositionCard } from '@/components/pool/PositionCard';
+import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
 
 export default function Pool() {
   const { activeAddress } = useWallet();
   const isWalletConnected = !!activeAddress;
   const { toggleWalletModal } = useAppStore();
+  const [addLiquidityOpen, setAddLiquidityOpen] = useState(false);
 
   const { data: pool, isLoading: poolLoading, error: poolError, refetch } = usePoolState();
   const {
@@ -34,7 +38,13 @@ export default function Pool() {
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
-              <Button variant="outline" className="rounded-2xl border-border" size="sm">
+              <Button
+                variant="outline"
+                className="rounded-2xl border-border"
+                size="sm"
+                onClick={() => setAddLiquidityOpen(true)}
+                disabled={!isWalletConnected}
+              >
                 <Plus className="w-4 h-4 mr-1" /> New position
               </Button>
             </div>
@@ -70,64 +80,9 @@ export default function Pool() {
             </div>
           ) : (
             <div className="space-y-3 mb-8">
-              {activePositions.map(pos => {
-                const totalClaimable = pos.claimableFees.reduce((a, b) => a + b, 0n);
-                return (
-                  <div key={pos.tickId} className="glass-panel-hover p-5 cursor-pointer">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                          {pool && Array.from({ length: pool.n }, (_, i) => (
-                            <div
-                              key={i}
-                              className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-black text-white"
-                              style={{ background: getTokenColor(i) }}
-                            >
-                              {getTokenSymbol(pool, i)[0]}
-                            </div>
-                          ))}
-                        </div>
-                        <div>
-                          <span className="text-sm font-semibold text-foreground">
-                            {pool ? Array.from({ length: pool.n }, (_, i) => getTokenSymbol(pool, i)).join('/') : '…'}
-                          </span>
-                          <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            Tick #{pos.tickId}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="px-2 py-1 rounded-full text-[10px] font-medium bg-success/10 text-success">
-                        Active
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-0.5">Your shares</p>
-                        <p className="text-foreground font-medium">{pos.shares.toString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-0.5">Position r</p>
-                        <p className="text-foreground font-medium">{rawToDisplay(pos.positionR * 1000n)}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-0.5">Claimable fees</p>
-                        <p className="text-foreground font-medium">{rawToDisplay(totalClaimable)}</p>
-                      </div>
-                    </div>
-                    {pool && pos.claimableFees.some(f => f > 0n) && (
-                      <div className="mt-3 text-xs text-muted-foreground">
-                        {pos.claimableFees.map((fee, i) =>
-                          fee > 0n ? (
-                            <span key={i} className="mr-3">
-                              {getTokenSymbol(pool, i)}: {rawToDisplay(fee)}
-                            </span>
-                          ) : null
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {activePositions.map(pos => (
+                <PositionCard key={pos.tickId} position={pos} pool={pool!} />
+              ))}
             </div>
           )}
 
@@ -194,6 +149,14 @@ export default function Pool() {
           ) : null}
         </div>
       </div>
+
+      {pool && (
+        <AddLiquidityModal
+          open={addLiquidityOpen}
+          onOpenChange={setAddLiquidityOpen}
+          pool={pool}
+        />
+      )}
     </div>
   );
 }

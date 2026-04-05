@@ -213,14 +213,40 @@ export async function buildAddTickGroup(
   const senderPubKey = addressToPublicKey(sender);
   const txns: algosdk.Transaction[] = [];
 
-  // Budget transactions come first (before the transfers)
-  const numBudget = computeRequiredBudget(0, n);
+  // Required box refs for add_tick at n=5 can exceed the per-txn max(8):
+  // reserves + fee_growth + tick + pos + token[0..4] = 9.
+  // Distribute refs across budget() + add_tick app calls using resource sharing.
+  const tokenBoxes = tokenAsaIds.map((_, i) => ({
+    appIndex: poolAppId,
+    name: encodeBoxMapKey("token:", i),
+  }));
+  const addTickBoxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("reserves") },
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    { appIndex: poolAppId, name: encodeBoxMapKey("tick:", nextTickId) },
+    {
+      appIndex: poolAppId,
+      name: encodePositionBoxKey(senderPubKey, nextTickId),
+    },
+    ...tokenBoxes,
+  ];
+
+  const minBudgetForBoxRefs = Math.max(0, Math.ceil(addTickBoxes.length / 8) - 1);
+  // Budget transactions come first (before the transfers).
+  const numBudget = Math.max(computeRequiredBudget(0, n), minBudgetForBoxRefs);
+
+  const boxChunks: algosdk.BoxReference[][] = [];
+  for (let i = 0; i < numBudget + 1; i++) {
+    boxChunks.push(addTickBoxes.slice(i * 8, (i + 1) * 8));
+  }
+
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
+        boxes: boxChunks[i] ?? [],
         suggestedParams: withFlatFee(sp),
       }),
     );
@@ -239,31 +265,12 @@ export async function buildAddTickGroup(
     );
   }
 
-  // Box references for add_tick:
-  //   - reserves (read + write per-token balances)
-  //   - fee_growth (read checkpoints for new position)
-  //   - pos: box (create new position for sender)
-  //   - token: boxes (verify correct ASA IDs)
-  const tokenBoxes = tokenAsaIds.map((_, i) => ({
-    appIndex: poolAppId,
-    name: encodeBoxMapKey("token:", i),
-  }));
-
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
       sender,
       appIndex: poolAppId,
       appArgs: [methodSelector("addTick"), encodeUint64Arg(r), encodeUint64Arg(k)],
-      foreignAssets: tokenAsaIds,
-      boxes: [
-        { appIndex: poolAppId, name: encodeBoxName("reserves") },
-        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
-        {
-          appIndex: poolAppId,
-          name: encodePositionBoxKey(senderPubKey, nextTickId),
-        },
-        ...tokenBoxes,
-      ],
+      boxes: boxChunks[numBudget] ?? [],
       suggestedParams: withFlatFee(sp),
     }),
   );
