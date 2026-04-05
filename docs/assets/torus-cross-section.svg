@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#0a0e14"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#084734" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="520" height="320" rx="12" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="260" y="32" text-anchor="middle" fill="#CEF17B" font-size="15" font-weight="600">Cross-section of the Torus in the (alpha, ||w||) plane</text>
+
+  <!-- Axes -->
+  <line x1="60" y1="260" x2="480" y2="260" stroke="#4a4a4a" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="260" y1="50" x2="260" y2="275" stroke="#4a4a4a" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="485" y="264" fill="#888" font-size="11">||w||</text>
+  <text x="264" y="48" fill="#888" font-size="11">alpha</text>
+
+  <!-- Center reference point (torus center) -->
+  <circle cx="260" cy="165" r="2.5" fill="#CEF17B" opacity="0.6"/>
+  <text x="268" y="160" fill="#888" font-size="10">center</text>
+
+  <!-- s_bound distance line (horizontal, from center to circle center) -->
+  <!-- Left circle center at x=165, Right circle center at x=355 -->
+
+  <!-- Left cross-section circle (tube) -->
+  <circle cx="165" cy="165" r="60" fill="url(#ringGrad)" stroke="#22c55e" stroke-width="2"/>
+  <!-- Right cross-section circle (tube) -->
+  <circle cx="355" cy="165" r="60" fill="url(#ringGrad)" stroke="#22c55e" stroke-width="2"/>
+
+  <!-- r_int radius annotation (left circle) -->
+  <line x1="165" y1="165" x2="165" y2="105" stroke="#CEF17B" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <circle cx="165" cy="165" r="2.5" fill="#CEF17B"/>
+  <text x="132" y="138" fill="#CEF17B" font-size="12" font-weight="600">r_int</text>
+
+  <!-- r_int radius annotation (right circle) -->
+  <line x1="355" y1="165" x2="415" y2="165" stroke="#CEF17B" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <circle cx="355" cy="165" r="2.5" fill="#CEF17B"/>
+  <text x="375" y="158" fill="#CEF17B" font-size="12" font-weight="600">r_int</text>
+
+  <!-- s_bound distance (between torus center and tube center) -->
+  <line x1="165" y1="230" x2="260" y2="230" stroke="#3b82f6" stroke-width="1.5"/>
+  <polygon points="165,227 165,233 160,230" fill="#3b82f6"/>
+  <polygon points="260,227 260,233 265,230" fill="#3b82f6"/>
+  <text x="195" y="248" fill="#3b82f6" font-size="12" font-weight="600">s_bound</text>
+
+  <!-- Same on the right -->
+  <line x1="260" y1="230" x2="355" y2="230" stroke="#3b82f6" stroke-width="1.5"/>
+  <polygon points="355,227 355,233 360,230" fill="#3b82f6"/>
+  <text x="290" y="248" fill="#3b82f6" font-size="12" font-weight="600">s_bound</text>
+
+  <!-- Reserve point on the torus surface -->
+  <circle cx="198" cy="118" r="5" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" opacity="0.9"/>
+  <text x="207" y="114" fill="#f59e0b" font-size="10" font-weight="500">reserve state</text>
+
+  <!-- Legend -->
+  <rect x="30" y="278" width="460" height="32" rx="6" fill="#111820" opacity="0.8"/>
+  <circle cx="60" cy="294" r="5" fill="#22c55e" opacity="0.5"/>
+  <text x="72" y="298" fill="#aaa" font-size="10">Tube cross-section (radius = r_int)</text>
+  <line x1="250" y1="294" x2="270" y2="294" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="276" y="298" fill="#aaa" font-size="10">Distance from center = s_bound</text>
+  <circle cx="440" cy="294" r="4" fill="#f59e0b"/>
+  <text x="448" y="298" fill="#aaa" font-size="10">State</text>
+</svg>

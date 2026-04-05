@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bgN" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#0a0e14"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="680" height="300" rx="12" fill="url(#bgN)"/>
+
+  <!-- Divider -->
+  <line x1="340" y1="50" x2="340" y2="270" stroke="#333" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="340" y="290" text-anchor="middle" fill="#555" font-size="11">vs</text>
+
+  <!-- === LEFT: Uniswap V3 Disjoint Ticks === -->
+  <text x="170" y="36" text-anchor="middle" fill="#f59e0b" font-size="15" font-weight="600">Uniswap V3 Ticks</text>
+  <text x="170" y="54" text-anchor="middle" fill="#888" font-size="11">Disjoint intervals on a price line</text>
+
+  <!-- Price line -->
+  <line x1="30" y1="155" x2="310" y2="155" stroke="#4a4a4a" stroke-width="1"/>
+  <text x="315" y="159" fill="#555" font-size="10">price</text>
+
+  <!-- Tick A -->
+  <rect x="40" y="100" width="55" height="110" rx="4" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="67" y="90" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="600">A</text>
+  <text x="67" y="228" text-anchor="middle" fill="#666" font-size="9">$0.99-1.00</text>
+
+  <!-- Tick B -->
+  <rect x="105" y="110" width="55" height="90" rx="4" fill="#3b82f6" fill-opacity="0.12" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="132" y="100" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="600">B</text>
+  <text x="132" y="228" text-anchor="middle" fill="#666" font-size="9">$1.00-1.01</text>
+
+  <!-- Tick C -->
+  <rect x="170" y="115" width="55" height="80" rx="4" fill="#a855f7" fill-opacity="0.12" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="197" y="105" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="600">C</text>
+  <text x="197" y="228" text-anchor="middle" fill="#666" font-size="9">$1.01-1.02</text>
+
+  <!-- Tick D -->
+  <rect x="235" y="120" width="55" height="70" rx="4" fill="#22c55e" fill-opacity="0.12" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="262" y="110" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="600">D</text>
+  <text x="262" y="228" text-anchor="middle" fill="#666" font-size="9">$1.02-1.03</text>
+
+  <!-- Gap arrows -->
+  <text x="170" y="260" text-anchor="middle" fill="#f59e0b" font-size="10">Liquidity fragmented across ranges</text>
+
+  <!-- === RIGHT: Orbital Nested Ticks === -->
+  <text x="510" y="36" text-anchor="middle" fill="#CEF17B" font-size="15" font-weight="600">Orbital Ticks</text>
+  <text x="510" y="54" text-anchor="middle" fill="#888" font-size="11">Nested spherical caps around the peg</text>
+
+  <!-- Outermost tick (widest coverage) -->
+  <rect x="380" y="72" width="260" height="186" rx="12" fill="#22c55e" fill-opacity="0.06" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="645" y="88" fill="#22c55e" font-size="10" text-anchor="end">k = $0.95</text>
+
+  <!-- Second tick -->
+  <rect x="405" y="92" width="210" height="146" rx="10" fill="#3b82f6" fill-opacity="0.08" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="620" y="108" fill="#3b82f6" font-size="10" text-anchor="end">k = $0.98</text>
+
+  <!-- Third tick -->
+  <rect x="430" y="112" width="160" height="106" rx="8" fill="#a855f7" fill-opacity="0.10" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="595" y="128" fill="#a855f7" font-size="10" text-anchor="end">k = $0.99</text>
+
+  <!-- Innermost tick (tightest peg) -->
+  <rect x="462" y="135" width="96" height="60" rx="6" fill="#CEF17B" fill-opacity="0.15" stroke="#CEF17B" stroke-width="2"/>
+  <text x="510" y="170" text-anchor="middle" fill="#CEF17B" font-size="13" font-weight="700">$1 peg</text>
+
+  <!-- Arrow showing nesting -->
+  <text x="510" y="260" text-anchor="middle" fill="#CEF17B" font-size="10">All ticks overlap -- wider includes narrower</text>
+</svg>
