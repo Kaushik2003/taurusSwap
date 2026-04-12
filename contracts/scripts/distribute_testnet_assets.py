@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Distribute additional testnet pool ASAs to opted-in trader wallets.
 
 Idempotent: each (trader, asset) pair is only sent tokens if the trader's

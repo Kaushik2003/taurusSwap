@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Kinetic Monolith Design Tokens */
+  --background: #031108;
+  --on-background: #e2f6e4;
+  
+  --primary: #f4ffc6;
+  --on-primary: #546600;
+  
+  --secondary: #a3fa00;
+  --on-secondary: #395b00;
+  
+  --surface: #031108;
+  --surface-container-low: #05170c;
+  --surface-container-high: #0e2417;
+  --surface-container-highest: #132a1c;
+  
+  --outline-variant: rgba(59, 76, 63, 0.4);
+  --error: #ff7351;
+  
+  --font-inter: var(--font-inter);
+  --font-space: var(--font-space);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--on-background);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  /* Monolithic Grid Background */
+  background-image: 
+    linear-gradient(rgba(163, 250, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(163, 250, 0, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glassmorphism Utility */
+.glass-monolith {
+  background: rgba(19, 42, 28, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--outline-variant);
+}
+
+/* Typography Overrides */
+h1, h2, h3, h4, .font-technical {
+  font-family: var(--font-space), var(--font-inter), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar (Kinetic Style) */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 0px; }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 5px rgba(163, 250, 0, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(163, 250, 0, 0.4); }
+  100% { box-shadow: 0 0 5px rgba(163, 250, 0, 0.2); }
+}
+
+.animate-glow {
+  animation: glow-pulse 3s infinite ease-in-out;
+}
