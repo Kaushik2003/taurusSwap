@@ -33,9 +33,7 @@ export default function Navbar() {
         <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-2">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 mr-2 shrink-0">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center glow-primary" style={{ background: '#084734' }}>
-              <Zap className="w-4 h-4 text-[#CEF17B]" />
-            </div>
+            <img src="/favicon.ico" alt="TaurusSwap" className="w-8 h-8 rounded-xl" />
             <span className="text-xl font-black text-[#084734] hidden sm:block tracking-tighter">TaurusSwap</span>
           </Link>
 

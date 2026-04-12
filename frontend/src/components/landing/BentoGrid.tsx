@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 const ArrowIcon = ({ color, size = 20 }) => (
@@ -7,7 +6,7 @@ const ArrowIcon = ({ color, size = 20 }) => (
   </svg>
 );
 
-const CtaButton = ({ label, color }) => {
+const CtaButton = ({ label, btnBg, btnColor }) => {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -17,21 +16,23 @@ const CtaButton = ({ label, color }) => {
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
-        background: hovered ? "#0a5a42" : "#084734",
+        background: btnBg || "#084734",
         border: "none",
         borderRadius: 999,
-        padding: "22px 32px",
-        color: "#CEF17B",
-        fontSize: 18,
-        fontWeight: 600,
+        padding: "16px 24px",
+        color: btnColor || "#CEF17B",
+        fontSize: 16,
+        fontWeight: 700,
         cursor: "pointer",
         transition: "all 0.2s ease",
         fontFamily: "'Inter', sans-serif",
         letterSpacing: "0.01em",
+        opacity: hovered ? 0.85 : 1,
+        transform: hovered ? "scale(1.02)" : "scale(1)",
       }}
     >
       {label}
-      <ArrowIcon color="#CEF17B" size={18} />
+      <ArrowIcon color={btnColor || "#CEF17B"} size={18} />
     </button>
   );
 };
@@ -50,7 +51,7 @@ const tokens = [
   { name: "Governance", ticker: "gALGO", price: "$0.29", change: "+1.45%", up: true, img: "https://assets.coingecko.com/coins/images/4380/large/algorand.png" },
 ];
 
-function TokenRow({ token }) {
+function TokenRow({ token, cardColor = "#084734" }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -62,36 +63,35 @@ function TokenRow({ token }) {
         gap: 20,
         padding: "20px 24px",
         borderRadius: 24,
-        background: hovered ? "rgba(8,71,52,0.15)" : "rgba(8,71,52,0.08)",
+        background: hovered ? `${cardColor}25` : `${cardColor}15`,
         transition: "background 0.15s ease",
         cursor: "pointer",
       }}
     >
-      <img src={token.img} alt={token.name} width={50} height={50} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+      <img src={token.img} alt={token.name} width={50} height={50} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#084734", fontWeight: 700, fontSize: 18 }}>{token.name}</span>
-          <span style={{ color: "#084734", fontWeight: 700, fontSize: 18 }}>{token.price}</span>
+          <span style={{ color: cardColor, fontWeight: 700, fontSize: 18 }}>{token.name}</span>
+          <span style={{ color: cardColor, fontWeight: 700, fontSize: 18 }}>{token.price}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
-          <span style={{ color: "rgba(8,71,52,0.6)", fontSize: 16, fontWeight: 700 }}>{token.ticker}</span>
+          <span style={{ color: `${cardColor}99`, fontSize: 16, fontWeight: 700 }}>{token.ticker}</span>
           <span style={{ color: token.up ? "#1b8a45" : "#c1272d", fontSize: 16, fontWeight: 900 }}>{token.change}</span>
         </div>
       </div>
     </div>
   );
 }
-
 function WalletMockup() {
   return (
     <div style={{
-      background: "#084734",
+      background: "#00407A",
       borderRadius: 24,
       padding: "32px",
       width: "100%",
       maxWidth: 380,
-      border: "1px solid rgba(206,241,123,0.2)",
-      boxShadow: "0 8px 32px rgba(8,71,52,0.15)",
+      border: "1px solid rgba(104,211,255,0.2)",
+      boxShadow: "0 8px 32px rgba(0,64,122,0.15)",
       fontFamily: "'Inter', sans-serif",
     }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
@@ -100,42 +100,40 @@ function WalletMockup() {
           { label: "USDC", amount: "500.00 USDC", sub: "$500.00" },
           { label: "gALGO", amount: "200 gALGO", sub: "$58.00" },
         ].map(item => (
-          <div key={item.label} style={{ background: "rgba(206,241,123,0.08)", borderRadius: 12, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={item.label} style={{ background: "rgba(104,211,255,0.08)", borderRadius: 12, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style={{ color: "#CEF17B", fontSize: 13, fontWeight: 700 }}>{item.label}</div>
-              <div style={{ color: "rgba(206,241,123,0.5)", fontSize: 11 }}>{item.sub}</div>
+              <div style={{ color: "#68D3FF", fontSize: 13, fontWeight: 700 }}>{item.label}</div>
+              <div style={{ color: "rgba(104,211,255,0.5)", fontSize: 11 }}>{item.sub}</div>
             </div>
-            <div style={{ color: "rgba(206,241,123,0.7)", fontSize: 12 }}>{item.amount}</div>
+            <div style={{ color: "rgba(104,211,255,0.7)", fontSize: 12 }}>{item.amount}</div>
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(206,241,123,0.1)", borderRadius: 12, padding: "10px 14px" }}>
-        <span style={{ color: "rgba(206,241,123,0.45)", fontSize: 13, flex: 1 }}>Search ASAs</span>
-        <div style={{ background: "#CEF17B", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 800, color: "#084734" }}>Swap</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(104,211,255,0.1)", borderRadius: 12, padding: "10px 14px" }}>
+        <span style={{ color: "rgba(104,211,255,0.45)", fontSize: 13, flex: 1 }}>Search ASAs</span>
+        <div style={{ background: "#68D3FF", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 800, color: "#00407A" }}>Swap</div>
       </div>
     </div>
   );
 }
-
 function PFOFDecoration() {
   return (
     <div style={{ position: "absolute", bottom: 16, right: 16, display: "flex", flexDirection: "column", gap: 8, opacity: 0.7 }}>
       {["MEV protection", "Best price", "0.001 ALGO fee"].map((label, i) => (
         <div key={label} style={{
-          background: "rgba(130,81,251,0.2)",
-          border: "1px solid rgba(130,81,251,0.3)",
+          background: "rgba(167,230,127,0.2)",
+          border: "1px solid rgba(167,230,127,0.3)",
           borderRadius: 20,
           padding: "5px 12px",
           fontSize: 12,
-          color: "#A070FF",
-          fontWeight: 500,
+          color: "#A7E67F",
+          fontWeight: 700,
           whiteSpace: "nowrap",
         }}>{label}</div>
       ))}
     </div>
   );
 }
-
 function LiquidityDecoration() {
   const coins = ["#21C95E", "#627EEA", "#2ABDFF", "#F7931A"];
   return (
@@ -159,9 +157,7 @@ function LiquidityDecoration() {
 
 const cards = [
   {
-    id: "webapp",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "webapp", color: "#ea91f2", bg: "#52167a", btnBg: "#ea91f2", btnColor: "#52167a", border: "transparent",
     label: "Web App",
     headline: "Trade ASAs. Instant. Final.",
     body: "Discover and swap Algorand Standard Assets with sub-4 second finality. Explore the Algorand ecosystem.",
@@ -173,9 +169,7 @@ const cards = [
     ),
   },
   {
-    id: "wallet",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "wallet", color: "#0e3e78", bg: "#61cdfd", btnBg: "#0e3e78", btnColor: "#61cdfd", border: "transparent",
     label: "Pera Wallet",
     headline: "Secure. Self-custody.",
     body: "Connect with Pera Algo Wallet — the most trusted Algorand wallet with over 1M+ downloads.",
@@ -187,9 +181,7 @@ const cards = [
     ),
   },
   {
-    id: "pfop",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "pfop", color: "#a3e473", bg: "#265d1d", btnBg: "#a3e473", btnColor: "#265d1d", border: "transparent",
     label: "PFOF Engine",
     headline: "Payment for Order Flow.",
     body: "Our novel PFOF engine ensures you get the best execution price with institutional-grade liquidity.",
@@ -201,9 +193,7 @@ const cards = [
     ),
   },
   {
-    id: "liquidity",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "liquidity", color: "#e64f28", bg: "#fbdec1", btnBg: "#e64f28", btnColor: "#fbdec1", border: "transparent",
     label: "Liquidity Pools",
     headline: "Provide liquidity, earn fees.",
     body: "Earn by powering onchain markets with Constant Product AMM pools on Algorand.",
@@ -215,9 +205,7 @@ const cards = [
     ),
   },
   {
-    id: "api",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "api", color: "#FDF4FF", bg: "#1f2937", btnBg: "#FDF4FF", btnColor: "#1f2937", border: "transparent",
     label: "Developer API",
     headline: "Build on Algorand.",
     body: "Integrate Tauras liquidity into your dApps with our powerful REST API and SDK.",
@@ -229,9 +217,7 @@ const cards = [
     ),
   },
   {
-    id: "ecosystem",
-    color: "#084734",
-    bg: "rgba(8,71,52,0.03)",
+    id: "ecosystem", color: "#166534", bg: "#dcfce7", btnBg: "#166534", btnColor: "#dcfce7", border: "transparent",
     label: "Algorand Ecosystem",
     headline: "Pure proof-of-stake.",
     body: "Join the sustainable blockchain with 4.5 second finality and carbon-negative operations.",
@@ -252,7 +238,7 @@ function BentoCard({ card, tall = false, children }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: card.bg,
-        border: `1px solid ${card.color}22`,
+        /* removed border */
         borderRadius: 40,
         padding: 56,
         display: "flex",
@@ -278,7 +264,7 @@ function BentoCard({ card, tall = false, children }) {
           {card.body}
         </p>
         <div style={{ marginTop: 4 }}>
-          <CtaButton label={card.cta} color={card.color} />
+          <CtaButton label={card.cta} btnBg={card.btnBg} btnColor={card.btnColor} />
         </div>
       </div>
       {children}
@@ -296,7 +282,7 @@ export default function BentoGrid() {
     }}>
       <div style={{ width: "100%", margin: "0 auto" }}>
         <h2 style={{
-          color: "#084734",
+          color: "#111",
           fontSize: "clamp(1.4rem, 3vw, 2rem)",
           fontWeight: 900,
           margin: "0 0 24px",
@@ -315,7 +301,7 @@ export default function BentoGrid() {
           {/* Web App (tall) */}
           <BentoCard card={cards[0]} tall>
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8, zIndex: 2 }}>
-              {tokens.map(t => <TokenRow key={t.ticker} token={t} />)}
+              {tokens.map(t => <TokenRow key={t.ticker} token={t} cardColor={cards[0].color} />)}
             </div>
           </BentoCard>
 
@@ -340,10 +326,10 @@ export default function BentoGrid() {
           <BentoCard card={cards[4]}>
             <div style={{
               position: "absolute", bottom: 20, right: 16,
-              background: "rgba(8,71,52,0.1)", borderRadius: 8,
-              padding: "8px 12px", fontSize: 11, color: "#084734",
+              background: "rgba(253,244,255,0.1)", borderRadius: 8,
+              padding: "8px 12px", fontSize: 11, color: "#FDF4FF",
               fontFamily: "'Inter', sans-serif", opacity: 0.8,
-              border: "1px solid rgba(8,71,52,0.15)",
+              border: "1px solid rgba(253,244,255,0.15)",
             }}>
               taurus-sdk →
             </div>
@@ -354,13 +340,13 @@ export default function BentoGrid() {
             <div style={{
               position: "absolute", bottom: 16, right: 16,
               width: 80, height: 80,
-              background: "radial-gradient(circle, rgba(8,71,52,0.15) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(0,85,58,0.15) 0%, transparent 70%)",
               borderRadius: "50%",
             }} />
             <div style={{
               position: "absolute", bottom: 24, right: 24,
               fontSize: 40, opacity: 0.4,
-              color: "#084734",
+              color: "#00553A",
               fontWeight: 800,
             }}>✦</div>
           </BentoCard>

@@ -41,6 +41,7 @@
         "@txnlab/use-wallet-react": "^4.6.0",
         "@walletconnect/sign-client": "^2.23.9",
         "algosdk": "^3.5.2",
+        "buffer": "^6.0.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
