@@ -299,23 +299,40 @@ export async function buildRemoveLiquidityGroup(
   const n = tokenAsaIds.length;
   const txns: algosdk.Transaction[] = [];
 
-  const numBudget = computeRequiredBudget(0, n);
+  const tokenBoxes = tokenAsaIds.map((_, i) => ({
+    appIndex: poolAppId,
+    name: encodeBoxMapKey("token:", i),
+  }));
+  const allBoxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("reserves") },
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
+    { appIndex: poolAppId, name: encodePositionBoxKey(senderPubKey, tickId) },
+    ...tokenBoxes,
+  ];
+
+  // Distribute assets + boxes across budget txns so no single txn exceeds 8 total refs.
+  const totalRefs = tokenAsaIds.length + allBoxes.length;
+  const numResourceBudgets = Math.max(0, Math.ceil(totalRefs / 8) - 1);
+  const numBudget = Math.max(computeRequiredBudget(0, n), numResourceBudgets);
+  const refSlots = distributeRefs(tokenAsaIds, allBoxes, numBudget);
+
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
+        foreignAssets: refSlots[i].assets,
+        boxes: refSlots[i].boxes,
         suggestedParams: withFlatFee(sp),
       }),
     );
   }
 
-  // Token boxes for inner sends and fee_growth for fee settling
-  const tokenBoxes = tokenAsaIds.map((_, i) => ({
-    appIndex: poolAppId,
-    name: encodeBoxMapKey("token:", i),
-  }));
+  // remove_liquidity sends n inner asset transfers (reserves back to caller).
+  // Each inner send consumes MIN_TXN_FEE of fee credit from the outer call.
+  const removeFee = BigInt(1 + n) * MIN_TXN_FEE;
 
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
@@ -326,18 +343,9 @@ export async function buildRemoveLiquidityGroup(
         encodeUint64Arg(tickId),
         encodeUint64Arg(shares),
       ],
-      foreignAssets: tokenAsaIds,
-      boxes: [
-        { appIndex: poolAppId, name: encodeBoxName("reserves") },
-        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
-        { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
-        {
-          appIndex: poolAppId,
-          name: encodePositionBoxKey(senderPubKey, tickId),
-        },
-        ...tokenBoxes,
-      ],
-      suggestedParams: withFlatFee(sp),
+      foreignAssets: refSlots[numBudget].assets,
+      boxes: refSlots[numBudget].boxes,
+      suggestedParams: withFlatFee(sp, removeFee),
     }),
   );
 
@@ -362,45 +370,92 @@ export async function buildClaimFeesGroup(
   const n = tokenAsaIds.length;
   const txns: algosdk.Transaction[] = [];
 
+  const tokenBoxes = tokenAsaIds.map((_, i) => ({
+    appIndex: poolAppId,
+    name: encodeBoxMapKey("token:", i),
+  }));
+  const allBoxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
+    { appIndex: poolAppId, name: encodePositionBoxKey(senderPubKey, tickId) },
+    ...tokenBoxes,
+  ];
+
+  // Distribute assets + boxes across budget txns so no single txn exceeds 8 total refs.
+  const totalRefs = tokenAsaIds.length + allBoxes.length;
+  const numResourceBudgets = Math.max(0, Math.ceil(totalRefs / 8) - 1);
   // claim_fees iterates n times for fee computation + n inner sends
-  const numBudget = computeRequiredBudget(0, n);
+  const numBudget = Math.max(computeRequiredBudget(0, n), numResourceBudgets);
+  const refSlots = distributeRefs(tokenAsaIds, allBoxes, numBudget);
+
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
+        foreignAssets: refSlots[i].assets,
+        boxes: refSlots[i].boxes,
         suggestedParams: withFlatFee(sp),
       }),
     );
   }
 
-  const tokenBoxes = tokenAsaIds.map((_, i) => ({
-    appIndex: poolAppId,
-    name: encodeBoxMapKey("token:", i),
-  }));
+  // claim_fees sends n inner asset transfers (fees to caller).
+  // Each inner send consumes MIN_TXN_FEE of fee credit from the outer call.
+  const claimFee = BigInt(1 + n) * MIN_TXN_FEE;
 
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
       sender,
       appIndex: poolAppId,
       appArgs: [methodSelector("claimFees"), encodeUint64Arg(tickId)],
-      foreignAssets: tokenAsaIds,
-      boxes: [
-        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
-        { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
-        {
-          appIndex: poolAppId,
-          name: encodePositionBoxKey(senderPubKey, tickId),
-        },
-        ...tokenBoxes,
-      ],
-      suggestedParams: withFlatFee(sp),
+      foreignAssets: refSlots[numBudget].assets,
+      boxes: refSlots[numBudget].boxes,
+      suggestedParams: withFlatFee(sp, claimFee),
     }),
   );
 
   algosdk.assignGroupID(txns);
   return txns;
+}
+
+// ── Resource distribution helper ─────────────────────────────────────────────
+//
+// Algorand AVM v10+: MaxAppTotalTxnReferences = 8 applies to the combined total
+// of (foreign accounts + foreign apps + foreign assets + box references) per txn.
+// Resources referenced in ANY transaction in an atomic group are accessible to ALL
+// app calls in the group, so we spread them across budget dummy transactions.
+//
+// Returns one slot per transaction (indices 0..numBudget-1 = budget, numBudget = main call).
+// Each slot has at most 8 total refs.
+
+function distributeRefs(
+  assets: number[],
+  boxes: algosdk.BoxReference[],
+  numBudget: number,
+): Array<{ assets: number[]; boxes: algosdk.BoxReference[] }> {
+  type Item =
+    | { kind: "asset"; value: number }
+    | { kind: "box"; value: algosdk.BoxReference };
+
+  const items: Item[] = [
+    ...assets.map((v) => ({ kind: "asset" as const, value: v })),
+    ...boxes.map((v) => ({ kind: "box" as const, value: v })),
+  ];
+
+  const slots = numBudget + 1;
+  const result: Array<{ assets: number[]; boxes: algosdk.BoxReference[] }> =
+    Array.from({ length: slots }, () => ({ assets: [], boxes: [] }));
+
+  items.forEach((item, i) => {
+    // Fill budget slots first (8 refs each), remainder goes to the last slot (main call).
+    const slot = Math.min(Math.floor(i / 8), slots - 1);
+    if (item.kind === "asset") result[slot].assets.push(item.value);
+    else result[slot].boxes.push(item.value);
+  });
+
+  return result;
 }
 
 // ── Internal helpers ─────────────────────────────────────────────────────────

@@ -21,6 +21,8 @@ export type {
   ClaimFeesParams,
   ClaimFeesResult,
 } from "./pool/liquidity";
+export { computeZap } from "./pool/zap";
+export type { ZapPlan, ZapSwap } from "./pool/zap";
 
 // ── Transaction builders ──────────────────────────────────────────────────────
 export {
