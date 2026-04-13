@@ -12,42 +12,25 @@ export default function Home() {
       <FloatingOrbs />
 
       <div className="relative z-10 flex flex-col items-center px-4">
-        {/* Hero */}
-        <div className="text-center mt-16 mb-10 animate-fade-in-up">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-[#084734] mb-4 leading-tight tracking-tighter">
-            Trade tokens,without limits.
-          </h1>
-          <p className="text-lg sm:text-xl text-[#084734]/70 max-w-lg mx-auto font-bold">
-            Swap, earn, and build on Algorand with institutional-grade liquidity and sub-4 second finality.
-          </p>
-        </div>
+        {/* Hero & Swap Container */}
+        <div className="w-full max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 mt-20 lg:mt-36 mb-16 px-4 lg:px-12 xl:px-20">
+          
+          {/* Hero Content */}
+          <div className="flex-1 text-center lg:text-left animate-fade-in-up w-full">
+            <div className="mx-auto lg:mx-0 mb-6 inline-flex rounded-full border-2 border-[#084734] px-4 py-1.5 text-sm font-bold text-[#084734] bg-[#C0FCFD] shadow-[-2px_2px_0_0_#084734] uppercase tracking-widest">
+              Algorand Ecosystem
+            </div>
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-[#084734] mb-6 leading-[1.05] tracking-tighter">
+              Trade tokens,<br className="hidden lg:block" /> without limits.
+            </h1>
+            <p className="text-lg sm:text-xl text-[#084734]/70 max-w-lg mx-auto lg:mx-0 font-bold mb-8">
+              Swap, earn, and build on Algorand with institutional-grade liquidity and sub-4 second finality. Built for everyone.
+            </p>
+          </div>
 
-        {/* Swap card */}
-        <div className="w-full animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-          <SwapCard />
-        </div>
-
-
-        {/* Scroll hint */}
-        <div className="mt-16 mb-8 flex flex-col items-center gap-2 text-[#084734]/30 animate-float">
-          <span className="text-xs font-bold uppercase tracking-widest">Scroll to explore</span>
-          <ArrowDown className="w-4 h-4" />
-        </div>
-
-        {/* Stats section */}
-        <div className="w-full max-w-4xl mx-auto pb-20">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Total Volume', value: '$1.2T+' },
-              { label: 'Total Value Locked', value: '$4.8B' },
-              { label: 'ALGO Staked', value: '850M+' },
-              { label: 'Network Finality', value: '3.3s' },
-            ].map(s => (
-              <div key={s.label} className="p-6 text-center rounded-3xl" style={{ background: '#084734' }}>
-                <p className="text-2xl sm:text-3xl font-black text-[#87E4A2] mb-1">{s.value}</p>
-                <p className="text-xs text-[#87E4A2]/60 font-bold uppercase tracking-wider">{s.label}</p>
-              </div>
-            ))}
+          {/* Swap card */}
+          <div className="w-full max-w-[500px] flex-shrink-0 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+            <SwapCard />
           </div>
         </div>
 

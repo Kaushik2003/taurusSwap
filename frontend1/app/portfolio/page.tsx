@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { Wallet, Send, ArrowDownToLine, CreditCard, MoreHorizontal, TrendingUp, Activity, Image, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
-import { demoWalletAssets, demoTransactions, portfolioChartData } from '@/data/mock';
+import { demoWalletAssets, portfolioChartData } from '@/data/mock';
 import { formatCurrency, formatPercent, timeAgo } from '@/lib/format';
 import TokenIcon from '@/components/shared/TokenIcon';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
+import { useTransactions } from '@/hooks/useTransactions';
 import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
 
 type Tab = 'overview' | 'tokens' | 'nfts' | 'activity' | 'lp';
 type Timeframe = '1H' | '1D' | '1W' | '1M' | '1Y' | 'All';
+type ActivityView = 'personal' | 'global';
 
 export default function Portfolio() {
   const { activeAddress } = useWallet();
@@ -23,12 +25,20 @@ export default function Portfolio() {
   const walletAddress = activeAddress ? `${activeAddress.slice(0, 4)}...${activeAddress.slice(-4)}` : '';
   const [tab, setTab] = useState<Tab>('overview');
   const [timeframe, setTimeframe] = useState<Timeframe>('1M');
+  const [activityView, setActivityView] = useState<ActivityView>('personal');
 
   const { data: pool } = usePoolState();
   const { data: positions = [], isLoading: positionsLoading } = useAllPositions(
     activeAddress ?? null,
     pool?.numTicks ?? 0,
   );
+
+  // Personal: filter by connected wallet. Global: no filter — returns all users including own.
+  const { data: personalTxns = [], isLoading: personalTxLoading } = useTransactions(activeAddress, 20);
+  const { data: globalTxns = [], isLoading: globalTxLoading } = useTransactions(null, 50);
+
+  const transactions = activityView === 'personal' ? personalTxns : globalTxns;
+  const txLoading = activityView === 'personal' ? personalTxLoading : globalTxLoading;
   const activePositions = positions.filter(p => p.shares > 0n);
 
   const totalValue = demoWalletAssets.reduce((s, a) => s + a.value, 0);
@@ -188,20 +198,38 @@ export default function Portfolio() {
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3">Recent activity</h3>
             <div className="glass-panel overflow-hidden">
-              {demoTransactions.map((tx, i) => (
-                <div key={tx.id} className={`flex items-center gap-3 px-4 py-3 data-table-row ${i > 0 ? 'border-t border-border/30' : ''}`}>
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <Activity className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground capitalize">{tx.type}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {tx.token0.symbol}{tx.token1 ? ` → ${tx.token1.symbol}` : ''} · {timeAgo(tx.timestamp)}
-                    </p>
-                  </div>
-                  <span className="text-sm text-foreground">{formatCurrency(tx.value)}</span>
+              {txLoading ? (
+                <div className="p-8 text-center">
+                  <Loader2 className="w-5 h-5 text-muted-foreground animate-spin mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">Fetching activity...</p>
                 </div>
-              ))}
+              ) : transactions.length > 0 ? (
+                transactions.slice(0, 5).map((tx, i) => (
+                  <div key={tx.id} className={`flex items-center gap-3 px-4 py-3 data-table-row ${i > 0 ? 'border-t border-border/30' : ''}`}>
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <Activity className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-medium text-foreground capitalize">{tx.type}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {tx.token0}{tx.token1 ? ` / ${tx.token1}` : ''} · {timeAgo(new Date(tx.timestamp))}
+                      </p>
+                    </div>
+                    <a
+                      href={`https://testnet.explorer.perawallet.app/tx/${tx.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:text-primary/70 transition-colors font-semibold"
+                    >
+                      Pera Explorer ↗
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="text-xs text-muted-foreground">No recent activity detected.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -237,22 +265,77 @@ export default function Portfolio() {
       )}
 
       {tab === 'activity' && (
-        <div className="glass-panel overflow-hidden">
-          {demoTransactions.map((tx, i) => (
-            <div key={tx.id} className={`flex items-center gap-3 px-4 py-3.5 data-table-row ${i > 0 ? 'border-t border-border/30' : ''}`}>
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                <Activity className="w-4 h-4 text-muted-foreground" />
+        <div className="space-y-4">
+          <div className="flex justify-end p-1 bg-muted/40 rounded-xl border border-border/20 w-fit ml-auto">
+            {(['personal', 'global'] as ActivityView[]).map(v => (
+              <button
+                key={v}
+                onClick={() => setActivityView(v)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${activityView === v ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {v} activity
+              </button>
+            ))}
+          </div>
+
+          <div className="glass-panel overflow-hidden">
+            {txLoading ? (
+              <div className="p-16 text-center">
+                <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground uppercase tracking-widest font-mono">Synchronizing activity...</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground capitalize">{tx.type} {tx.token0.symbol}{tx.token1 ? ` → ${tx.token1.symbol}` : ''}</p>
-                <p className="text-xs text-muted-foreground">{tx.hash} · {tx.network}</p>
+            ) : transactions.length > 0 ? (
+              transactions.map((tx, i) => {
+                const isOwn = tx.wallet === activeAddress;
+                const typeLabel: Record<string, string> = {
+                  swap: 'Swap',
+                  add: 'Add Liquidity',
+                  remove: 'Remove Liquidity',
+                  claim: 'Claim Fees',
+                };
+                return (
+                  <div key={tx.id} className={`flex items-center gap-3 px-4 py-3.5 data-table-row ${i > 0 ? 'border-t border-border/30' : ''}`}>
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <Activity className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">
+                          {typeLabel[tx.type] ?? tx.type} {tx.token0}{tx.token1 ? ` / ${tx.token1}` : ''}
+                        </p>
+                        {isOwn && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold tracking-tighter uppercase">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground font-mono truncate max-w-[200px] sm:max-w-none">
+                        {activityView === 'global' && !isOwn
+                          ? `${tx.wallet.slice(0, 6)}…${tx.wallet.slice(-4)}`
+                          : tx.id
+                        } · testnet
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <a
+                        href={`https://testnet.explorer.perawallet.app/tx/${tx.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:text-primary/70 transition-colors block mb-1 font-semibold"
+                      >
+                        Pera Explorer ↗
+                      </a>
+                      <p className="text-xs text-muted-foreground">{timeAgo(new Date(tx.timestamp))}</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-16 text-center">
+                <p className="text-sm text-muted-foreground">No transaction history found.</p>
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-sm text-foreground">{formatCurrency(tx.value)}</p>
-                <p className="text-xs text-muted-foreground">{timeAgo(tx.timestamp)}</p>
-              </div>
-            </div>
-          ))}
+            )}
+          </div>
         </div>
       )}
 
