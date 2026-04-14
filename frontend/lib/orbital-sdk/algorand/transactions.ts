@@ -42,20 +42,39 @@ export async function buildSwapGroup(
   amountIn: bigint,         // raw microunits
   computedAmountOut: bigint, // raw microunits
   minAmountOut: bigint,     // raw microunits
+  tokenAsaIds: number[],    // All pool assets for context
   n = 2,
 ): Promise<algosdk.Transaction[]> {
   const sp = await client.getTransactionParams().do();
   const poolAddress = algosdk.getApplicationAddress(poolAppId);
   const txns: algosdk.Transaction[] = [];
 
-  // Budget padding
-  const numBudget = computeRequiredBudget(0, n);
+  // Budget padding.
+  // The contract asserts global GroupSize == 4, so the group must always be:
+  //   [budget 0]  [budget 1]  [asset transfer]  [swap call]
+  // computeRequiredBudget returns 0 for n=2 (cost < one txn's opcode budget),
+  // but the contract hard-requires 2 budget txns regardless of opcode cost.
+  const numBudget = Math.max(2, computeRequiredBudget(0, n));
+  const targetBoxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("reserves") },
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    ...tokenAsaIds.map((_, i) => ({
+      appIndex: poolAppId,
+      name: encodeBoxMapKey("token:", i),
+    })),
+  ];
+
+  const chunks = distributeRefs(tokenAsaIds, targetBoxes, numBudget);
+
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
+        note: new Uint8Array(Buffer.from(`budget_${i}_${Date.now()}`)),
+        foreignAssets: chunks[i]?.assets ?? [],
+        boxes: chunks[i]?.boxes ?? [],
         suggestedParams: withFlatFee(sp),
       }),
     );
@@ -86,13 +105,8 @@ export async function buildSwapGroup(
         encodeUint64Arg(computedAmountOut),
         encodeUint64Arg(minAmountOut),
       ],
-      foreignAssets: [tokenInAsaId, tokenOutAsaId],
-      boxes: [
-        { appIndex: poolAppId, name: encodeBoxName("reserves") },
-        { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
-        { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenInIdx) },
-        { appIndex: poolAppId, name: encodeBoxMapKey("token:", tokenOutIdx) },
-      ],
+      foreignAssets: chunks[numBudget]?.assets ?? [],
+      boxes: chunks[numBudget]?.boxes ?? [],
       suggestedParams: withFlatFee(sp, SWAP_APP_CALL_FEE),
     }),
   );
@@ -110,8 +124,7 @@ export async function buildCrossingSwapGroup(
   client: algosdk.Algodv2,
   poolAppId: number,
   sender: string,
-  tokenInAsaId: number,
-  tokenOutAsaId: number,
+  tokenAsaIds: number[],
   recipe: TradeRecipe,
   n = 2,
 ): Promise<algosdk.Transaction[]> {
@@ -119,14 +132,37 @@ export async function buildCrossingSwapGroup(
   const poolAddress = algosdk.getApplicationAddress(poolAppId);
   const txns: algosdk.Transaction[] = [];
 
-  // Budget padding
-  const numBudget = computeRequiredBudget(recipe.segments.length, n);
+  // Budget padding.
+  // The contract asserts global GroupSize == 4 for swap_with_crossings as well,
+  // requiring at least 2 budget txns: [budget 0] [budget 1] [transfer] [call].
+  const numBudget = Math.max(2, computeRequiredBudget(recipe.segments.length, n));
+
+  const targetBoxes: algosdk.BoxReference[] = [
+    { appIndex: poolAppId, name: encodeBoxName("reserves") },
+    { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
+    ...tokenAsaIds.map((_, i) => ({
+      appIndex: poolAppId,
+      name: encodeBoxMapKey("token:", i),
+    })),
+    ...recipe.segments
+      .filter(seg => seg.tickCrossedId !== null)
+      .map(seg => ({
+        appIndex: poolAppId,
+        name: encodeBoxMapKey("tick:", seg.tickCrossedId!),
+      }))
+  ];
+
+  const chunks = distributeRefs(tokenAsaIds, targetBoxes, numBudget);
+
   for (let i = 0; i < numBudget; i++) {
     txns.push(
       algosdk.makeApplicationNoOpTxnFromObject({
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
+        note: new Uint8Array(Buffer.from(`budget_${i}_${Date.now()}`)),
+        foreignAssets: chunks[i]?.assets ?? [],
+        boxes: chunks[i]?.boxes ?? [],
         suggestedParams: withFlatFee(sp),
       }),
     );
@@ -178,8 +214,8 @@ export async function buildCrossingSwapGroup(
         encodeBytesArg(recipeBytes),
         encodeUint64Arg(recipe.minAmountOut),
       ],
-      foreignAssets: [tokenInAsaId, tokenOutAsaId],
-      boxes,
+      foreignAssets: chunks[numBudget]?.assets ?? [],
+      boxes: chunks[numBudget]?.boxes ?? [],
       suggestedParams: withFlatFee(sp, SWAP_APP_CALL_FEE),
     }),
   );
@@ -247,6 +283,7 @@ export async function buildAddTickGroup(
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
         boxes: boxChunks[i] ?? [],
+        note: new Uint8Array(Buffer.from(`budget_${i}_${Date.now()}`)),
         suggestedParams: withFlatFee(sp),
       }),
     );
@@ -345,6 +382,7 @@ export async function buildRemoveLiquidityGroup(
         appArgs: [methodSelector("budget")],
         foreignAssets: assetChunks[i].length > 0 ? assetChunks[i] : undefined,
         boxes: boxChunks[i] ?? [],
+        note: new Uint8Array(Buffer.from(`budget_${i}_${Date.now()}`)),
         suggestedParams: withFlatFee(sp),
       }),
     );
@@ -433,6 +471,7 @@ export async function buildClaimFeesGroup(
         appArgs: [methodSelector("budget")],
         foreignAssets: assetChunks[i].length > 0 ? assetChunks[i] : undefined,
         boxes: boxChunks[i] ?? [],
+        note: new Uint8Array(Buffer.from(`budget_${i}_${Date.now()}`)),
         suggestedParams: withFlatFee(sp),
       }),
     );

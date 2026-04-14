@@ -35,24 +35,24 @@ body {
 }
 
 .glass-panel {
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   border: 2px solid var(--glass-border);
   background: var(--glass-bg);
-  box-shadow: 6px 6px 0px 0px var(--glass-border);
+  box-shadow: 4px 4px 0px 0px var(--glass-border);
 }
 
 .glass-panel-hover {
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   border: 2px solid var(--glass-border);
   background: var(--glass-bg);
-  box-shadow: 6px 6px 0px 0px var(--glass-border);
+  box-shadow: 4px 4px 0px 0px var(--glass-border);
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel-hover:hover {
   background: var(--glass-hover);
-  transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0px 0px var(--glass-border);
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0px 0px var(--glass-border);
 }
 
 .nav-link {
@@ -83,4 +83,19 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.page-slide-in {
+  animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

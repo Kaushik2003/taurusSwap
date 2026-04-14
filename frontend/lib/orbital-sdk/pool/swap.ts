@@ -139,6 +139,7 @@ export async function executeSwap(
       amountInRaw,          // raw microunits — ASA transfer amount
       exactAmountOut,       // raw microunits — claimed_amount_out ABI arg
       minAmountOut,         // raw microunits — min_amount_out ABI arg
+      poolState.tokenAsaIds, // Pass full context for n-token verification
       poolState.n,
     );
     submittedAmountOut = exactAmountOut;
@@ -161,8 +162,7 @@ export async function executeSwap(
       client,
       poolAppId,
       sender,
-      tokenInAsaId,
-      tokenOutAsaId,
+      poolState.tokenAsaIds, // Pass full context for n-token verification
       recipe,
       poolState.n,
     );
