@@ -48,7 +48,7 @@ const links = [
     id: "docs",
     title: "Documentation",
     description: "Explore our developer docs and API reference for building with TaurusProtocol",
-    href: "#",
+    href: "/docs",
     icon: <DocsIcon />,
     isLink: true,
   },
@@ -71,9 +71,8 @@ const links = [
 ];
 
 const socialLinks = [
-  { label: "X", href: "https://x.com/" },
-  { label: "Discord", href: "#" },
-  { label: "GitHub", href: "#" },
+  { label: "X", href: "https://x.com/taurus_protocol" },
+  { label: "GitHub", href: "https://github.com/kaushik2003/taurusSwap" },
 ];
 
 function SocialDescription() {
@@ -96,7 +95,7 @@ function SocialDescription() {
           >
             {s.label}
           </a>
-          {i < socialLinks.length - 2 ? ", " : i === socialLinks.length - 2 ? ", and " : ""}
+          {i < socialLinks.length - 2 ? " " : i === socialLinks.length - 2 ? " and " : ""}
         </span>
       ))}
     </span>
