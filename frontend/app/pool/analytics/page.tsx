@@ -286,7 +286,7 @@ export default function AnalyticsPage() {
                        <span className="text-muted-foreground truncate max-w-[80px]">{tx.id.slice(0, 8)}...</span>
                     </div>
                     <span className="text-muted-foreground font-medium">
-                      {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(tx.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                     </span>
                   </div>
                 )) : (
