@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Wallet, Loader2, RefreshCw, BarChart3, Settings2 } from 'lucide-react';
+import { Plus, Wallet, Loader2, RefreshCw, BarChart3, Settings2, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
@@ -11,6 +11,21 @@ import { useAllPositions } from '@/hooks/usePosition';
 import { getTokenSymbol, getTokenIcon, rawToDisplay } from '@/lib/tokenDisplay';
 import { PositionCard } from '@/components/pool/PositionCard';
 import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
+import { PortfolioHeader } from '@/components/pool/PortfolioHeader';
+import { PositionsTable } from '@/components/pool/PositionsTable';
+import { AnalyticsPanel } from '@/components/pool/AnalyticsPanel';
+
+function TableSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="glass-panel p-8 space-y-4 animate-pulse">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="h-12 w-full bg-muted/40 rounded-xl" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Pool() {
   const router = useRouter();
@@ -140,36 +155,11 @@ export default function Pool() {
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
             </div>
-          ) : pool ? (
-            <div className="glass-panel p-4 space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">App ID</span>
-                <span className="font-mono text-foreground">{pool.appId}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Tokens (n)</span>
-                <span className="text-foreground font-medium">{pool.n}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Fee tier</span>
-                <span className="text-foreground font-medium">{Number(pool.feeBps) / 100}%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Active ticks</span>
-                <span className="text-foreground font-medium">{pool.ticks.length}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Interior radius</span>
-                <span className="text-foreground font-medium">{rawToDisplay(pool.rInt * 1000n)}</span>
-              </div>
-              <div className="border-t border-border/30 pt-3">
-                <p className="text-xs text-muted-foreground mb-2 font-medium">Token reserves</p>
-                {pool.tokenAsaIds.map((asaId, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-4 h-4 rounded-full object-cover bg-white" />
-                      <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
-                      <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
+            
+            <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Activity className="w-4 h-4" />
                     </div>
                     <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
                 </div>

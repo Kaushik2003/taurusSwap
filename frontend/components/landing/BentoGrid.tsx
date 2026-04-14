@@ -244,7 +244,7 @@ function BentoCard({ card, tall = false, children }: { card: { label: string; he
         background: card.bg,
         /* removed border */
         borderRadius: 40,
-        padding: 56,
+        padding: "40px 48px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -255,7 +255,7 @@ function BentoCard({ card, tall = false, children }: { card: { label: string; he
         transition: "border-color 0.2s ease, transform 0.2s ease",
         transform: hovered ? "scale(1.01)" : "scale(1)",
         borderColor: hovered ? `${card.color}44` : `${card.color}22`,
-        minHeight: tall ? 680 : 380,
+        minHeight: tall ? 520 : 320,
         flex: 1,
       }}
     >

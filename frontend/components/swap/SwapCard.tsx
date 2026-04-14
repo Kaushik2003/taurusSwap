@@ -36,7 +36,6 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
   const [sellIdx, setSellIdx] = useState(0);
   const [buyIdx, setBuyIdx] = useState(1);
   const [sellAmount, setSellAmount] = useState(() => {
-    if (redirectTo) return '';
     const initial = searchParams?.get('sell');
     return initial ? initial.replace(/[^0-9.]/g, '') : '';
   });
@@ -196,14 +195,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               value={sellAmount}
               onChange={e => {
                 const next = e.target.value.replace(/[^0-9.]/g, '');
-                if (redirectTo) {
-                  router.push(`${redirectTo}?sell=${encodeURIComponent(next)}`);
-                  return;
-                }
                 setSellAmount(next);
-              }}
-              onFocus={() => {
-                if (redirectTo) router.push(redirectTo);
               }}
               placeholder="0"
               className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
@@ -309,7 +301,20 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
 
         {/* CTA */}
         <div className="mt-5">
-          {!mounted || !isWalletConnected ? (
+          {redirectTo ? (
+            <button
+              onClick={() => {
+                if (sellAmount) {
+                  router.push(`${redirectTo}?sell=${encodeURIComponent(sellAmount)}`);
+                } else {
+                  router.push(redirectTo);
+                }
+              }}
+              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
+            >
+              Get Started
+            </button>
+          ) : !mounted || !isWalletConnected ? (
             <button
               onClick={() => toggleWalletModal(true)}
               className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
