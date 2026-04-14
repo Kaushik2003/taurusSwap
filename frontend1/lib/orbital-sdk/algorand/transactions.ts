@@ -285,6 +285,10 @@ export async function buildAddTickGroup(
 //   [budget txns]  [remove_liquidity call]
 //
 // The contract sends reserves + fees back to the caller via inner transactions.
+//
+// For n >= 3 the combined asset + box reference count can exceed the per-txn
+// limit of MaxAppTotalTxnReferences = 8.  References are distributed across
+// budget() + remove_liquidity app calls using Algorand's group resource sharing.
 
 export async function buildRemoveLiquidityGroup(
   client: algosdk.Algodv2,
@@ -303,19 +307,35 @@ export async function buildRemoveLiquidityGroup(
     appIndex: poolAppId,
     name: encodeBoxMapKey("token:", i),
   }));
+
   const allBoxes: algosdk.BoxReference[] = [
     { appIndex: poolAppId, name: encodeBoxName("reserves") },
     { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
     { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
     { appIndex: poolAppId, name: encodePositionBoxKey(senderPubKey, tickId) },
     ...tokenBoxes,
-  ];
+  ]; // length = 4 + n
 
-  // Distribute assets + boxes across budget txns so no single txn exceeds 8 total refs.
-  const totalRefs = tokenAsaIds.length + allBoxes.length;
-  const numResourceBudgets = Math.max(0, Math.ceil(totalRefs / 8) - 1);
-  const numBudget = Math.max(computeRequiredBudget(0, n), numResourceBudgets);
-  const refSlots = distributeRefs(tokenAsaIds, allBoxes, numBudget);
+  // Total references = n (assets) + (4 + n) (boxes) = 2n + 4.
+  // MaxAppTotalTxnReferences = 8, so we may need extra budget txns to hold the overflow.
+  const totalRefs = n + allBoxes.length;
+  const minSlotsForRefs = Math.ceil(totalRefs / 8);
+  const numBudget = Math.max(computeRequiredBudget(0, n), minSlotsForRefs - 1);
+  const numSlots = numBudget + 1;
+
+  // Chunk boxes across (numBudget + 1) slots (max 8 per slot), then fill
+  // remaining capacity in each slot with assets.  Algorand group resource
+  // sharing makes every referenced asset/box accessible to all txns in the group.
+  const boxChunks: algosdk.BoxReference[][] = [];
+  const assetChunks: number[][] = [];
+  const assetPool = [...tokenAsaIds];
+
+  for (let i = 0; i < numSlots; i++) {
+    const boxSlice = allBoxes.slice(i * 8, (i + 1) * 8);
+    const remainingCapacity = 8 - boxSlice.length;
+    assetChunks.push(assetPool.splice(0, remainingCapacity));
+    boxChunks.push(boxSlice);
+  }
 
   for (let i = 0; i < numBudget; i++) {
     txns.push(
@@ -323,16 +343,12 @@ export async function buildRemoveLiquidityGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        foreignAssets: refSlots[i].assets,
-        boxes: refSlots[i].boxes,
+        foreignAssets: assetChunks[i].length > 0 ? assetChunks[i] : undefined,
+        boxes: boxChunks[i] ?? [],
         suggestedParams: withFlatFee(sp),
       }),
     );
   }
-
-  // remove_liquidity sends n inner asset transfers (reserves back to caller).
-  // Each inner send consumes MIN_TXN_FEE of fee credit from the outer call.
-  const removeFee = BigInt(1 + n) * MIN_TXN_FEE;
 
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
@@ -343,9 +359,10 @@ export async function buildRemoveLiquidityGroup(
         encodeUint64Arg(tickId),
         encodeUint64Arg(shares),
       ],
-      foreignAssets: refSlots[numBudget].assets,
-      boxes: refSlots[numBudget].boxes,
-      suggestedParams: withFlatFee(sp, removeFee),
+      foreignAssets: assetChunks[numBudget].length > 0 ? assetChunks[numBudget] : undefined,
+      boxes: boxChunks[numBudget] ?? [],
+      // Contract sends n inner ASA transfers (fee=0 each); outer txn must cover them via fee pooling.
+      suggestedParams: withFlatFee(sp, MIN_TXN_FEE * (1n + BigInt(n))),
     }),
   );
 
@@ -357,6 +374,10 @@ export async function buildRemoveLiquidityGroup(
 //
 // Settle accrued swap fees for (sender, tickId) without withdrawing principal.
 // Group layout: [budget txns]  [claim_fees call]
+//
+// For n >= 3 the combined asset + box reference count can exceed the per-txn
+// limit of MaxAppTotalTxnReferences = 8.  References are distributed across
+// budget() + claim_fees app calls using Algorand's group resource sharing.
 
 export async function buildClaimFeesGroup(
   client: algosdk.Algodv2,
@@ -374,19 +395,35 @@ export async function buildClaimFeesGroup(
     appIndex: poolAppId,
     name: encodeBoxMapKey("token:", i),
   }));
+
   const allBoxes: algosdk.BoxReference[] = [
     { appIndex: poolAppId, name: encodeBoxName("fee_growth") },
     { appIndex: poolAppId, name: encodeBoxMapKey("tick:", tickId) },
     { appIndex: poolAppId, name: encodePositionBoxKey(senderPubKey, tickId) },
     ...tokenBoxes,
-  ];
+  ]; // length = 3 + n
 
-  // Distribute assets + boxes across budget txns so no single txn exceeds 8 total refs.
-  const totalRefs = tokenAsaIds.length + allBoxes.length;
-  const numResourceBudgets = Math.max(0, Math.ceil(totalRefs / 8) - 1);
+  // Total references = n (assets) + (3 + n) (boxes) = 2n + 3.
+  // MaxAppTotalTxnReferences = 8, so we may need extra budget txns to hold the overflow.
+  const totalRefs = n + allBoxes.length;
+  const minSlotsForRefs = Math.ceil(totalRefs / 8);
   // claim_fees iterates n times for fee computation + n inner sends
-  const numBudget = Math.max(computeRequiredBudget(0, n), numResourceBudgets);
-  const refSlots = distributeRefs(tokenAsaIds, allBoxes, numBudget);
+  const numBudget = Math.max(computeRequiredBudget(0, n), minSlotsForRefs - 1);
+  const numSlots = numBudget + 1;
+
+  // Chunk boxes across (numBudget + 1) slots (max 8 per slot), then fill
+  // remaining capacity in each slot with assets.  Algorand group resource
+  // sharing makes every referenced asset/box accessible to all txns in the group.
+  const boxChunks: algosdk.BoxReference[][] = [];
+  const assetChunks: number[][] = [];
+  const assetPool = [...tokenAsaIds];
+
+  for (let i = 0; i < numSlots; i++) {
+    const boxSlice = allBoxes.slice(i * 8, (i + 1) * 8);
+    const remainingCapacity = 8 - boxSlice.length;
+    assetChunks.push(assetPool.splice(0, remainingCapacity));
+    boxChunks.push(boxSlice);
+  }
 
   for (let i = 0; i < numBudget; i++) {
     txns.push(
@@ -394,25 +431,22 @@ export async function buildClaimFeesGroup(
         sender,
         appIndex: poolAppId,
         appArgs: [methodSelector("budget")],
-        foreignAssets: refSlots[i].assets,
-        boxes: refSlots[i].boxes,
+        foreignAssets: assetChunks[i].length > 0 ? assetChunks[i] : undefined,
+        boxes: boxChunks[i] ?? [],
         suggestedParams: withFlatFee(sp),
       }),
     );
   }
-
-  // claim_fees sends n inner asset transfers (fees to caller).
-  // Each inner send consumes MIN_TXN_FEE of fee credit from the outer call.
-  const claimFee = BigInt(1 + n) * MIN_TXN_FEE;
 
   txns.push(
     algosdk.makeApplicationNoOpTxnFromObject({
       sender,
       appIndex: poolAppId,
       appArgs: [methodSelector("claimFees"), encodeUint64Arg(tickId)],
-      foreignAssets: refSlots[numBudget].assets,
-      boxes: refSlots[numBudget].boxes,
-      suggestedParams: withFlatFee(sp, claimFee),
+      foreignAssets: assetChunks[numBudget].length > 0 ? assetChunks[numBudget] : undefined,
+      boxes: boxChunks[numBudget] ?? [],
+      // Contract sends n inner ASA transfers (fee=0 each); outer txn must cover them via fee pooling.
+      suggestedParams: withFlatFee(sp, MIN_TXN_FEE * (1n + BigInt(n))),
     }),
   );
 
