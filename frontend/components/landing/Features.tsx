@@ -38,7 +38,7 @@ function SlotChar({ char, delay = 0, accent }) {
           display: "inline-block",
           transition: spinning ? "transform 0.35s cubic-bezier(0.4,0,0.2,1)" : "none",
           transform: spinning ? "translateY(-80%)" : "translateY(0)",
-          color: accent ? "var(--color-dark-green)" : "var(--color-dark-green)",
+          color: "inherit",
           fontFamily: "'Inter', sans-serif",
         }}
       >
@@ -58,7 +58,7 @@ function AnimatedValue({ value, accent, delay = 0 }) {
         fontFamily: "'Inter', sans-serif",
         letterSpacing: "-0.05em",
         lineHeight: 1,
-        color: "var(--color-dark-green)",
+        color: "inherit",
         display: "flex",
         alignItems: "baseline",
         gap: 1,
@@ -72,47 +72,42 @@ function AnimatedValue({ value, accent, delay = 0 }) {
 }
 
 function StatCard({ label, value, accent, delay }) {
+  // Use the high-fidelity double-border style for consistency with buttons
   return (
     <div
       style={{
-        background: accent
-          ? "rgba(8,71,52,0.08)"
-          : "rgba(8,71,52,0.03)",
-        border: `1px solid ${accent ? "rgba(127,150,43,0.3)" : "rgba(8,71,52,0.1)"}`,
-        borderRadius: 16,
-        padding: "20px 22px",
+        background: "#052c05",
+        border: "1.5px solid #89f589",
+        borderRadius: 24,
+        padding: "24px",
         display: "flex",
         flexDirection: "column",
-        gap: 14,
-        backdropFilter: "blur(6px)",
+        gap: 12,
         position: "relative",
-        overflow: "hidden",
+        boxShadow: "0 0 0 2px #052c05, 0 0 0 4px #89f589",
+        transition: "all 0.3s ease",
+        marginTop: 6,
+        marginBottom: 6,
+        marginRight: 6,
+        marginLeft: 6,
       }}
     >
-      {accent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse at 80% 20%, rgba(8,71,52,0.05) 0%, transparent 60%)",
-            pointerEvents: "none",
-          }}
-        />
-      )}
       <span
         style={{
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: 900,
-          letterSpacing: "0.08em",
+          letterSpacing: "0.15em",
           textTransform: "uppercase",
-          color: accent ? "rgba(8,71,52,0.8)" : "rgba(8,71,52,0.45)",
+          color: "#89f589",
+          opacity: 0.7,
           fontFamily: "'Inter', sans-serif",
         }}
       >
         {label}
       </span>
-      <AnimatedValue value={value} accent={accent} delay={delay} />
+      <div style={{ color: "#89f589" }}>
+        <AnimatedValue value={value} accent={accent} delay={delay} />
+      </div>
     </div>
   );
 }
@@ -172,13 +167,12 @@ export default function Features() {
               Pure decentralization.
             </span>
           </h1>
-
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <p
               style={{
                 fontSize: "clamp(1.2rem, 2vw, 1.6rem)",
                 fontWeight: 700,
-                color: "rgba(8,71,52,0.8)",
+                color: "rgba(8, 71, 52, 0.85)",
                 margin: 0,
                 lineHeight: 1.4,
                 letterSpacing: "-0.01em",
@@ -190,7 +184,7 @@ export default function Features() {
               style={{
                 fontSize: "clamp(1rem, 1.3vw, 1.15rem)",
                 fontWeight: 700,
-                color: "rgba(8,71,52,0.6)",
+                color: "rgba(8, 71, 52, 0.65)",
                 margin: 0,
                 lineHeight: 1.6,
                 letterSpacing: "-0.01em",
@@ -203,37 +197,9 @@ export default function Features() {
 
           <div>
             <button
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                background: "var(--color-dark-green)",
-                border: "none",
-                borderRadius: 999,
-                padding: "13px 22px",
-                color: "var(--color-green)",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                letterSpacing: "0.01em",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#0a5a42";
-                e.currentTarget.style.transform = "translateX(2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "var(--color-dark-green)";
-                e.currentTarget.style.transform = "translateX(0)";
-              }}
+              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-10 h-12 rounded-full font-bold uppercase tracking-widest text-xs shadow-[0_0_0_2px_#052c05,0_0_0_4px_#89f589] hover:brightness-110 transition-all flex items-center justify-center"
             >
-              Start trading
-              <svg viewBox="0 0 18 18" fill="none" width={14} height={14}>
-                <path
-                  d="M9.79261 16.1108L17.5398 8.36364L9.79261 0.616477L8.25852 2.15057L13.3807 7.25568H0V9.47159H13.3807L8.25852 14.5852L9.79261 16.1108Z"
-                  fill="var(--color-green)"
-                />
-              </svg>
+              Start Trading
             </button>
           </div>
         </div>
@@ -255,13 +221,10 @@ export default function Features() {
               display: "flex",
               alignItems: "center",
               gap: 8,
-              background: "rgba(8,71,52,0.05)",
-              border: "1px solid rgba(8,71,52,0.1)",
+              background: "rgba(8, 71, 52, 0.05)",
+              border: "1px solid rgba(8, 71, 52, 0.1)",
               borderRadius: 12,
               padding: "10px 16px",
-              backgroundImage:
-                "radial-gradient(rgba(8,71,52,0.06) 1px, transparent 1px)",
-              backgroundSize: "12px 12px",
             }}
           >
             <span
@@ -270,20 +233,20 @@ export default function Features() {
                 height: 8,
                 borderRadius: "50%",
                 background: "var(--color-dark-green)",
-                boxShadow: "0 0 0 3px rgba(8,71,52,0.2)",
+                boxShadow: "0 0 0 3px rgba(8, 71, 52, 0.2)",
                 display: "inline-block",
                 flexShrink: 0,
               }}
             />
             <span
               style={{
-                color: "rgba(8,71,52,0.6)",
+                color: "rgba(8, 71, 52, 0.6)",
                 fontSize: 13,
                 fontWeight: 700,
                 letterSpacing: "0.02em",
               }}
             >
-              Taurus Protocol stats
+              Taurus Protocol live stats
             </span>
           </div>
 
