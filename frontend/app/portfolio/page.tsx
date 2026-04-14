@@ -47,19 +47,28 @@ export default function Portfolio() {
   if (!isWalletConnected) {
     return (
       <div className="max-w-[1400px] mx-auto px-4 py-8">
-        {/* Banner */}
-        <div className="relative rounded-3xl overflow-hidden mb-8" style={{ background: 'linear-gradient(135deg, hsl(70 55% 20% / 0.5), hsl(80 45% 15% / 0.5), hsl(240 10% 8%))' }}>
-          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, hsl(70 55% 37% / 0.3), transparent 50%), radial-gradient(circle at 80% 30%, hsl(80 45% 30% / 0.2), transparent 40%)' }} />
-          <div className="relative p-10 sm:p-16 text-center">
-            <Wallet className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Your crypto portfolio</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Connect your wallet to track your tokens, NFTs, and DeFi positions in one place.
-            </p>
-            <Button onClick={() => toggleWalletModal(true)} className="rounded-2xl px-8 h-12 text-base font-semibold">
-              Connect Wallet
-            </Button>
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div>
+              <h1 className="text-4xl font-black text-foreground tracking-tighter mb-1">Portfolio</h1>
+              <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Track & Manage Your Assets</p>
+            </div>
           </div>
+        </div>
+
+        {/* Wallet Disconnected */}
+        <div className="glass-panel p-16 text-center border-dashed border-2">
+          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-6">
+            <Wallet className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-black text-foreground mb-2">Wallet Disconnected</h3>
+          <p className="text-sm text-muted-foreground mb-8 max-w-sm mx-auto font-medium">
+            Connect your Algorand wallet to track your tokens, NFTs, and DeFi positions in one place.
+          </p>
+          <Button onClick={() => toggleWalletModal(true)} className="rounded-xl px-10 h-12 font-black uppercase tracking-widest text-xs">
+            Connect Algorand Wallet
+          </Button>
         </div>
       </div>
     );
