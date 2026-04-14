@@ -8,10 +8,9 @@ import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
-import { PortfolioHeader } from '@/components/pool/PortfolioHeader';
-import { PositionsTable } from '@/components/pool/PositionsTable';
-import { AnalyticsPanel } from '@/components/pool/AnalyticsPanel';
-import { TableSkeleton } from '@/components/ui/skeleton';
+import { getTokenSymbol, getTokenIcon, rawToDisplay } from '@/lib/tokenDisplay';
+import { PositionCard } from '@/components/pool/PositionCard';
+import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
 
 export default function Pool() {
   const router = useRouter();
@@ -141,10 +140,36 @@ export default function Pool() {
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
             </div>
-            <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                        <Settings2 className="w-4 h-4" />
+          ) : pool ? (
+            <div className="glass-panel p-4 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">App ID</span>
+                <span className="font-mono text-foreground">{pool.appId}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Tokens (n)</span>
+                <span className="text-foreground font-medium">{pool.n}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Fee tier</span>
+                <span className="text-foreground font-medium">{Number(pool.feeBps) / 100}%</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Active ticks</span>
+                <span className="text-foreground font-medium">{pool.ticks.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Interior radius</span>
+                <span className="text-foreground font-medium">{rawToDisplay(pool.rInt * 1000n)}</span>
+              </div>
+              <div className="border-t border-border/30 pt-3">
+                <p className="text-xs text-muted-foreground mb-2 font-medium">Token reserves</p>
+                {pool.tokenAsaIds.map((asaId, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-4 h-4 rounded-full object-cover bg-white" />
+                      <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
+                      <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
                     </div>
                     <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
                 </div>

@@ -6,7 +6,7 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { claimFees, removeLiquidity, TickState } from '@/lib/orbital-sdk';
 import type { PositionInfo, PoolState } from '@/lib/orbital-sdk';
 import { useAlgodClient, POOL_APP_ID } from '@/hooks/useAlgodClient';
-import { rawToDisplay, getTokenSymbol, getTokenColor } from '@/lib/tokenDisplay';
+import { rawToDisplay, getTokenSymbol, getTokenIcon } from '@/lib/tokenDisplay';
 import { Button } from '@/components/ui/button';
 
 interface PositionCardProps {
@@ -90,13 +90,12 @@ export function PositionCard({ position, pool }: PositionCardProps) {
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
             {Array.from({ length: pool.n }, (_, i) => (
-              <div
+              <img
                 key={i}
-                className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-black text-white"
-                style={{ background: getTokenColor(i) }}
-              >
-                {getTokenSymbol(pool, i)[0]}
-              </div>
+                src={getTokenIcon(i)}
+                alt={getTokenSymbol(pool, i)}
+                className="w-7 h-7 rounded-full border-2 border-background object-cover bg-white"
+              />
             ))}
           </div>
           <div>
