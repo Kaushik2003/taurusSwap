@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowDownUp, ChevronDown, Settings, Info, Loader2 } from 'lucide-react';
+import { ArrowDownUp, ChevronDown, Settings, Info, Loader2, X } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
@@ -133,39 +133,79 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
           </div>
         )}
 
-        {/* Slippage settings */}
+        {/* Settings Popover */}
         {showSettings && (
-          <div className="mb-4 p-4 rounded-2xl bg-[#C0FCFD] border-2 border-dark-green animate-scale-in shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-            <p className="text-sm text-dark-green mb-3 font-black uppercase tracking-wider">Max slippage</p>
-            <div className="flex gap-2">
-              {[0.1, 0.5, 1.0].map(v => (
-                <button
-                  key={v}
-                  onClick={() => setSlippage(v)}
-                  className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 border-dark-green ${slippage === v ? 'bg-dark-green text-white shadow-[-2px_2px_0_0_var(--color-dark-green)]' : 'bg-white text-dark-green hover:bg-white/80'}`}
-                >
-                  {v}%
-                </button>
-              ))}
-              <div className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white border-2 border-dark-green text-sm text-dark-green">
-                <input
-                  type="number"
-                  value={slippage}
-                  onChange={e => setSlippage(parseFloat(e.target.value) || 0)}
-                  className="w-16 bg-transparent text-dark-green outline-none text-right font-black"
-                  step={0.1}
-                />
-                <span className="font-bold opacity-50">%</span>
+          <div className="absolute top-[70px] right-2 z-[60] w-[320px] p-5 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-8px_8px_0_0_var(--color-dark-green)] animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-sm font-black text-dark-green uppercase tracking-wider">Settings</span>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="p-1.5 rounded-lg text-dark-green/40 hover:text-dark-green hover:bg-green/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-dark-green uppercase tracking-wider">Max slippage</span>
+                  <Info className="w-3 h-3 text-dark-green/40" />
+                </div>
+                <div className="flex items-center gap-2 p-1 rounded-xl bg-[#C0FCFD] border-2 border-dark-green shadow-[-2px_2px_0_0_var(--color-dark-green)]">
+                  <button className="px-2 py-0.5 rounded-lg bg-dark-green text-white text-[8px] font-black uppercase">Auto</button>
+                  <span className="px-1 text-xs font-black text-dark-green">{slippage}%</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-dark-green uppercase tracking-wider">Swap deadline</span>
+                  <Info className="w-3 h-3 text-dark-green/40" />
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-[#FFC1D9] border-2 border-dark-green shadow-[-2px_2px_0_0_var(--color-dark-green)]">
+                  <span className="text-[10px] font-black text-dark-green">15 minutes</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between group cursor-pointer hover:bg-green/10 p-1.5 -mx-1.5 rounded-lg transition-colors">
+                <span className="text-[10px] font-black text-dark-green uppercase tracking-wider">Trade options</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-dark-green/60">Default</span>
+                  <ChevronDown className="w-4 h-4 text-dark-green/60 -rotate-90" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-4 border-t-2 border-dark-green/10">
+              <div className="flex gap-1.5">
+                {[0.1, 0.5, 1.0].map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setSlippage(v)}
+                    className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all border-2 border-dark-green ${slippage === v ? 'bg-dark-green text-white shadow-[-1px_1px_0_0_var(--color-dark-green)]' : 'bg-white text-dark-green hover:bg-green'}`}
+                  >
+                    {v}%
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Token selector dropdown */}
+        {/* Token selector modal overlay */}
         {selectorFor && pool && (
-          <div className="mb-4 p-4 rounded-2xl bg-[#FFC1D9] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-            <p className="text-sm text-dark-green font-black uppercase tracking-wider mb-3">Select token</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="absolute inset-x-5 top-24 bottom-24 z-[70] p-6 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-12px_12px_0_0_var(--color-dark-green)] animate-scale-in flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-dark-green font-black uppercase tracking-wider">Select token</p>
+              <button 
+                onClick={() => setSelectorFor(null)}
+                className="p-1 rounded-lg hover:bg-green/10 transition-colors"
+              >
+                <X className="w-4 h-4 text-dark-green" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
               {tokenOptions.map(i => (
                 <button
                   key={i}
@@ -174,12 +214,23 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
                     else setBuyIdx(i);
                     setSelectorFor(null);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all"
+                  className="flex items-center justify-between w-full p-3 rounded-2xl bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all group"
                 >
-                  <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-5 h-5 rounded-full border border-black/10 object-cover" />
-                  <span className="text-sm font-black text-dark-green">{getTokenSymbol(pool, i)}</span>
+                  <div className="flex items-center gap-3">
+                    <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-8 h-8 rounded-full border-2 border-dark-green object-cover" />
+                    <div className="text-left">
+                      <p className="text-sm font-black text-dark-green uppercase">{getTokenSymbol(pool, i)}</p>
+                      <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {i}</p>
+                    </div>
+                  </div>
+                  <div className="w-6 h-6 rounded-full border-2 border-dark-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                     <div className="w-2 h-2 rounded-full bg-dark-green" />
+                  </div>
                 </button>
               ))}
+            </div>
+            <div className="mt-4 pt-4 border-t-2 border-dark-green/10 text-center">
+               <p className="text-[9px] font-black text-dark-green/30 uppercase tracking-widest">More tokens available via governance</p>
             </div>
           </div>
         )}
