@@ -11,8 +11,18 @@ export interface AMMTransaction {
   token1?: string;
   amount0?: string;
   amount1?: string;
-  value?: number; // Estimated USD value
+  tokenInIdx?: number;   // decoded from applicationArgs
+  tokenOutIdx?: number;  // decoded from applicationArgs
+  amountIn?: bigint;     // raw microunits — decoded from applicationArgs
+  amountOut?: bigint;    // raw microunits — minAmountOut from args, best available
+  value?: number;
   status: 'confirmed' | 'pending';
+}
+
+function decodeBigEndianUint64(bytes: Uint8Array): bigint {
+  if (bytes.length < 8) return 0n;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return view.getBigUint64(0, false); // big-endian
 }
 
 // ARC-4 method selectors for this contract (SHA-512/256 of full method signature).
@@ -55,7 +65,10 @@ export function useTransactions(address?: string | null, limit = 20) {
           }
 
           let type: AMMTransaction['type'] = 'swap';
-          if (arg0Hex === METHOD_SELECTORS.swap || arg0Hex === METHOD_SELECTORS.swapWithCrossings) {
+          const isSwap = arg0Hex === METHOD_SELECTORS.swap;
+          const isSwapWithCrossings = arg0Hex === METHOD_SELECTORS.swapWithCrossings;
+
+          if (isSwap || isSwapWithCrossings) {
             type = 'swap';
           } else if (arg0Hex === METHOD_SELECTORS.addTick) {
             type = 'add';
@@ -65,14 +78,41 @@ export function useTransactions(address?: string | null, limit = 20) {
             type = 'claim';
           }
 
+          let tokenInIdx: number | undefined;
+          let tokenOutIdx: number | undefined;
+          let amountIn: bigint | undefined;
+          let amountOut: bigint | undefined;
+
+          if (type === 'swap' && args.length >= 4) {
+            // args[0] = selector (4 bytes), args[1..4] = ABI-encoded uint64s (each 8 bytes)
+            if (args[1] instanceof Uint8Array && args[1].length >= 8)
+              tokenInIdx = Number(decodeBigEndianUint64(args[1]));
+            if (args[2] instanceof Uint8Array && args[2].length >= 8)
+              tokenOutIdx = Number(decodeBigEndianUint64(args[2]));
+            if (args[3] instanceof Uint8Array && args[3].length >= 8)
+              amountIn = decodeBigEndianUint64(args[3]);
+
+            // Best-effort decode for minAmountOut:
+            // - swap(...) has minAmountOut at args[4]
+            // - swap_with_crossings(...) includes a byte[] argument, so minAmountOut shifts (best guess: args[5])
+            const amountOutArg = isSwapWithCrossings ? args[5] : args[4];
+            if (amountOutArg instanceof Uint8Array && amountOutArg.length >= 8) {
+              amountOut = decodeBigEndianUint64(amountOutArg);
+            }
+          }
+
           return {
             id: tx.id,
             type,
             timestamp: (tx.roundTime || 0) * 1000,
             wallet: tx.sender || '',
-            token0: POOL_TOKEN_SYMBOLS[0],
-            token1: type === 'swap' ? POOL_TOKEN_SYMBOLS[1] : undefined,
-            value: type === 'swap' ? 100 : 500,
+            token0: POOL_TOKEN_SYMBOLS[tokenInIdx ?? 0] ?? POOL_TOKEN_SYMBOLS[0],
+            token1: type === 'swap' ? (POOL_TOKEN_SYMBOLS[tokenOutIdx ?? 1] ?? POOL_TOKEN_SYMBOLS[1]) : undefined,
+            tokenInIdx,
+            tokenOutIdx,
+            amountIn,
+            amountOut,
+            value: amountIn ? Number(amountIn) / 1e6 : (type === 'swap' ? 100 : 500),
             status: 'confirmed' as const,
           };
         })

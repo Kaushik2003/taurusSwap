@@ -1,325 +1,415 @@
 "use client";
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
-  Info, 
-  Calendar,
+import {
+  ArrowLeft,
+  Activity,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Layers,
+  Percent,
+  Database,
+  DollarSign,
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from 'recharts';
+import * as Tabs from '@radix-ui/react-tabs';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatPercent, formatNumber } from '@/lib/format';
+import { Skeleton } from '@/components/ui/skeleton';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useTransactions } from '@/hooks/useTransactions';
-import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
-import { getExplorerUrl } from '@/lib/explorer';
-import { Skeleton } from '@/components/ui/skeleton';
+import { getTokenSymbol, getTokenColor, POOL_TOKEN_SYMBOLS } from '@/lib/tokenDisplay';
+import { getExplorerUrl, shortenId } from '@/lib/explorer';
+import { formatCurrency, timeAgo } from '@/lib/format';
+import { PRECISION } from '@/lib/orbital-sdk/constants';
 import { GeometricLiquidityCompass } from '@/components/pool/GeometricLiquidityCompass';
+import { ReservePieChart } from '@/components/pool/analytics/ReservePieChart';
+import { FeeGrowthBarChart } from '@/components/pool/analytics/FeeGrowthBarChart';
+import { TickDepthChart } from '@/components/pool/analytics/TickDepthChart';
+import { PegDeviationChart } from '@/components/pool/analytics/PegDeviationChart';
 
-// Generate complex mock data for charts
-const generateHistory = (points: number, base: number, volatility: number) => {
-  const data = [];
-  let current = base;
-  const now = new Date();
-  for (let i = points; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    current = current * (1 + (Math.random() - 0.48) * volatility);
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: current,
-      volume: current * (Math.random() * 0.2 + 0.05)
-    });
-  }
-  return data;
-};
-
-const priceData = generateHistory(30, 1.0005, 0.002);
-const tvlData = generateHistory(30, 482000000, 0.015);
 export default function AnalyticsPage() {
   const router = useRouter();
   const { data: pool, isLoading: poolLoading } = usePoolState();
-  const { data: transactions } = useTransactions(null, 10);
-  const [activeTab, setActiveTab] = useState<'price' | 'tvl'>('price');
+  const { data: transactions } = useTransactions(null, 20);
 
-  // Calculate real TVL from reserves
   const totalTVLRaw = pool?.actualReservesRaw.reduce((acc, val) => acc + val, 0n) ?? 0n;
-  const currentTVL = Number(rawToDisplay(totalTVLRaw));
+  const tvlDisplay = Number(totalTVLRaw) / 1e6;
 
-  // Calculate 24h Volume from real transactions
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-  const actual24hVolume = transactions
-    ?.filter(tx => tx.type === 'swap' && tx.timestamp > oneDayAgo)
-    .reduce((acc, tx) => acc + (tx.value || 0), 0) ?? 0;
+  const feeTier = pool ? `${(Number(pool.feeBps) / 100).toFixed(2)}%` : '--';
+  const activeTicks = pool?.ticks.length ?? 0;
+
+  const totalFeesAccumulated = pool
+    ? pool.feeGrowth.reduce((acc, fg) => {
+        const feeAmountScale = pool.totalR > 0n ? (fg * pool.totalR) / PRECISION : 0n;
+        return acc + feeAmountScale;
+      }, 0n)
+    : 0n;
+  const feesDisplay = Number(totalFeesAccumulated) / 1e3 / 1e6;
+
+  const recentTransactions = [...(transactions ?? [])]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 12);
+  const latestTransaction = recentTransactions[0];
 
   const metrics = [
-    { 
-      label: 'Total Value Locked', 
-      value: currentTVL, 
-      change: 2.4, 
-      sparkline: [currentTVL * 0.9, currentTVL * 0.95, currentTVL * 0.92, currentTVL] 
+    {
+      label: 'Total Value Locked',
+      value: formatCurrency(tvlDisplay, true),
+      icon: Database,
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
     },
-    { 
-      label: '24H Trading Volume', 
-      value: actual24hVolume > 0 ? actual24hVolume : 124500, // Fallback if no recent txs
-      change: actual24hVolume > 0 ? 5.2 : 0, 
-      sparkline: [30, 35, 60, 45, 40, 55, actual24hVolume || 70] 
+    {
+      label: 'Fee Tier',
+      value: feeTier,
+      icon: Percent,
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-500',
     },
-    { 
-      label: '24H Protocol Fees', 
-      value: (actual24hVolume || 124500) * 0.0001, 
-      change: 8.4, 
-      sparkline: [20, 25, 30, 28, 35, 40, 38] 
+    {
+      label: 'Active Ticks',
+      value: activeTicks.toString(),
+      icon: Layers,
+      iconBg: 'bg-violet-500/10',
+      iconColor: 'text-violet-500',
     },
-    { 
-      label: 'Utilization Rate', 
-      value: `${((actual24hVolume || 124500) / (currentTVL || 1) * 100).toFixed(2)}%`, 
-      change: -1.2, 
-      sparkline: [50, 48, 45, 42, 40, 42, 41] 
+    {
+      label: 'Fees Accumulated',
+      value: formatCurrency(feesDisplay, true),
+      icon: DollarSign,
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-500',
+      sublabel: 'all-time',
     },
   ];
 
   if (poolLoading) {
     return (
-      <div className="max-w-[1400px] mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <Skeleton className="w-64 h-12" />
-          <Skeleton className="w-48 h-10" />
+      <div className="max-w-[1400px] mx-auto px-4 py-20 space-y-6">
+        <Skeleton className="w-80 h-16" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
         </div>
-        <div className="grid grid-cols-4 gap-4">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-        <Skeleton className="h-[400px]" />
+        <Skeleton className="h-[280px]" />
+        <Skeleton className="h-[420px]" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-[1400px] mx-auto px-4 py-20">
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => router.push('/pool')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+            onClick={() => router.push('/pool')}
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <h1 className="text-4xl font-black text-foreground tracking-tighter">Pool Analytics</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em] mt-1">Stableswap-4-Asset - Orbital AMM v1</p>
+          <h1
+            className="text-6xl text-foreground mb-1"
+            style={{ fontFamily: "'WiseSans', 'Inter', sans-serif", fontWeight: 900 }}
+          >
+            POOL ANALYTICS
+          </h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">
+            Stableswap-{pool?.n ?? '?'}-Asset · Orbital AMM v1 · Live On-Chain
+          </p>
         </div>
-        
-        <div className="flex items-center gap-2 p-1 bg-muted/40 rounded-xl border border-border/30 h-fit">
-          {['24H', '7D', '30D', 'ALL'].map(t => (
-            <button key={t} className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${t === '30D' ? 'bg-background text-primary shadow-sm border border-border/20' : 'text-muted-foreground hover:text-foreground'}`}>
-              {t}
-            </button>
-          ))}
-        </div>
+
+        <a
+          href={getExplorerUrl(pool?.appId ?? '', 'application')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+        >
+          View Contract <ExternalLink className="w-3 h-3" />
+        </a>
       </div>
 
-      {/* Institutional Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {metrics.map((m, i) => (
-          <div key={i} className="glass-panel p-5 bg-muted/5 border-border/40">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{m.label}</p>
-            <div className="flex items-end justify-between">
-              <div>
-                <h4 className="text-xl font-black text-foreground">
-                  {typeof m.value === 'number' ? formatCurrency(m.value, true) : m.value}
-                </h4>
-                <div className={`flex items-center gap-1 text-[10px] font-bold ${m.change >= 0 ? 'text-primary' : 'text-rose-500'}`}>
-                  {m.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {formatPercent(m.change)}
-                </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {metrics.map((metric, i) => (
+          <div key={i} className="glass-panel p-4 bg-muted/5 border-border/40">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${metric.iconBg}`}>
+                <metric.icon className={`w-4 h-4 ${metric.iconColor}`} strokeWidth={2.5} />
               </div>
-              <div className="w-16 h-8 opacity-50">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={m.sparkline.map((v, idx) => ({ v, idx }))}>
-                    <Area type="monotone" dataKey="v" stroke={m.change >= 0 ? '#10B981' : '#F43F5E'} fill="none" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+                {metric.label}
+              </p>
             </div>
+            <p className="text-[22px] font-black text-foreground leading-none tabular-nums">{metric.value}</p>
+            {metric.sublabel && (
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {metric.sublabel}
+              </p>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Main Performance Chart */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="glass-panel p-6 border-border/50">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-6">
-                <button onClick={() => setActiveTab('price')} className={`text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'price' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Price Stability</button>
-                <button onClick={() => setActiveTab('tvl')} className={`text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'tvl' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>TVL History</button>
-              </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
-                <Calendar className="w-3 h-3" />
-                Mar 15 - Apr 14
-              </div>
-            </div>
+      <Tabs.Root defaultValue="overview" className="w-full">
+        <Tabs.List className="flex items-center gap-1 p-1 bg-muted/40 rounded-xl border border-border/30 w-fit mb-6">
+          {(['overview', 'depth'] as const).map((tab) => (
+            <Tabs.Trigger
+              key={tab}
+              value={tab}
+              className="px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.18em] transition-all text-muted-foreground hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border/20"
+            >
+              {tab}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
 
-            <div className="h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activeTab === 'price' ? priceData : tvlData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} minTickGap={30} />
-                  <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '2px solid #0A3F2F', boxShadow: '4px 4px 0px 0px #0A3F2F' }}
-                    labelStyle={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '10px' }}
-                    itemStyle={{ fontWeight: 700, fontSize: '12px', color: '#0A3F2F' }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-panel p-6 border-border/50 md:col-span-2 lg:col-span-1">
-              <GeometricLiquidityCompass 
-                reserves={pool?.reserves || []}
-                n={pool?.n || 0}
-                sBound={pool?.sBound || 0n}
-                tokenSymbols={pool?.tokenAsaIds.map((_, i) => getTokenSymbol(pool, i)) || []}
-              />
-            </div>
-
-            <div className="glass-panel p-6 border-border/50">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-2 h-4 bg-blue-500 rounded-full" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Daily Volume Breakdown</h3>
+        <Tabs.Content value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div className="lg:col-span-4 glass-panel p-5 border-border/50">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-4 bg-primary rounded-full" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                  Reserve Composition
+                </h3>
               </div>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={priceData.slice(-14)}>
-                    <Bar dataKey="volume" fill="#0A3F2F" radius={[2, 2, 0, 0]} />
-                    <Tooltip 
-                       contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex justify-between items-center mt-4 px-2">
-                <span className="text-[10px] font-bold text-muted-foreground">MAR 31</span>
-                <span className="text-[10px] font-bold text-muted-foreground">APR 14</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar Data Table */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="glass-panel p-6 border-border/50 bg-muted/5">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-2 h-4 bg-primary rounded-full" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Asset Utilization</h3>
-            </div>
-
-            <div className="space-y-4">
-              {pool?.tokenAsaIds.map((asaId, i) => {
-                const reserveRaw = pool.actualReservesRaw[i];
-                const reserveDisplay = rawToDisplay(reserveRaw);
-                const percent = totalTVLRaw > 0n ? Number((reserveRaw * 10000n) / totalTVLRaw) / 100 : 0;
-                
-                return (
-                  <div key={asaId} className="p-3 rounded-xl border border-border/20 bg-background group hover:border-primary/40 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <a 
-                        href={getExplorerUrl(asaId, 'asset')}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer text-sm font-black text-foreground"
-                      >
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: getTokenColor(i) }} />
-                        <span>{getTokenSymbol(pool, i)}</span>
-                      </a>
-                      <span className="text-[10px] font-black py-0.5 px-2 rounded bg-muted text-muted-foreground uppercase">UTIL: {percent.toFixed(1)}%</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase mb-0.5">Reserve</p>
-                        <p className="text-xs font-black text-foreground">{formatNumber(Number(reserveDisplay))}</p>
+              {pool && <ReservePieChart pool={pool} />}
+              <div className="mt-3 space-y-2">
+                {pool?.tokenAsaIds.map((asaId, i) => {
+                  const raw = pool.actualReservesRaw[i] ?? 0n;
+                  const display = Number(raw) / 1e6;
+                  const pct = tvlDisplay > 0 ? ((display / tvlDisplay) * 100).toFixed(1) : '0.0';
+                  return (
+                    <div key={asaId} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: getTokenColor(i) }} />
+                        <span className="text-[12px] font-black text-foreground truncate">{getTokenSymbol(pool, i)}</span>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase mb-0.5">Value</p>
-                        <p className="text-xs font-black text-foreground">${formatNumber(Number(reserveDisplay))}</p>
+                      <div className="text-right shrink-0">
+                        <span className="text-[12px] font-black text-foreground tabular-nums">
+                          ${display.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                        <span className="text-[10px] font-bold text-muted-foreground ml-2">{pct}%</span>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-border/30">
-              <div className="flex items-center justify-between mb-4">
-                 <h4 className="text-[11px] font-black uppercase tracking-wider text-foreground">Swap Activity</h4>
-                 <Activity className="w-4 h-4 text-muted-foreground" />
+            <div className="lg:col-span-8 glass-panel p-5 border-border/50">
+              <div className="flex items-center justify-between mb-4 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-4 bg-blue-500 rounded-full" />
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                    Live Peg Snapshot
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-right">
+                  Deviation from mean reserve
+                </span>
               </div>
-              <div className="space-y-3">
-                {transactions?.length ? transactions.slice(0, 5).map(tx => (
-                  <div key={tx.id} className="flex items-center justify-between text-[11px] font-bold">
-                    <div className="flex items-center gap-2">
-                       <span className={tx.type === 'swap' ? 'text-emerald-500 uppercase' : 'text-primary uppercase'}>{tx.type}</span>
-                       <span className="text-muted-foreground truncate max-w-[80px]">{tx.id.slice(0, 8)}...</span>
-                    </div>
-                    <span className="text-muted-foreground font-medium">
-                      {new Date(tx.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
+              {pool && <PegDeviationChart pool={pool} />}
+            </div>
+
+            <div className="lg:col-span-12 glass-panel p-5 border-border/50">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-4 bg-primary rounded-full" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                  Geometric Liquidity Compass
+                </h3>
+              </div>
+              {pool && (
+                <GeometricLiquidityCompass
+                  reserves={pool.actualReservesRaw}
+                  n={pool.n}
+                  sBound={pool.sBound}
+                  tokenSymbols={pool.tokenAsaIds.map((_, i) => getTokenSymbol(pool, i))}
+                />
+              )}
+            </div>
+          </div>
+        </Tabs.Content>
+
+        <Tabs.Content value="depth">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div className="lg:col-span-8 glass-panel p-5 border-border/50">
+              <div className="flex items-center justify-between mb-5 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-4 bg-primary rounded-full" />
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                    Liquidity Depth by Tick
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  {activeTicks} active ticks
+                </span>
+              </div>
+              {pool && <TickDepthChart pool={pool} />}
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 text-center">
+                Tick radius increases with concentrated liquidity
+              </p>
+            </div>
+
+            <div className="lg:col-span-4 glass-panel p-5 border-border/50">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-2 h-4 bg-amber-500 rounded-full" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                  Fee Growth per Token
+                </h3>
+              </div>
+              {pool && <FeeGrowthBarChart pool={pool} />}
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 text-center">
+                All-time accumulated
+              </p>
+
+              <div className="mt-5 space-y-3 pt-4 border-t border-border/30">
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    Interior Radius
+                  </span>
+                  <span className="text-[12px] font-black text-foreground tabular-nums">
+                    {pool ? (Number(pool.rInt) / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '--'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    Bound Radius
+                  </span>
+                  <span className="text-[12px] font-black text-foreground tabular-nums">
+                    {pool ? (Number(pool.sBound) / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '--'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    Total Radius
+                  </span>
+                  <span className="text-[12px] font-black text-foreground tabular-nums">
+                    {pool ? (Number(pool.totalR) / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '--'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    Lifetime Ticks
+                  </span>
+                  <span className="text-[12px] font-black text-foreground tabular-nums">{pool?.numTicks ?? '--'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-12 glass-panel p-5 border-border/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-primary" />
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
+                    Recent Activity
+                  </h3>
+                </div>
+                <div className="flex items-center gap-4">
+                  {latestTransaction && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Latest {timeAgo(new Date(latestTransaction.timestamp))}
                     </span>
-                  </div>
-                )) : (
-                  <p className="text-[10px] text-muted-foreground text-center py-4">No recent activity found</p>
-                )}
+                  )}
+                  <a
+                    href={getExplorerUrl(pool?.appId ?? '', 'application')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity inline-flex items-center"
+                  >
+                    View All <ChevronRight className="w-3 h-3 ml-1" />
+                  </a>
+                </div>
               </div>
-              <a 
-                href={getExplorerUrl(pool?.appId || '', 'application')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
-                <Button variant="link" className="w-full text-center text-[10px] font-black uppercase tracking-widest text-primary mt-4 h-auto p-0">
-                   View All Transactions <ChevronRight className="w-3 h-3 ml-1" />
-                </Button>
-              </a>
-            </div>
-          </div>
 
-          <div className="p-6 rounded-2xl bg-primary text-white shadow-xl shadow-primary/20">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-              <Info className="w-4 h-4" />
-              Protocol Health
-            </h4>
-            <p className="text-[11px] font-medium leading-relaxed opacity-80 mb-6">
-              Orbital AMM invariant error: 0.000001%. Peg deviation is currently below 5bps. System liquidity is highly concentrated.
-            </p>
-            <div className="flex items-center gap-2 text-primary-foreground font-black text-[10px] uppercase tracking-widest bg-white/10 p-3 rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-pointer">
-              View Smart Contract Audit <ExternalLink className="w-3 h-3 ml-auto" />
+              {!recentTransactions.length ? (
+                <p className="text-[10px] text-muted-foreground text-center py-8">No recent activity</p>
+              ) : (
+                <div className="space-y-3">
+                  {recentTransactions.map((tx, index) => {
+                    const amtIn = tx.amountIn
+                      ? (Number(tx.amountIn) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })
+                      : '--';
+                    const amtOut = tx.amountOut
+                      ? (Number(tx.amountOut) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })
+                      : '--';
+                    const tokenIn =
+                      tx.tokenInIdx !== undefined ? POOL_TOKEN_SYMBOLS[tx.tokenInIdx] ?? tx.token0 : tx.token0;
+                    const tokenOut =
+                      tx.tokenOutIdx !== undefined
+                        ? POOL_TOKEN_SYMBOLS[tx.tokenOutIdx] ?? tx.token1 ?? '--'
+                        : tx.token1 ?? '--';
+
+                    return (
+                      <div
+                        key={tx.id}
+                        className={`rounded-2xl border p-4 transition-colors ${
+                          index === 0
+                            ? 'border-primary/30 bg-primary/5'
+                            : 'border-border/20 bg-muted/5 hover:bg-muted/10'
+                        }`}
+                      >
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <span
+                              className={`mt-0.5 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md shrink-0 ${
+                                tx.type === 'swap'
+                                  ? 'bg-emerald-500/10 text-emerald-500'
+                                  : tx.type === 'add'
+                                    ? 'bg-blue-500/10 text-blue-500'
+                                    : tx.type === 'remove'
+                                      ? 'bg-rose-500/10 text-rose-500'
+                                      : 'bg-amber-500/10 text-amber-500'
+                              }`}
+                            >
+                              {index === 0 ? `latest ${tx.type}` : tx.type}
+                            </span>
+
+                            <div className="min-w-0">
+                              <p className="text-[12px] font-black text-foreground truncate">
+                                {tx.type === 'swap' ? `${tokenIn} -> ${tokenOut}` : tx.type}
+                              </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                <span>
+                                  In {tx.amountIn ? `${amtIn} ${tokenIn}` : '--'}
+                                </span>
+                                <span>
+                                  Out {tx.amountOut ? `${amtOut} ${tokenOut}` : '--'}
+                                </span>
+                                <span>{timeAgo(new Date(tx.timestamp))}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 lg:gap-5 shrink-0">
+                            <a
+                              href={getExplorerUrl(tx.wallet, 'address')}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              {shortenId(tx.wallet, 6, 4)}
+                            </a>
+                            <a
+                              href={getExplorerUrl(tx.id, 'transaction')}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
+        </Tabs.Content>
+      </Tabs.Root>
     </div>
   );
 }

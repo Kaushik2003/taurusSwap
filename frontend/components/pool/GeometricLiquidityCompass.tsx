@@ -1,13 +1,7 @@
 "use client";
 
-import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { Info, Target } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useEffect, useMemo, useState } from 'react';
+import { Target } from 'lucide-react';
 
 interface GeometricLiquidityCompassProps {
   reserves: bigint[];
@@ -16,403 +10,319 @@ interface GeometricLiquidityCompassProps {
   tokenSymbols: string[];
 }
 
-// ── Internal math ────────────────────────────────────────────────────────────
-function computeGeometry(reserves: bigint[], n: number) {
+function computeGeometry(reserves: bigint[], n: number, tokenSymbols: string[]) {
   if (!reserves.length || n === 0) {
     return {
-      drift: 0,
+      mean: 0,
+      total: 0,
       driftNorm: 0,
-      projections: { x: 0, y: 0, z: 0 },
-      topAxes: [] as { val: number; idx: number; abs: number }[],
       dominantIndex: 0,
-      deviations: [] as number[],
+      dominantLabel: '--',
+      topAxes: [] as { idx: number; label: string; deviationPct: number; sharePct: number; value: number }[],
+      probe: { x: 0, y: 0 },
     };
   }
 
-  const resNumbers = reserves.map(r => Number(r));
-  const sum = resNumbers.reduce((a, b) => a + b, 0);
-  const mean = sum / n;
-
-  // Deviation vector w = x - mean*1  (orthogonal to the "equal-price" direction v)
-  const w = resNumbers.map(r => r - mean);
-  const driftRaw = Math.sqrt(w.reduce((acc, val) => acc + val ** 2, 0));
-
-  // Normalize drift relative to mean — gives a dimensionless "depeg fraction"
+  const values = reserves.map((reserve) => Number(reserve));
+  const total = values.reduce((acc, value) => acc + value, 0);
+  const mean = total / n;
+  const deviations = values.map((value) => value - mean);
+  const driftRaw = Math.sqrt(deviations.reduce((acc, value) => acc + value ** 2, 0));
   const driftNorm = mean > 0 ? driftRaw / mean : 0;
 
-  // Sort by absolute deviation to find Principal Deviation Axes
-  const axesWithIdx = w.map((val, idx) => ({ val, idx, abs: Math.abs(val) }));
-  axesWithIdx.sort((a, b) => b.abs - a.abs);
+  const ranked = deviations
+    .map((value, idx) => ({
+      idx,
+      label: tokenSymbols[idx] ?? `T${idx}`,
+      value,
+      abs: Math.abs(value),
+      sharePct: total > 0 ? (values[idx] / total) * 100 : 0,
+      deviationPct: mean > 0 ? (value / mean) * 100 : 0,
+    }))
+    .sort((a, b) => b.abs - a.abs);
 
-  const top3 = axesWithIdx.slice(0, 3);
-  const dominant = top3[0]?.idx ?? 0;
+  const topAxes = ranked.slice(0, Math.min(4, ranked.length));
+  const dominantIndex = topAxes[0]?.idx ?? 0;
+  const dominantLabel = topAxes[0]?.label ?? '--';
 
-  // Project into 2D SVG space using top 3 axes placed 120° apart
-  // Scale so max deviation reaches ~60 px (sphere radius is 80)
-  const MAX_VIS_RADIUS = 58;
-  const maxAbsDev = top3[0]?.abs ?? 1;
-  const scale = maxAbsDev > 0 ? MAX_VIS_RADIUS / maxAbsDev : 1;
-
-  // Isometric-style: map (x, y, z) onto SVG (2D) using 3 axes at 120°
-  const [a, b_, c] = [
-    (top3[0]?.val ?? 0) * scale,
-    (top3[1]?.val ?? 0) * scale,
-    (top3[2]?.val ?? 0) * scale,
-  ];
-  // Simple 2D isometric projection
-  const svgX = a * Math.cos(-30 * Math.PI / 180) + b_ * Math.cos(-150 * Math.PI / 180) + c * 0;
-  const svgY = a * Math.sin(-30 * Math.PI / 180) + b_ * Math.sin(-150 * Math.PI / 180) + c * Math.sin(90 * Math.PI / 180);
-
-  // Clamp to sphere boundary
-  const len = Math.sqrt(svgX ** 2 + svgY ** 2);
-  const maxLen = MAX_VIS_RADIUS - 4;
-  const clampedX = len > maxLen ? (svgX / len) * maxLen : svgX;
-  const clampedY = len > maxLen ? (svgY / len) * maxLen : svgY;
+  const projectionAxes = ranked.slice(0, 3);
+  const maxAbs = projectionAxes[0]?.abs ?? 1;
+  const scale = maxAbs > 0 ? 78 / maxAbs : 1;
+  const angles = [-90, 30, 150].map((deg) => (deg * Math.PI) / 180);
+  const rawX = projectionAxes.reduce((acc, axis, idx) => acc + Math.cos(angles[idx]) * axis.value * scale, 0);
+  const rawY = projectionAxes.reduce((acc, axis, idx) => acc + Math.sin(angles[idx]) * axis.value * scale, 0);
+  const length = Math.sqrt(rawX ** 2 + rawY ** 2);
+  const maxLength = 82;
+  const clampRatio = length > maxLength ? maxLength / length : 1;
 
   return {
-    drift: driftRaw,
+    mean,
+    total,
     driftNorm,
-    projections: { x: clampedX, y: clampedY, z: b_ },
-    topAxes: top3,
-    dominantIndex: dominant,
-    deviations: w,
+    dominantIndex,
+    dominantLabel,
+    topAxes,
+    probe: {
+      x: rawX * clampRatio,
+      y: rawY * clampRatio,
+    },
   };
 }
 
 function getDriftStatus(driftNorm: number) {
-  if (driftNorm < 0.001) return { label: 'STABLE', color: 'text-emerald-400', dot: '#10B981', bg: 'bg-emerald-500/10 border-emerald-500/20' };
-  if (driftNorm < 0.005) return { label: 'MODERATE', color: 'text-amber-400', dot: '#F59E0B', bg: 'bg-amber-500/10 border-amber-500/20' };
-  return { label: 'STRESS', color: 'text-rose-400', dot: '#F43F5E', bg: 'bg-rose-500/10 border-rose-500/20' };
+  if (driftNorm < 0.001) {
+    return {
+      label: 'Stable',
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-500/10 border-emerald-500/20',
+      dot: '#10B981',
+    };
+  }
+
+  if (driftNorm < 0.005) {
+    return {
+      label: 'Moderate',
+      color: 'text-amber-500',
+      bg: 'bg-amber-500/10 border-amber-500/20',
+      dot: '#F59E0B',
+    };
+  }
+
+  return {
+    label: 'Stress',
+    color: 'text-rose-500',
+    bg: 'bg-rose-500/10 border-rose-500/20',
+    dot: '#F43F5E',
+  };
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-export const GeometricLiquidityCompass: React.FC<GeometricLiquidityCompassProps> = ({
+export function GeometricLiquidityCompass({
   reserves,
   n,
   sBound,
   tokenSymbols,
-}) => {
-  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const angleRef = useRef(0);
-  const [angle, setAngle] = useState(0);
+}: GeometricLiquidityCompassProps) {
+  const [isRevealed, setIsRevealed] = useState(false);
+  const reserveSignature = reserves.map(String).join(':');
 
-  // Slow orbital rotation — pauses on hover
-  useEffect(() => {
-    if (isHovering) return;
-    const id = setInterval(() => {
-      angleRef.current = (angleRef.current + 0.1) % 360;
-      setAngle(angleRef.current);
-    }, 50);
-    return () => clearInterval(id);
-  }, [isHovering]);
-
-  const { drift, driftNorm, projections, topAxes, dominantIndex, deviations } = useMemo(
-    () => computeGeometry(reserves, n),
-    [reserves, n]
-  );
-
-  const status = getDriftStatus(driftNorm);
+  const geometry = useMemo(() => computeGeometry(reserves, n, tokenSymbols), [reserves, n, tokenSymbols]);
+  const status = getDriftStatus(geometry.driftNorm);
   const isEmpty = !reserves.length || n === 0;
+  const capDisplay = Number(sBound) > 0 ? (Number(sBound) / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 'N/A';
 
-  // Axis positions at 120° apart, rotated by current orbital angle
-  const axisAngles = [0, 120, 240].map(base => (base + angle) * (Math.PI / 180));
+  useEffect(() => {
+    if (isEmpty) {
+      setIsRevealed(false);
+      return;
+    }
+
+    setIsRevealed(false);
+    const timeoutId = window.setTimeout(() => setIsRevealed(true), 180);
+    return () => window.clearTimeout(timeoutId);
+  }, [isEmpty, reserveSignature]);
 
   return (
-    <div
-      className="relative w-full h-full flex flex-col select-none"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-1.5 h-5 rounded-full"
-            style={{ background: `linear-gradient(to bottom, ${status.dot}, ${status.dot}66)`, boxShadow: `0 0 8px ${status.dot}55` }}
-          />
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
-            Geometric Liquidity Compass
-          </h3>
+    <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-4">
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-border/20 bg-muted/5 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+                Contract Drift
+              </p>
+              <p className={`mt-1 text-4xl font-black leading-none tabular-nums ${status.color}`}>
+                {isEmpty ? '--' : geometry.driftNorm.toFixed(6)}
+              </p>
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Live reserve vector vs equal-reserve mean
+              </p>
+            </div>
+            <div className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-widest ${status.bg} ${status.color}`}>
+              {status.label}
+            </div>
+          </div>
         </div>
-        <div className={`text-[8px] font-black tracking-widest px-2 py-0.5 rounded-md border ${status.bg} ${status.color}`}>
-          {status.label}
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-border/20 bg-muted/5 p-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dominant Axis</p>
+            <p className={`mt-2 text-[18px] font-black ${status.color}`}>{geometry.dominantLabel}</p>
+          </div>
+          <div className="rounded-2xl border border-border/20 bg-muted/5 p-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cap Radius</p>
+            <p className="mt-2 text-[18px] font-black text-foreground tabular-nums">{capDisplay}</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border/20 bg-muted/5 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-foreground">Top Imbalances</p>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">from contract reserves</span>
+          </div>
+
+          <div className="space-y-3">
+            {geometry.topAxes.map((axis) => {
+              const width = Math.min(Math.abs(axis.deviationPct) * 12, 100);
+              return (
+                <div key={axis.idx}>
+                  <div className="flex items-center justify-between gap-3 mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: status.dot }} />
+                      <span className="text-[12px] font-black text-foreground truncate">{axis.label}</span>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className={`text-[12px] font-black tabular-nums ${axis.deviationPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {axis.deviationPct >= 0 ? '+' : ''}
+                        {axis.deviationPct.toFixed(2)}%
+                      </span>
+                      <span className="ml-2 text-[10px] font-bold text-muted-foreground">
+                        {axis.sharePct.toFixed(1)}% share
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-border/10 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${axis.deviationPct >= 0 ? 'bg-emerald-500/80' : 'bg-rose-500/80'}`}
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Sphere Viewport */}
-      <div className="relative flex-1 min-h-[280px] rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 to-muted/10 overflow-hidden">
+      <div className="rounded-2xl border border-border/20 bg-[radial-gradient(circle_at_top,_rgba(159,232,112,0.45),_transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,255,255,0.98))] p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-foreground">
+              Contract State Projection
+            </p>
+            <p className="mt-1 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+              Values render first, then the live state vector settles into place
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <Target className={`w-3.5 h-3.5 ${status.color}`} />
+            {isEmpty ? 'Awaiting reserves' : `${n}-asset projection`}
+          </div>
+        </div>
 
-        {/* Starfield background */}
-        {[...Array(24)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-[1px] h-[1px] bg-white/30 rounded-full"
-            style={{
-              top: `${(i * 37 + 13) % 100}%`,
-              left: `${(i * 53 + 7) % 100}%`,
-              opacity: 0.15 + (i % 5) * 0.07,
-            }}
-          />
-        ))}
-
-        {/* Main SVG canvas */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg
-            width="260"
-            height="260"
-            viewBox="-130 -130 260 260"
-            className="overflow-visible"
-          >
+        <div className="relative min-h-[340px] rounded-[28px] border border-border/15 bg-white/50 overflow-hidden flex items-center justify-center">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(159,232,112,0.22),_transparent_60%)]" />
+          <svg width="360" height="320" viewBox="-180 -160 360 320" className="relative z-10 overflow-visible">
             <defs>
-              {/* Sphere glass gradient */}
-              <radialGradient id="glc-sphere" cx="35%" cy="30%" r="65%">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
-                <stop offset="60%" stopColor="rgba(16,185,129,0.03)" />
-                <stop offset="100%" stopColor="rgba(10,63,47,0.06)" />
+              <radialGradient id="compass-sphere-fill" cx="35%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.92)" />
+                <stop offset="70%" stopColor="rgba(159,232,112,0.16)" />
+                <stop offset="100%" stopColor="rgba(10,63,47,0.10)" />
               </radialGradient>
-              {/* Probe glow */}
-              <filter id="glc-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <filter id="compass-glow" x="-60%" y="-60%" width="220%" height="220%">
                 <feGaussianBlur stdDeviation="3" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
-              {/* Subtle inner shadow for sphere depth */}
-              <radialGradient id="glc-depth" cx="65%" cy="70%" r="50%">
-                <stop offset="0%" stopColor="rgba(0,0,0,0.25)" />
-                <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-              </radialGradient>
             </defs>
 
-            {/* Outer glow ring */}
-            <circle cx="0" cy="0" r="83" fill="none" stroke="rgba(16,185,129,0.06)" strokeWidth="6" />
+            <circle cx="0" cy="0" r="100" fill="url(#compass-sphere-fill)" stroke="rgba(10,63,47,0.12)" strokeWidth="1.5" />
+            <circle cx="0" cy="0" r="70" fill="none" stroke="rgba(10,63,47,0.08)" strokeDasharray="5 6" />
+            <circle cx="0" cy="0" r="40" fill="none" stroke="rgba(10,63,47,0.06)" strokeDasharray="3 5" />
 
-            {/* Main sphere body */}
-            <circle cx="0" cy="0" r="80" fill="url(#glc-sphere)" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
-            {/* Depth shadow */}
-            <circle cx="0" cy="0" r="80" fill="url(#glc-depth)" />
+            {geometry.topAxes.slice(0, 3).map((axis, idx) => {
+              const angle = (([-90, 30, 150][idx] ?? 0) * Math.PI) / 180;
+              const x2 = Math.cos(angle) * 116;
+              const y2 = Math.sin(angle) * 116;
+              const lx = Math.cos(angle) * 136;
+              const ly = Math.sin(angle) * 136;
 
-            {/* Equatorial ring (slow rotation via CSS transform) */}
-            <ellipse
-              cx="0" cy="0" rx="80" ry="22"
-              fill="none"
-              stroke="rgba(16,185,129,0.08)"
-              strokeWidth="1"
-              strokeDasharray="4 6"
-              transform={`rotate(${angle})`}
-            />
+              return (
+                <g key={axis.idx}>
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2={x2}
+                    y2={y2}
+                    stroke="rgba(10,63,47,0.22)"
+                    strokeWidth="1"
+                    strokeDasharray="4 5"
+                  />
+                  <text
+                    x={lx}
+                    y={ly}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontSize: '10px', fontWeight: 900, fill: '#0A3F2F', letterSpacing: '0.08em' }}
+                  >
+                    {axis.label}
+                  </text>
+                </g>
+              );
+            })}
 
-            {/* Spherical Cap ring (sBound visualization) */}
-            <ellipse
-              cx="0" cy="-30"
-              rx={52} ry={14}
-              fill="rgba(16,185,129,0.04)"
-              stroke="rgba(16,185,129,0.15)"
-              strokeWidth="0.8"
-              strokeDasharray="3,5"
-              transform={`rotate(${angle * 0.3})`}
-            />
-            <text x="56" y="-26" style={{ fontSize: '5px', fill: 'rgba(16,185,129,0.5)', fontFamily: 'monospace', fontWeight: 700, transform: `rotate(${angle * 0.3}deg)` }} textAnchor="start">
-              Spherical Cap
+            <circle cx="0" cy="0" r="4.5" fill="#0A3F2F" opacity="0.9" />
+            <text
+              x="0"
+              y="-116"
+              textAnchor="middle"
+              style={{ fontSize: '9px', fontWeight: 800, fill: '#5E7C72', letterSpacing: '0.12em' }}
+            >
+              EQUAL RESERVE ANCHOR
             </text>
 
-            {/* Principal Deviation Axes */}
-            <g opacity={isHovering ? 1 : 0.55} style={{ transition: 'opacity 0.4s' }}>
-              {topAxes.map((axis, i) => {
-                const a = axisAngles[i];
-                const r = 88;
-                const x2 = Math.cos(a) * r;
-                const y2 = Math.sin(a) * r;
-                const isHov = hoveredAxis === axis.idx;
-                const pct = axis.abs > 0 ? Math.min(axis.abs / (topAxes[0]?.abs || 1), 1) : 0;
-                const axisColor = isHov ? status.dot : 'rgba(255,255,255,0.25)';
-                const label = tokenSymbols[axis.idx] ?? `T${axis.idx}`;
-                const devPct = ((deviations[axis.idx] ?? 0) / (reserves.map(r => Number(r)).reduce((a, b) => a + b, 0) / n || 1) * 100).toFixed(2);
-
-                return (
-                  <g
-                    key={axis.idx}
-                    onMouseEnter={() => setHoveredAxis(axis.idx)}
-                    onMouseLeave={() => setHoveredAxis(null)}
-                    style={{ cursor: 'default' }}
-                  >
-                    {/* Axis line */}
-                    <line
-                      x1="0" y1="0"
-                      x2={x2} y2={y2}
-                      stroke={axisColor}
-                      strokeWidth={isHov ? 1.5 : 0.6}
-                      strokeDasharray="3,4"
-                      style={{ transition: 'all 0.25s' }}
-                    />
-                    {/* Magnitude bar along axis */}
-                    <line
-                      x1="0" y1="0"
-                      x2={Math.cos(a) * r * pct * 0.85}
-                      y2={Math.sin(a) * r * pct * 0.85}
-                      stroke={isHov ? status.dot : 'rgba(16,185,129,0.3)'}
-                      strokeWidth={isHov ? 2.5 : 1}
-                      style={{ transition: 'all 0.25s' }}
-                    />
-                    {/* Token label */}
-                    <text
-                      x={Math.cos(a) * 100}
-                      y={Math.sin(a) * 100}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      style={{
-                        fontSize: '7px',
-                        fontWeight: 900,
-                        fontFamily: 'monospace',
-                        fill: isHov ? status.dot : 'rgba(255,255,255,0.5)',
-                        transition: 'fill 0.25s',
-                        letterSpacing: '0.05em',
-                      }}
-                    >
-                      {label}
-                    </text>
-                    {/* Hover tooltip: deviation % */}
-                    {isHov && (
-                      <text
-                        x={Math.cos(a) * 100}
-                        y={Math.sin(a) * 100 + 10}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{ fontSize: '6px', fontWeight: 700, fontFamily: 'monospace', fill: 'rgba(255,255,255,0.7)' }}
-                      >
-                        {Number(devPct) > 0 ? '+' : ''}{devPct}%
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-            </g>
-
-            {/* Center Peg Anchor */}
-            <circle cx="0" cy="0" r="3" fill={status.dot} filter="url(#glc-glow)" />
-            <circle cx="0" cy="0" r="6" fill="none" stroke={status.dot} strokeWidth="0.5" strokeDasharray="1.5,2" opacity="0.6">
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 0 0"
-                to="360 0 0"
-                dur="8s"
-                repeatCount="indefinite"
+            <g
+              transform={`translate(${isRevealed ? geometry.probe.x : 0}, ${isRevealed ? geometry.probe.y : 0})`}
+              style={{ transition: 'transform 700ms cubic-bezier(0.16, 1, 0.3, 1)' }}
+              filter="url(#compass-glow)"
+            >
+              <line
+                x1={isRevealed ? -geometry.probe.x : 0}
+                y1={isRevealed ? -geometry.probe.y : 0}
+                x2="0"
+                y2="0"
+                stroke={status.dot}
+                strokeOpacity="0.45"
+                strokeWidth="1.5"
               />
-            </circle>
-
-            {/* Live State Probe */}
-            {!isEmpty && (
-              <g transform={`translate(${projections.x}, ${projections.y})`} filter="url(#glc-glow)">
-                {/* Leader line back to center */}
-                <line
-                  x1={-projections.x}
-                  y1={-projections.y}
-                  x2="0" y2="0"
-                  stroke={`${status.dot}50`}
-                  strokeWidth="0.6"
-                  strokeDasharray="3,4"
-                />
-                {/* Probe halo */}
-                <circle cx="0" cy="0" r="10" fill={`${status.dot}15`} />
-                {/* Probe dot */}
-                <circle cx="0" cy="0" r="5" fill={status.dot}>
-                  <animate attributeName="r" values="4;5.5;4" dur="2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite" />
-                </circle>
-              </g>
-            )}
-
-            {/* Specular highlight on sphere */}
-            <ellipse cx="-20" cy="-28" rx="22" ry="14" fill="rgba(255,255,255,0.04)" />
+              <circle cx="0" cy="0" r="12" fill={status.dot} fillOpacity="0.14" />
+              <circle cx="0" cy="0" r="5.5" fill={status.dot} />
+            </g>
           </svg>
-        </div>
 
-        {/* HUD: Top-right metrics */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-0.5">
-          <div className="flex items-center gap-1.5">
-            <Target className={`w-3 h-3 ${status.color} animate-pulse`} />
-            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">
-              Geometric Drift
-            </span>
-          </div>
-          <p className={`text-2xl font-black tabular-nums leading-none ${status.color}`}>
-            {isEmpty ? '—' : driftNorm.toFixed(6)}
-          </p>
-          <span className="text-[8px] text-muted-foreground/60 font-bold">∥w∥ / mean</span>
-        </div>
-
-        {/* HUD: Bottom-left info */}
-        <div className="absolute bottom-3 left-3">
-          <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">
-            Dominant Axis
-          </p>
-          <p className={`text-[11px] font-black ${status.color}`}>
-            {isEmpty ? '—' : (tokenSymbols[dominantIndex] ?? `T${dominantIndex}`)}
-          </p>
-        </div>
-
-        {/* HUD: Bottom-right legend */}
-        <div className="absolute bottom-3 right-3 flex flex-col gap-1">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-0.5 rounded-full" style={{ background: status.dot }} />
-            <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">State Probe</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-0.5 rounded-full border border-primary/40 bg-primary/10" />
-            <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Liquidity Cap</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Info grid below sphere */}
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="p-2.5 rounded-xl bg-muted/5 border border-border/30 flex flex-col gap-0.5">
-          <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Principal Axes</p>
-          <p className="text-[10px] font-black text-foreground">
-            {isEmpty ? '—' : topAxes.map(a => tokenSymbols[a.idx] ?? `T${a.idx}`).join(' / ')}
-          </p>
-        </div>
-        <div className="p-2.5 rounded-xl bg-muted/5 border border-border/30 flex flex-col gap-0.5">
-          <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Peg Tension</p>
-          <p className={`text-[10px] font-black ${status.color}`}>{status.label}</p>
-        </div>
-        <div className="p-2.5 rounded-xl bg-muted/5 border border-border/30 flex flex-col gap-0.5">
-          <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Cap Radius</p>
-          <p className="text-[10px] font-black text-foreground">
-            {isEmpty ? '—' : Number(sBound) > 0 ? (Number(sBound) / 1e6).toFixed(2) : 'N/A'}
-          </p>
-        </div>
-      </div>
-
-      {/* "How it works" tooltip button */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button className="mt-3 flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-border/30 bg-muted/5 text-[8px] font-black uppercase tracking-[0.15em] text-muted-foreground hover:border-primary/30 hover:text-primary hover:bg-primary/5 transition-all duration-200 group">
-              <Info className="w-3 h-3" />
-              Visual Proof of Stability · Orbital AMM
-              <Target className="w-3 h-3 group-hover:scale-110 transition-transform" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent
-            side="top"
-            className="max-w-[300px] p-4 bg-background border border-primary/30 text-foreground rounded-2xl shadow-2xl shadow-primary/10"
-          >
-            <p className="text-[11px] font-bold leading-relaxed text-foreground/80">
-              Pool liquidity exists on the surface of an{' '}
-              <span className="text-primary font-black">n-dimensional sphere</span>.
-              The "Compass" maps any reserve imbalance as{' '}
-              <span className="text-primary italic">geometric drift</span>{' '}
-              — movement away from the center. Concentrated liquidity is shown as a{' '}
-              <span className="text-primary italic">Spherical Cap</span>,
-              achieving <span className="text-primary font-black">100x+ capital efficiency</span> over traditional AMMs.
+          <div className="absolute top-4 right-4 rounded-xl border border-border/20 bg-white/80 px-3 py-2 text-right backdrop-blur-sm">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Live State</p>
+            <p className={`text-[20px] font-black leading-none tabular-nums ${status.color}`}>
+              {isEmpty ? '--' : geometry.driftNorm.toFixed(6)}
             </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              normalized drift
+            </p>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-border/15 bg-white/70 px-3 py-2 backdrop-blur-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Principal Axes</p>
+              <p className="mt-1 text-[12px] font-black text-foreground">
+                {geometry.topAxes.slice(0, 3).map((axis) => axis.label).join(' / ') || '--'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/15 bg-white/70 px-3 py-2 backdrop-blur-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reserve Mean</p>
+              <p className="mt-1 text-[12px] font-black text-foreground tabular-nums">
+                {isEmpty ? '--' : (geometry.mean / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/15 bg-white/70 px-3 py-2 backdrop-blur-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reserve Total</p>
+              <p className="mt-1 text-[12px] font-black text-foreground tabular-nums">
+                {isEmpty ? '--' : (geometry.total / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}
