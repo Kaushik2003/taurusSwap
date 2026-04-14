@@ -129,19 +129,17 @@ export default function Features() {
     <div
       style={{
         width: "100%",
-        maxWidth: 1800,
-        padding: "160px 24px",
+        padding: "40px 0",
         fontFamily: "'Inter', sans-serif",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: 1800,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(550px, 1fr))",
-          gap: 120,
-          alignItems: "center",
+          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+          gap: 60,
+          alignItems: "start",
         }}
       >
         {/* Left: Copy */}

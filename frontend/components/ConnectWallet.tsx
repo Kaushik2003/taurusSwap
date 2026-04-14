@@ -70,10 +70,21 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
                   className="flex items-center justify-start gap-3 h-14 w-full bg-secondary/50 hover:bg-secondary border-border/50"
                   onClick={async () => {
                     try {
+                      // If the wallet is already connected, don't try to connect again
+                      if (wallet.isConnected) {
+                        await wallet.setActive();
+                        closeModal();
+                        return;
+                      }
+
                       closeModal(); // Close our modal FIRST so Pera's modal isn't blocked
                       await wallet.connect();
-                    } catch (e) {
+                    } catch (e: any) {
                       console.error('Wallet connection failed:', e);
+                      // If it's already connected, we can just set it as active
+                      if (e?.message?.includes('Session currently connected')) {
+                        await wallet.setActive();
+                      }
                     }
                   }}
                 >

@@ -37,7 +37,7 @@ export default function Home() {
         </div>
 
         {/* Features section */}
-        <div className="mt-20">
+        <div className="mt-20 w-full max-w-7xl">
           <Features />
         </div>
 
