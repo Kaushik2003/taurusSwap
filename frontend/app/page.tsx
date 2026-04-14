@@ -58,18 +58,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features section */}
+        {/* Features section — Restored to light background for better visual rhythm */}
         <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 py-16 sm:py-20 md:py-24 lg:py-28">
           <Features />
         </section>
 
         {/* Bento Grid section */}
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 pb-16 sm:pb-20 md:pb-24">
+        <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 pb-16 sm:pb-20 md:pb-24">
           <BentoGrid />
         </section>
 
         {/* FAQ section */}
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 pb-20 sm:pb-24 md:pb-28">
+        <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 pb-20 sm:pb-24 md:pb-28">
           <FAQ />
         </section>
       </div>

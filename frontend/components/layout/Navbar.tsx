@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Menu, X, Wallet, ChevronDown, Copy, LogOut } from 'lucide-react';
+import { Search, Menu, X, Wallet, ChevronDown, Copy, LogOut, ArrowUpRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Explore', to: '/explore', bg: '#B6F4CC' },
   { label: 'Pool', to: '/pool', bg: '#FFC1D9' },
   { label: 'Portfolio', to: '/portfolio', bg: '#C0FCFD' },
+  { label: 'Faucet', to: 'https://taurus-faucet.vercel.app/', bg: '#FFE169' },
 ];
 
 export default function Navbar() {
@@ -62,16 +63,22 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-3 ml-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                href={item.to}
-                className="px-5 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all"
-                style={{ backgroundColor: item.bg }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isExternal = item.to.startsWith('http');
+              return (
+                <Link
+                  key={item.to}
+                  href={item.to}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                  className="px-5 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all flex items-center gap-1.5"
+                  style={{ backgroundColor: item.bg }}
+                >
+                  {item.label}
+                  {isExternal && <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={3} />}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex-1" />
