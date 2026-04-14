@@ -32,7 +32,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     ];
   }
 
-  const walletManager = new WalletManager({
+  const [walletManager] = useState(() => new WalletManager({
     wallets: supportedWallets,
     defaultNetwork: algodConfig.network,
     networks: {
@@ -47,7 +47,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     options: {
       resetNetwork: true,
     },
-  });
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>

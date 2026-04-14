@@ -454,6 +454,44 @@ export async function buildClaimFeesGroup(
   return txns;
 }
 
+// ── Resource distribution helper ─────────────────────────────────────────────
+//
+// Algorand AVM v10+: MaxAppTotalTxnReferences = 8 applies to the combined total
+// of (foreign accounts + foreign apps + foreign assets + box references) per txn.
+// Resources referenced in ANY transaction in an atomic group are accessible to ALL
+// app calls in the group, so we spread them across budget dummy transactions.
+//
+// Returns one slot per transaction (indices 0..numBudget-1 = budget, numBudget = main call).
+// Each slot has at most 8 total refs.
+
+function distributeRefs(
+  assets: number[],
+  boxes: algosdk.BoxReference[],
+  numBudget: number,
+): Array<{ assets: number[]; boxes: algosdk.BoxReference[] }> {
+  type Item =
+    | { kind: "asset"; value: number }
+    | { kind: "box"; value: algosdk.BoxReference };
+
+  const items: Item[] = [
+    ...assets.map((v) => ({ kind: "asset" as const, value: v })),
+    ...boxes.map((v) => ({ kind: "box" as const, value: v })),
+  ];
+
+  const slots = numBudget + 1;
+  const result: Array<{ assets: number[]; boxes: algosdk.BoxReference[] }> =
+    Array.from({ length: slots }, () => ({ assets: [], boxes: [] }));
+
+  items.forEach((item, i) => {
+    // Fill budget slots first (8 refs each), remainder goes to the last slot (main call).
+    const slot = Math.min(Math.floor(i / 8), slots - 1);
+    if (item.kind === "asset") result[slot].assets.push(item.value);
+    else result[slot].boxes.push(item.value);
+  });
+
+  return result;
+}
+
 // ── Internal helpers ─────────────────────────────────────────────────────────
 
 /**
