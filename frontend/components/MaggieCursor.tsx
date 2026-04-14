@@ -76,20 +76,20 @@ export default function MaggieCursor() {
           {/* Shadow */}
           <path
             d="M8.5 7.5 C15.5 10 25.5 14 32.5 16.5 C34.5 17.5 34.5 20 32.5 21 C27.5 23.5 25.5 25.5 23.5 30.5 C22.5 32.5 19.5 32.5 18.5 30.5 C15.5 23.5 11.5 13.5 8.5 7.5 Z"
-            fill="var(--color-dark-green)"
+            fill="#163300"
             transform="translate(3, 4)"
-            stroke="var(--color-dark-green)"
+            stroke="#163300"
             strokeWidth="3.5"
-            strokeLinejoin="round" 
+            strokeLinejoin="round"
             strokeLinecap="round"
           />
           {/* Body */}
           <path
             d="M8.5 7.5 C15.5 10 25.5 14 32.5 16.5 C34.5 17.5 34.5 20 32.5 21 C27.5 23.5 25.5 25.5 23.5 30.5 C22.5 32.5 19.5 32.5 18.5 30.5 C15.5 23.5 11.5 13.5 8.5 7.5 Z"
-            fill="var(--color-green)"
-            stroke="var(--color-dark-green)"
+            fill="#9FE870"
+            stroke="#163300"
             strokeWidth="3.5"
-            strokeLinejoin="round" 
+            strokeLinejoin="round"
             strokeLinecap="round"
           />
         </svg>

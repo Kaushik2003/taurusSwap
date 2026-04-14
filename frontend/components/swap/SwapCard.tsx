@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDownUp, ChevronDown, Settings, Info, Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
@@ -8,7 +9,7 @@ import {
   displayToRaw,
   rawToDisplay,
   getTokenSymbol,
-  getTokenColor,
+  getTokenIcon,
   formatRawAsUSD,
 } from '@/lib/tokenDisplay';
 import { executeSwap } from '@/lib/orbital-sdk';
@@ -17,7 +18,13 @@ import { getAlgodConfigFromViteEnvironment } from '@/utils/network/getAlgoClient
 import { POOL_APP_ID } from '@/hooks/useAlgodClient';
 
 
-export default function SwapCard() {
+interface SwapCardProps {
+  redirectTo?: string;
+}
+
+export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { activeAddress, signTransactions } = useWallet();
   const isWalletConnected = !!activeAddress;
   const { toggleWalletModal } = useAppStore();
@@ -28,7 +35,11 @@ export default function SwapCard() {
 
   const [sellIdx, setSellIdx] = useState(0);
   const [buyIdx, setBuyIdx] = useState(1);
-  const [sellAmount, setSellAmount] = useState('');
+  const [sellAmount, setSellAmount] = useState(() => {
+    if (redirectTo) return '';
+    const initial = searchParams?.get('sell');
+    return initial ? initial.replace(/[^0-9.]/g, '') : '';
+  });
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
   const [swapping, setSwapping] = useState(false);
@@ -166,7 +177,7 @@ export default function SwapCard() {
                   }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all"
                 >
-                  <div className="w-5 h-5 rounded-full border border-black/10" style={{ background: getTokenColor(i) }} />
+                  <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-5 h-5 rounded-full border border-black/10 object-cover" />
                   <span className="text-sm font-black text-dark-green">{getTokenSymbol(pool, i)}</span>
                 </button>
               ))}
@@ -183,7 +194,17 @@ export default function SwapCard() {
             <input
               type="text"
               value={sellAmount}
-              onChange={e => setSellAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+              onChange={e => {
+                const next = e.target.value.replace(/[^0-9.]/g, '');
+                if (redirectTo) {
+                  router.push(`${redirectTo}?sell=${encodeURIComponent(next)}`);
+                  return;
+                }
+                setSellAmount(next);
+              }}
+              onFocus={() => {
+                if (redirectTo) router.push(redirectTo);
+              }}
               placeholder="0"
               className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
             />
@@ -191,7 +212,7 @@ export default function SwapCard() {
               onClick={() => setSelectorFor(selectorFor === 'sell' ? null : 'sell')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-[#FCA5F1] transition-all shrink-0"
             >
-              <div className="w-6 h-6 rounded-full border border-black/10" style={{ background: getTokenColor(sellIdx) }} />
+              <img src={getTokenIcon(sellIdx)} alt={pool ? getTokenSymbol(pool, sellIdx) : ''} className="w-6 h-6 rounded-full border border-black/10 object-cover" />
               <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, sellIdx) : '...'}</span>
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
@@ -229,7 +250,7 @@ export default function SwapCard() {
               onClick={() => setSelectorFor(selectorFor === 'buy' ? null : 'buy')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-green transition-all shrink-0"
             >
-              <div className="w-6 h-6 rounded-full border border-black/10" style={{ background: getTokenColor(buyIdx) }} />
+              <img src={getTokenIcon(buyIdx)} alt={pool ? getTokenSymbol(pool, buyIdx) : ''} className="w-6 h-6 rounded-full border border-black/10 object-cover" />
               <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, buyIdx) : '...'}</span>
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>

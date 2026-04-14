@@ -4,6 +4,7 @@ import SwapCard from '../components/swap/SwapCard';
 import Features from '../components/landing/Features';
 import BentoGrid from '../components/landing/BentoGrid';
 import FAQ from '../components/landing/FAQ';
+import Footer from '../components/landing/Footer';
 import { ArrowDown } from 'lucide-react';
 
 import localFont from 'next/font/local';
@@ -12,7 +13,7 @@ const wiseSans = localFont({ src: '../public/fonts/wise-sans.otf' });
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden --color-green ">
+    <div className="relative min-h-screen overflow-hidden bg-green">
       <FloatingOrbs />
 
       <div className="relative z-10 flex flex-col items-center px-4">
@@ -31,7 +32,7 @@ export default function Home() {
 
           {/* Swap card */}
           <div className="w-full max-w-[500px] flex-shrink-0 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-            <SwapCard />
+            <SwapCard redirectTo="/trade" />
           </div>
         </div>
 
@@ -50,6 +51,8 @@ export default function Home() {
           <FAQ />
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { networks } from '@/data/mock';
 import ConnectWallet from '../ConnectWallet';
 
 const navItems = [
-  { label: 'Trade', to: '/', bg: '#FCA5F1' },
+  { label: 'Trade', to: '/trade', bg: '#FCA5F1' },
   { label: 'Explore', to: '/explore', bg: '#B6F4CC' },
   { label: 'Pool', to: '/pool', bg: '#FFC1D9' },
   { label: 'Portfolio', to: '/portfolio', bg: '#C0FCFD' },

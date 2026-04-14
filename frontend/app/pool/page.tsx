@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
-import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
+import { getTokenSymbol, getTokenIcon, rawToDisplay } from '@/lib/tokenDisplay';
 import { PositionCard } from '@/components/pool/PositionCard';
 import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
 
@@ -144,7 +144,7 @@ export default function Pool() {
                 {pool.tokenAsaIds.map((asaId, i) => (
                   <div key={i} className="flex items-center justify-between text-xs mb-1.5">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full" style={{ background: getTokenColor(i) }} />
+                      <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-4 h-4 rounded-full object-cover bg-white" />
                       <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
                       <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
                     </div>

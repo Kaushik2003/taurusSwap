@@ -12,7 +12,7 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
 import { useTransactions } from '@/hooks/useTransactions';
-import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
+import { getTokenSymbol, getTokenIcon, rawToDisplay } from '@/lib/tokenDisplay';
 
 type Tab = 'overview' | 'tokens' | 'nfts' | 'activity' | 'lp';
 type Timeframe = '1H' | '1D' | '1W' | '1M' | '1Y' | 'All';
@@ -359,10 +359,12 @@ export default function Portfolio() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {pool && Array.from({ length: pool.n }, (_, i) => (
-                        <div
+                        <img
                           key={i}
-                          className="w-5 h-5 rounded-full border border-background"
-                          style={{ background: getTokenColor(i), marginLeft: i > 0 ? '-6px' : 0 }}
+                          src={getTokenIcon(i)}
+                          alt={getTokenSymbol(pool, i)}
+                          className="w-5 h-5 rounded-full border border-background object-cover bg-white"
+                          style={{ marginLeft: i > 0 ? '-6px' : 0 }}
                         />
                       ))}
                       <span className="text-sm font-semibold text-foreground ml-1">

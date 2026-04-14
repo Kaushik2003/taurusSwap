@@ -5,6 +5,7 @@ import type { PoolState } from '@/lib/orbital-sdk';
 // Decimals are all 6 (standard ASA stablecoin).
 export const POOL_TOKEN_SYMBOLS = ['USDC', 'USDT', 'USDD', 'BUSD', 'TUSD'];
 export const POOL_TOKEN_COLORS = ['#2775CA', '#26A17B', '#00E5FF', '#F0B90B', '#1A88FF'];
+export const POOL_TOKEN_ICONS = ['/usdc.png', '/usdt.png', '/usdd.png', '/busd.png', '/tusd.png'];
 export const POOL_TOKEN_DECIMALS = 6;
 
 /** Raw microunits → human-readable string (e.g. 1_000_000n → "1.000000") */
@@ -34,6 +35,10 @@ export function getTokenSymbol(pool: PoolState, i: number): string {
 
 export function getTokenColor(i: number): string {
   return POOL_TOKEN_COLORS[i] ?? '#888888';
+}
+
+export function getTokenIcon(i: number): string {
+  return POOL_TOKEN_ICONS[i] ?? '/usdc.png';
 }
 
 /** Format a raw microunit amount as "$X.XX" (stablecoins ≈ $1 each). */
