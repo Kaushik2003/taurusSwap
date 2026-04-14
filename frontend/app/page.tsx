@@ -1,6 +1,6 @@
 "use client";
 import FloatingOrbs from '../components/landing/FloatingOrbs';
-import SwapCard from '../components/swap/SwapCard';
+import DummySwap from '../components/swap/DummySwap';
 import Features from '../components/landing/Features';
 import BentoGrid from '../components/landing/BentoGrid';
 import FAQ from '../components/landing/FAQ';
@@ -46,11 +46,11 @@ export default function Home() {
 
                 {/* Swap card — reserves fixed height on lg+ so settings/slippage expansion doesn't push siblings */}
                 <div
-                  className="relative w-full max-w-[500px] mx-auto lg:mx-0 flex-shrink-0 lg:min-h-[640px] animate-fade-in-up"
+                  className="relative w-full max-w-[500px] mx-auto lg:mx-0 flex-shrink-0 lg:min-h-[560px] animate-fade-in-up"
                   style={{ animationDelay: '0.15s' }}
                 >
                   <div className="lg:absolute lg:inset-x-0 lg:top-0">
-                    <SwapCard redirectTo="/trade" />
+                    <DummySwap />
                   </div>
                 </div>
               </div>
