@@ -8,9 +8,25 @@ import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useAllPositions } from '@/hooks/usePosition';
-import { getTokenSymbol, getTokenIcon, rawToDisplay } from '@/lib/tokenDisplay';
-import { PositionCard } from '@/components/pool/PositionCard';
-import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
+
+import { PositionsTable } from '@/components/pool/PositionsTable';
+import { AnalyticsPanel } from '@/components/pool/AnalyticsPanel';
+import { PortfolioHeader } from '@/components/pool/PortfolioHeader';
+
+function TableSkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="glass-panel p-5 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="h-4 bg-muted/50 rounded w-32" />
+            <div className="h-4 bg-muted/50 rounded w-20" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Pool() {
   const router = useRouter();
@@ -25,13 +41,12 @@ export default function Pool() {
 
   const { data: pool, isLoading: poolLoading, error: poolError, refetch } = usePoolState();
   const {
-      data: positions = [],
-      isLoading: positionsLoading,
+    data: positions = [],
+    isLoading: positionsLoading,
   } = useAllPositions(activeAddress ?? null, pool?.numTicks ?? 0);
 
   const activePositions = positions.filter(p => p.shares > 0n);
 
-  // Calculate aggregate metrics
   const totalValue = activePositions.reduce((acc, pos) => acc + (pos.positionR * 1000n), 0n);
   const totalFees = activePositions.reduce((acc, pos) => acc + pos.claimableFees.reduce((a, b) => a + b, 0n), 0n);
 
@@ -44,28 +59,28 @@ export default function Pool() {
             <h1 className="text-4xl font-black text-foreground tracking-tighter mb-1">Liquidity Portfolio</h1>
             <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Institutional-Grade Provisioning</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <Button 
-                variant="outline" 
-                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
-                onClick={() => refetch()}
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
+              onClick={() => refetch()}
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
-            <Button 
-                variant="outline" 
-                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
-                onClick={() => router.push('/pool/analytics')}
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
+              onClick={() => router.push('/pool/analytics')}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               View Analytics
             </Button>
-            <Button 
-                className="rounded-xl h-11 px-6 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
-                onClick={() => router.push('/pool/add')}
-                disabled={!isWalletConnected}
+            <Button
+              className="rounded-xl h-11 px-6 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+              onClick={() => router.push('/pool/add')}
+              disabled={!isWalletConnected}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Liquidity
@@ -74,11 +89,11 @@ export default function Pool() {
         </div>
 
         {isWalletConnected && (
-            <PortfolioHeader 
-                totalValue={totalValue}
-                totalFees={totalFees}
-                positionCount={activePositions.length}
-            />
+          <PortfolioHeader
+            totalValue={totalValue}
+            totalFees={totalFees}
+            positionCount={activePositions.length}
+          />
         )}
       </div>
 
@@ -123,57 +138,35 @@ export default function Pool() {
               </Button>
             </div>
           ) : (
-            <PositionsTable 
-                positions={activePositions}
-                pool={pool!}
+            <PositionsTable
+              positions={activePositions}
+              pool={pool!}
             />
           )}
 
-          {/* Contextual Educational Content */}
+          {/* Educational Cards */}
           <div className="grid sm:grid-cols-2 gap-4 mt-8">
             <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        <BarChart3 className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Risk Management</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <BarChart3 className="w-4 h-4" />
                 </div>
-                <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
+                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Risk Management</h4>
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
+                Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.
+              </p>
             </div>
-          ) : pool ? (
-            <div className="glass-panel p-4 space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">App ID</span>
-                <span className="font-mono text-foreground">{pool.appId}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Tokens (n)</span>
-                <span className="text-foreground font-medium">{pool.n}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Fee tier</span>
-                <span className="text-foreground font-medium">{Number(pool.feeBps) / 100}%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Active ticks</span>
-                <span className="text-foreground font-medium">{pool.ticks.length}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Interior radius</span>
-                <span className="text-foreground font-medium">{rawToDisplay(pool.rInt * 1000n)}</span>
-              </div>
-              <div className="border-t border-border/30 pt-3">
-                <p className="text-xs text-muted-foreground mb-2 font-medium">Token reserves</p>
-                {pool.tokenAsaIds.map((asaId, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-4 h-4 rounded-full object-cover bg-white" />
-                      <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
-                      <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
-                    </div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
+            <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <Settings2 className="w-4 h-4" />
                 </div>
-                <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.</p>
+                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
+                Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.
+              </p>
             </div>
           </div>
         </div>
