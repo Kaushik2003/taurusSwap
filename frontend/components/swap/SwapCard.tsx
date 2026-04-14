@@ -2,16 +2,20 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDownUp, ChevronDown, Settings, Info, Loader2, X } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useSwapUIStore } from '@/store/useSwapUIStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useSwapQuote } from '@/hooks/useSwapQuote';
+import { useWalletAssets } from '@/hooks/useWalletAssets';
 import {
   displayToRaw,
   rawToDisplay,
+  rawToDisplayShort,
   getTokenSymbol,
   getTokenIcon,
   formatRawAsUSD,
 } from '@/lib/tokenDisplay';
+import { FAUCET_TOKENS } from '@/lib/tokens';
 import { executeSwap } from '@/lib/orbital-sdk';
 import algosdk from 'algosdk';
 import { getAlgodConfigFromViteEnvironment } from '@/utils/network/getAlgoClientConfigs';
@@ -30,15 +34,22 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
   const { toggleWalletModal } = useAppStore();
 
   const { data: pool, isLoading: poolLoading, error: poolError } = usePoolState();
+  const { data: walletAssets = [] } = useWalletAssets();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [sellIdx, setSellIdx] = useState(0);
-  const [buyIdx, setBuyIdx] = useState(1);
-  const [sellAmount, setSellAmount] = useState(() => {
+  const sellIdx = useSwapUIStore((s) => s.sellIdx);
+  const buyIdx = useSwapUIStore((s) => s.buyIdx);
+  const sellAmount = useSwapUIStore((s) => s.sellAmount);
+  const setSellIdx = useSwapUIStore((s) => s.setSellIdx);
+  const setBuyIdx = useSwapUIStore((s) => s.setBuyIdx);
+  const setSellAmount = useSwapUIStore((s) => s.setSellAmount);
+  const flipStore = useSwapUIStore((s) => s.flip);
+  useEffect(() => {
     const initial = searchParams?.get('sell');
-    return initial ? initial.replace(/[^0-9.]/g, '') : '';
-  });
+    if (initial) setSellAmount(initial.replace(/[^0-9.]/g, ''));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
   const [swapping, setSwapping] = useState(false);
@@ -56,8 +67,16 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
 
   const n = pool?.n ?? 5;
 
+  // Wallet balances for the currently selected tokens
+  const sellAssetId = FAUCET_TOKENS[sellIdx]?.assetId;
+  const buyAssetId = FAUCET_TOKENS[buyIdx]?.assetId;
+  const sellBalance = walletAssets.find(a => a.asaId === sellAssetId);
+  const buyBalance = walletAssets.find(a => a.asaId === buyAssetId);
+  const formatBal = (n: number) =>
+    n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+
   // Derived display values
-  const buyAmountDisplay = quote ? rawToDisplay(quote.amountOut) : '';
+  const buyAmountDisplay = quote ? rawToDisplayShort(quote.amountOut, 4) : '';
   const exchangeRate = quote ? (Number(quote.amountOut) / Number(amountInRaw)) : null;
   const priceImpactPct = quote ? (quote.priceImpact * 100).toFixed(3) : null;
   const minReceived = quote
@@ -220,7 +239,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
                     <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-8 h-8 rounded-full border-2 border-dark-green object-cover" />
                     <div className="text-left">
                       <p className="text-sm font-black text-dark-green uppercase">{getTokenSymbol(pool, i)}</p>
-                      <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {i}</p>
+                      <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {FAUCET_TOKENS[i]?.assetId ?? i}</p>
                     </div>
                   </div>
                   <div className="w-6 h-6 rounded-full border-2 border-dark-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -260,9 +279,16 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
           </div>
-          {sellAmount && amountInRaw > 0n && (
-            <p className="text-sm text-dark-green/60 mt-2 font-bold">{formatRawAsUSD(amountInRaw)}</p>
-          )}
+          <div className="flex items-center justify-between mt-2 min-h-[20px]">
+            <p className="text-sm text-dark-green/60 font-bold">
+              {sellAmount && amountInRaw > 0n ? formatRawAsUSD(amountInRaw) : ''}
+            </p>
+            {mounted && isWalletConnected && (
+              <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
+                 {formatBal(sellBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, sellIdx) : ''}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Flip button */}
@@ -298,9 +324,16 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
           </div>
-          {quote && (
-            <p className="text-sm text-dark-green/60 mt-2 font-bold">{formatRawAsUSD(quote.amountOut)}</p>
-          )}
+          <div className="flex items-center justify-between mt-2 min-h-[20px]">
+            <p className="text-sm text-dark-green/60 font-bold">
+              {quote ? formatRawAsUSD(quote.amountOut) : ''}
+            </p>
+            {mounted && isWalletConnected && (
+              <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
+                 {formatBal(buyBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, buyIdx) : ''}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Quote details */}

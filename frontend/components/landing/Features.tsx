@@ -84,14 +84,66 @@ function StatCard({ label, value, accent, delay }) {
         flexDirection: "column",
         gap: 12,
         position: "relative",
-        boxShadow: "0 0 0 2px #052c05, 0 0 0 4px #89f589",
+        overflow: "hidden",
+        boxShadow: accent
+          ? "0 0 0 2px #052c05, 0 0 0 4px #89f589, 0 0 40px -8px rgba(137,245,137,0.45)"
+          : "0 0 0 2px #052c05, 0 0 0 4px #89f589",
         transition: "all 0.3s ease",
-        marginTop: 6,
-        marginBottom: 6,
-        marginRight: 6,
-        marginLeft: 6,
+        margin: 6,
       }}
     >
+      {accent && (
+        <>
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse at 85% 15%, rgba(137,245,137,0.18) 0%, transparent 65%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "4px 10px",
+              borderRadius: 999,
+              background: "rgba(137,245,137,0.12)",
+              border: "1px solid rgba(137,245,137,0.35)",
+              fontSize: 9,
+              fontWeight: 900,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "#89f589",
+              fontFamily: "'Inter', sans-serif",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#89f589",
+                boxShadow: "0 0 8px #89f589",
+                animation: "pulse 1.6s ease-in-out infinite",
+              }}
+            />
+            Live
+          </div>
+          <style>{`
+            @keyframes pulse {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.55; transform: scale(1.35); }
+            }
+          `}</style>
+        </>
+      )}
       <span
         style={{
           fontSize: 10,
@@ -101,11 +153,12 @@ function StatCard({ label, value, accent, delay }) {
           color: "#89f589",
           opacity: 0.7,
           fontFamily: "'Inter', sans-serif",
+          position: "relative",
         }}
       >
         {label}
       </span>
-      <div style={{ color: "#89f589" }}>
+      <div style={{ color: "#89f589", position: "relative" }}>
         <AnimatedValue value={value} accent={accent} delay={delay} />
       </div>
     </div>

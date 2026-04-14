@@ -5,13 +5,16 @@ import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useSwapQuote } from '@/hooks/useSwapQuote';
+import { useWalletAssets } from '@/hooks/useWalletAssets';
 import {
   displayToRaw,
   rawToDisplay,
+  rawToDisplayShort,
   getTokenSymbol,
   getTokenIcon,
   formatRawAsUSD,
 } from '@/lib/tokenDisplay';
+import { FAUCET_TOKENS } from '@/lib/tokens';
 import { executeSwap } from '@/lib/orbital-sdk';
 import algosdk from 'algosdk';
 import { getAlgodConfigFromViteEnvironment } from '@/utils/network/getAlgoClientConfigs';
@@ -26,6 +29,7 @@ export default function DummySwap() {
   const { toggleWalletModal } = useAppStore();
 
   const { data: pool, isLoading: poolLoading, error: poolError } = usePoolState();
+  const { data: walletAssets = [] } = useWalletAssets();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -52,8 +56,16 @@ export default function DummySwap() {
 
   const n = pool?.n ?? 5;
 
+  // Wallet balances for the currently selected tokens
+  const sellAssetId = FAUCET_TOKENS[sellIdx]?.assetId;
+  const buyAssetId = FAUCET_TOKENS[buyIdx]?.assetId;
+  const sellBalance = walletAssets.find(a => a.asaId === sellAssetId);
+  const buyBalance = walletAssets.find(a => a.asaId === buyAssetId);
+  const formatBal = (n: number) =>
+    n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+
   // Derived display values
-  const buyAmountDisplay = quote ? rawToDisplay(quote.amountOut) : '';
+  const buyAmountDisplay = quote ? rawToDisplayShort(quote.amountOut, 4) : '';
   const exchangeRate = quote ? (Number(quote.amountOut) / Number(amountInRaw)) : null;
   const priceImpactPct = quote ? (quote.priceImpact * 100).toFixed(3) : null;
   const minReceived = quote
@@ -190,7 +202,7 @@ export default function DummySwap() {
                     <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-8 h-8 rounded-full border-2 border-dark-green object-cover" />
                     <div className="text-left">
                       <p className="text-sm font-black text-dark-green uppercase">{getTokenSymbol(pool, i)}</p>
-                      <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {i}</p>
+                      <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {FAUCET_TOKENS[i]?.assetId ?? i}</p>
                     </div>
                   </div>
                 </button>
@@ -220,6 +232,14 @@ export default function DummySwap() {
               <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, sellIdx) : '...'}</span>
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
+          </div>
+          <div className="flex items-center justify-between mt-2 min-h-[20px]">
+            <span />
+            {mounted && isWalletConnected && (
+              <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
+                {formatBal(sellBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, sellIdx) : ''}
+              </p>
+            )}
           </div>
         </div>
 
@@ -253,6 +273,14 @@ export default function DummySwap() {
               <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, buyIdx) : '...'}</span>
               <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
+          </div>
+          <div className="flex items-center justify-between mt-2 min-h-[20px]">
+            <span />
+            {mounted && isWalletConnected && (
+              <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
+                 {formatBal(buyBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, buyIdx) : ''}
+              </p>
+            )}
           </div>
         </div>
 
