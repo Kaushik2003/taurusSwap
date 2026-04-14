@@ -6,8 +6,6 @@ import {
   ArrowLeft, 
   TrendingUp, 
   TrendingDown, 
-  BarChart3, 
-  PieChart, 
   Activity, 
   Info, 
   Calendar,
@@ -24,7 +22,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Cell
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatPercent, formatNumber } from '@/lib/format';
@@ -33,6 +30,7 @@ import { useTransactions } from '@/hooks/useTransactions';
 import { getTokenSymbol, getTokenColor, rawToDisplay } from '@/lib/tokenDisplay';
 import { getExplorerUrl } from '@/lib/explorer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GeometricLiquidityCompass } from '@/components/pool/GeometricLiquidityCompass';
 
 // Generate complex mock data for charts
 const generateHistory = (points: number, base: number, volatility: number) => {
@@ -53,22 +51,10 @@ const generateHistory = (points: number, base: number, volatility: number) => {
 
 const priceData = generateHistory(30, 1.0005, 0.002);
 const tvlData = generateHistory(30, 482000000, 0.015);
-const depthData = [
-  { price: 0.980, density: 50000 },
-  { price: 0.985, density: 120000 },
-  { price: 0.990, density: 450000 },
-  { price: 0.995, density: 890000 },
-  { price: 1.000, density: 1200000 },
-  { price: 1.005, density: 950000 },
-  { price: 1.010, density: 420000 },
-  { price: 1.015, density: 110000 },
-  { price: 1.020, density: 45000 },
-];
-
 export default function AnalyticsPage() {
   const router = useRouter();
   const { data: pool, isLoading: poolLoading } = usePoolState();
-  const { data: transactions, isLoading: txLoading } = useTransactions(null, 10);
+  const { data: transactions } = useTransactions(null, 10);
   const [activeTab, setActiveTab] = useState<'price' | 'tvl'>('price');
 
   // Calculate real TVL from reserves
@@ -212,27 +198,13 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-panel p-6 border-border/50">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-2 h-4 bg-primary rounded-full" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Liquidity Depth Concentration</h3>
-              </div>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={depthData}>
-                    <Bar dataKey="density" radius={[4, 4, 0, 0]}>
-                      {depthData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index === 4 ? '#10B981' : '#0A3F2F20'} />
-                      ))}
-                    </Bar>
-                    <Tooltip 
-                       cursor={{ fill: 'transparent' }}
-                       contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #0A3F2F10', fontSize: '10px' }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-[10px] text-center font-bold text-muted-foreground uppercase mt-4 tracking-tighter">Current Peg Center: $1.0000</p>
+            <div className="glass-panel p-6 border-border/50 md:col-span-2 lg:col-span-1">
+              <GeometricLiquidityCompass 
+                reserves={pool?.reserves || []}
+                n={pool?.n || 0}
+                sBound={pool?.sBound || 0n}
+                tokenSymbols={pool?.tokenAsaIds.map((_, i) => getTokenSymbol(pool, i)) || []}
+              />
             </div>
 
             <div className="glass-panel p-6 border-border/50">
@@ -314,7 +286,7 @@ export default function AnalyticsPage() {
                        <span className="text-muted-foreground truncate max-w-[80px]">{tx.id.slice(0, 8)}...</span>
                     </div>
                     <span className="text-muted-foreground font-medium">
-                      {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(tx.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                     </span>
                   </div>
                 )) : (

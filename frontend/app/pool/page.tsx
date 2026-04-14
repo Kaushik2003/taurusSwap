@@ -40,13 +40,12 @@ export default function Pool() {
 
   const { data: pool, isLoading: poolLoading, error: poolError, refetch } = usePoolState();
   const {
-      data: positions = [],
-      isLoading: positionsLoading,
+    data: positions = [],
+    isLoading: positionsLoading,
   } = useAllPositions(activeAddress ?? null, pool?.numTicks ?? 0);
 
   const activePositions = positions.filter(p => p.shares > 0n);
 
-  // Calculate aggregate metrics
   const totalValue = activePositions.reduce((acc, pos) => acc + (pos.positionR * 1000n), 0n);
   const totalFees = activePositions.reduce((acc, pos) => acc + pos.claimableFees.reduce((a, b) => a + b, 0n), 0n);
 
@@ -59,28 +58,28 @@ export default function Pool() {
             <h1 className="text-4xl font-black text-foreground tracking-tighter mb-1">Liquidity Portfolio</h1>
             <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Institutional-Grade Provisioning</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <Button 
-                variant="outline" 
-                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
-                onClick={() => refetch()}
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
+              onClick={() => refetch()}
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
-            <Button 
-                variant="outline" 
-                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
-                onClick={() => router.push('/pool/analytics')}
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
+              onClick={() => router.push('/pool/analytics')}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               View Analytics
             </Button>
-            <Button 
-                className="rounded-xl h-11 px-6 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
-                onClick={() => router.push('/pool/add')}
-                disabled={!isWalletConnected}
+            <Button
+              className="rounded-xl h-11 px-6 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+              onClick={() => router.push('/pool/add')}
+              disabled={!isWalletConnected}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Liquidity
@@ -89,11 +88,11 @@ export default function Pool() {
         </div>
 
         {isWalletConnected && (
-            <PortfolioHeader 
-                totalValue={totalValue}
-                totalFees={totalFees}
-                positionCount={activePositions.length}
-            />
+          <PortfolioHeader
+            totalValue={totalValue}
+            totalFees={totalFees}
+            positionCount={activePositions.length}
+          />
         )}
       </div>
 
@@ -138,20 +137,18 @@ export default function Pool() {
               </Button>
             </div>
           ) : (
-            <PositionsTable 
-                positions={activePositions}
-                pool={pool!}
+            <PositionsTable
+              positions={activePositions}
+              pool={pool!}
             />
           )}
 
-          {/* Contextual Educational Content */}
+          {/* Educational Cards */}
           <div className="grid sm:grid-cols-2 gap-4 mt-8">
             <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        <BarChart3 className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Risk Management</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <BarChart3 className="w-4 h-4" />
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
             </div>
@@ -163,7 +160,11 @@ export default function Pool() {
                     </div>
                     <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.</p>
+                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
+                Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.
+              </p>
             </div>
           </div>
         </div>
