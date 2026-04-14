@@ -6,7 +6,7 @@ type ButtonVariant = "default" | "outline" | "ghost" | "destructive";
 type ButtonSize = "default" | "sm";
 
 const variantStyles: Record<ButtonVariant, string> = {
-  default: "inline-flex items-center justify-center rounded-2xl bg-[#084734] text-[#87E4A2] transition hover:bg-[#0a5a42] disabled:opacity-50",
+  default: "inline-flex items-center justify-center rounded-2xl bg-dark-green text-green transition hover:bg-[#0a5a42] disabled:opacity-50",
   outline: "inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 disabled:opacity-50",
   ghost: "inline-flex items-center justify-center rounded-2xl bg-transparent text-slate-900 hover:bg-slate-100 disabled:opacity-50",
   destructive: "inline-flex items-center justify-center rounded-2xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50",

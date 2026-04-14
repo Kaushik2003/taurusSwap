@@ -9,11 +9,15 @@
   --color-primary: var(--primary);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --color-destructive: hsl(0, 84%, 60%);
+  --color-green: var(--green);
+  --color-dark-green: var(--dark-green);
   --color-success: hsl(152, 69%, 41%);
 }
 
 :root {
-  --background: #87E4A2;
+  --green: #9FE870;
+  --dark-green: #163300;
+  --background: #9FE870;
   --foreground: #0A3F2F;
   --card: #ffffff;
   --primary: #0A3F2F;

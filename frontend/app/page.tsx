@@ -12,22 +12,19 @@ const wiseSans = localFont({ src: '../public/fonts/wise-sans.otf' });
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: '#87E4A2' }}>
+    <div className="relative min-h-screen overflow-hidden --color-green ">
       <FloatingOrbs />
 
       <div className="relative z-10 flex flex-col items-center px-4">
         {/* Hero & Swap Container */}
         <div className="w-full max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 mt-20 lg:mt-36 mb-16 px-4 lg:px-12 xl:px-20">
-          
+
           {/* Hero Content */}
           <div className="flex-1 text-center lg:text-left animate-fade-in-up w-full">
-            <div className="mx-auto lg:mx-0 mb-6 inline-flex rounded-full border-2 border-[#084734] px-4 py-1.5 text-sm font-bold text-[#084734] bg-[#C0FCFD] shadow-[-2px_2px_0_0_#084734] uppercase tracking-widest">
-              Algorand Ecosystem
-            </div>
-            <h1 className={`text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-[#084734] mb-6 leading-[1.05] ${wiseSans.className}`}>
-              TRADE TOKENS,<br className="hidden lg:block" /> WITHOUT LIMITS.
+            <h1 className={`text-4xl sm:text-6xl lg:text-9xl xl:text-10xl font-black text-dark-green mb-6 leading-[1.05] ${wiseSans.className}`}>
+              SWAP<br className="hidden lg:block" /> ANYTIME,<br className="hidden lg:block" /> ANYWHERE.
             </h1>
-            <p className="text-lg sm:text-xl text-[#084734]/70 max-w-lg mx-auto lg:mx-0 font-bold mb-8">
+            <p className="text-lg sm:text-xl text-dark-green/70 max-w-lg mx-auto lg:mx-0 font-bold mb-8">
               Swap, earn, and build on Algorand with institutional-grade liquidity and sub-4 second finality. Built for everyone.
             </p>
           </div>

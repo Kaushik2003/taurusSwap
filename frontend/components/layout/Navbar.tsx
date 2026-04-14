@@ -39,7 +39,7 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 pt-5 pb-3">
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 mr-2 shrink-0">
-            <img src="/favicon.ico" alt="TaurusSwap" className="w-10 h-10 rounded-full border-[2.5px] border-[#084734] shadow-[-3px_3px_0_0_#084734]" />
+            <img src="/favicon.ico" alt="TaurusSwap" className="w-10 h-10 rounded-full border-[2.5px] border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)]" />
           </Link>
 
           <div className="hidden md:flex items-center gap-3 ml-2">
@@ -47,7 +47,7 @@ export default function Navbar() {
               <Link
                 key={item.to}
                 href={item.to}
-                className="px-5 py-2 rounded-full border-[2.5px] border-[#084734] font-black text-sm uppercase tracking-wider text-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] transition-all"
+                className="px-5 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all"
                 style={{ backgroundColor: item.bg }}
               >
                 {item.label}
@@ -64,7 +64,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => { setNetworkOpen((open) => !open); setWalletOpen(false); }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border-[2.5px] border-[#084734] font-black text-sm uppercase tracking-wider text-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] bg-white transition-all"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] bg-white transition-all"
                   >
                     <span className="w-2.5 h-2.5 rounded-full border border-black" style={{ background: currentNetwork.color }} />
                     <span className="hidden lg:inline">{currentNetwork.name}</span>
@@ -80,11 +80,11 @@ export default function Navbar() {
                             setNetwork(n.id);
                             setNetworkOpen(false);
                           }}
-                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-[#084734]/70 hover:text-[#084734] hover:bg-[#084734]/10 transition-colors"
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-dark-green/70 hover:text-dark-green hover:bg-dark-green/10 transition-colors"
                         >
                           <span className="w-2 h-2 rounded-full" style={{ background: n.color }} />
                           <span className="font-bold">{n.name}</span>
-                          {n.id === selectedNetwork && <span className="ml-auto text-[#084734]">✓</span>}
+                          {n.id === selectedNetwork && <span className="ml-auto text-dark-green">✓</span>}
                         </button>
                       ))}
                     </div>
@@ -96,9 +96,9 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => { setWalletOpen((o) => !o); setNetworkOpen(false); }}
-                      className="flex items-center gap-2 px-5 py-2 rounded-full border-[2.5px] border-[#084734] font-black text-sm uppercase tracking-wider text-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] bg-white transition-all"
+                      className="flex items-center gap-2 px-5 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] bg-white transition-all"
                     >
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#87E4A2] border border-[#084734]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green border border-dark-green" />
                       <span className="hidden sm:inline">{walletAddress}</span>
                       <Wallet className="w-5 h-5 sm:hidden" strokeWidth={2.5} />
                     </button>
@@ -106,7 +106,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => { setWalletOpen((o) => !o); setNetworkOpen(false); }}
-                      className="flex items-center gap-2 px-5 py-2 rounded-full border-[2.5px] border-[#084734] font-black text-sm uppercase tracking-wider text-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] bg-[#FFE169] transition-all"
+                      className="flex items-center gap-2 px-5 py-2 rounded-full border-[2.5px] border-dark-green font-black text-sm uppercase tracking-wider text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] bg-[#FFE169] transition-all"
                     >
                       <Wallet className="w-[18px] h-[18px]" strokeWidth={3} />
                       <span>Connect Wallet</span>
@@ -114,12 +114,12 @@ export default function Navbar() {
                   )}
 
                   {walletOpen && (
-                    <div className="absolute right-0 top-[calc(100%+8px)] w-[320px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#084734]/10 overflow-hidden animate-scale-in z-50">
+                    <div className="absolute right-0 top-[calc(100%+8px)] w-[320px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-dark-green/10 overflow-hidden animate-scale-in z-50">
                       {isWalletConnected ? (
                         <div className="flex flex-col">
                           <div className="p-5 pb-4">
-                            <span className="text-[13px] font-bold text-[#084734]/50 uppercase tracking-[0.05em] block mb-2">Connected</span>
-                            <div className="text-[15px] font-mono font-medium text-[#084734] break-all leading-snug">
+                            <span className="text-[13px] font-bold text-dark-green/50 uppercase tracking-[0.05em] block mb-2">Connected</span>
+                            <div className="text-[15px] font-mono font-medium text-dark-green break-all leading-snug">
                               {activeAddress}
                             </div>
                           </div>
@@ -130,9 +130,9 @@ export default function Navbar() {
                               if (activeAddress) navigator.clipboard.writeText(activeAddress);
                               setWalletOpen(false);
                             }}
-                            className="flex items-center gap-3 w-full px-5 py-4 text-[#084734] hover:bg-black/[0.03] transition-colors font-bold text-[16px]"
+                            className="flex items-center gap-3 w-full px-5 py-4 text-dark-green hover:bg-black/[0.03] transition-colors font-bold text-[16px]"
                           >
-                            <Copy className="w-[20px] h-[20px] text-[#084734]" strokeWidth={2} />
+                            <Copy className="w-[20px] h-[20px] text-dark-green" strokeWidth={2} />
                             Copy address
                           </button>
                           
@@ -158,7 +158,7 @@ export default function Navbar() {
                         </div>
                       ) : (
                         <div className="flex flex-col p-3">
-                          <span className="text-[12px] font-bold text-[#084734]/50 uppercase tracking-[0.05em] block mb-2 px-3 pt-2">Select Wallet</span>
+                          <span className="text-[12px] font-bold text-dark-green/50 uppercase tracking-[0.05em] block mb-2 px-3 pt-2">Select Wallet</span>
                           {wallets?.map((wallet) => (
                             <button
                               key={`provider-${wallet.id}`}
@@ -181,10 +181,10 @@ export default function Navbar() {
                               )}
                               {wallet.id === 'kmd' && (
                                 <div className="w-[42px] h-[42px] rounded-xl bg-black/5 flex items-center justify-center">
-                                  <Wallet className="w-6 h-6 text-[#084734]" />
+                                  <Wallet className="w-6 h-6 text-dark-green" />
                                 </div>
                               )}
-                              <span className="font-bold text-[18px] text-[#084734]">
+                              <span className="font-bold text-[18px] text-dark-green">
                                 {wallet.id === 'kmd' ? 'LocalNet Wallet' : wallet.metadata.name}
                               </span>
                             </button>
@@ -196,12 +196,12 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <div className="w-24 h-10 animate-pulse bg-white border-2 border-[#084734] rounded-full hidden sm:block"></div>
+              <div className="w-24 h-10 animate-pulse bg-white border-2 border-dark-green rounded-full hidden sm:block"></div>
             )}
 
             <button
               type="button"
-              className="md:hidden p-2 text-[#084734]"
+              className="md:hidden p-2 text-dark-green"
               onClick={() => setMobileOpen((open) => !open)}
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -210,13 +210,13 @@ export default function Navbar() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden border-t border-black/5 px-4 py-3 animate-fade-in bg-[#87E4A2]/95 backdrop-blur-md">
+          <div className="md:hidden border-t border-black/5 px-4 py-3 animate-fade-in bg-green/95 backdrop-blur-md">
             {navItems.map((item) => (
               <Link
                 key={item.to}
                 href={item.to}
                 onClick={() => setMobileOpen(false)}
-                className={`block px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${pathname === item.to ? "text-[#084734] bg-[#084734]/10" : "text-[#084734]/60 hover:text-[#084734]"}`}
+                className={`block px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${pathname === item.to ? "text-dark-green bg-dark-green/10" : "text-dark-green/60 hover:text-dark-green"}`}
               >
                 {item.label}
               </Link>

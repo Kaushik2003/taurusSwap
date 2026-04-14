@@ -78,7 +78,7 @@ const socialLinks = [
 
 function SocialDescription() {
   return (
-    <span style={{ color: "#084734", fontSize: 20, fontWeight: 700, lineHeight: 1.5 }}>
+    <span style={{ color: "var(--color-dark-green)", fontSize: 20, fontWeight: 700, lineHeight: 1.5 }}>
       Follow TaurusProtocol on{" "}
       {socialLinks.map((s, i) => (
         <span key={s.label}>
@@ -91,7 +91,7 @@ function SocialDescription() {
               textDecoration: "none",
               transition: "color 0.15s ease",
             }}
-            onMouseEnter={e => ((e.target as HTMLElement).style.color = "#084734")}
+            onMouseEnter={e => ((e.target as HTMLElement).style.color = "var(--color-dark-green)")}
             onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(8,71,52,0.6)")}
           >
             {s.label}
@@ -131,7 +131,7 @@ function LinkRow({ item }: LinkRowProps) {
       }}
     >
       {/* Icon */}
-      <div style={{ width: 36, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#084734" }}>
+      <div style={{ width: 36, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--color-dark-green)" }}>
         {item.icon}
       </div>
 
@@ -139,7 +139,7 @@ function LinkRow({ item }: LinkRowProps) {
       <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 20, minWidth: 0 }}>
         <h2 style={{
           margin: 0,
-          color: "#084734",
+          color: "var(--color-dark-green)",
           fontSize: 28,
           fontWeight: 900,
           fontFamily: "'Inter', sans-serif",
@@ -158,7 +158,7 @@ function LinkRow({ item }: LinkRowProps) {
 
       {/* Arrow */}
       {item.isLink && (
-        <div style={{ color: "#084734", flexShrink: 0, marginLeft: "auto" }}>
+        <div style={{ color: "var(--color-dark-green)", flexShrink: 0, marginLeft: "auto" }}>
           <ExternalArrow />
         </div>
       )}
@@ -197,7 +197,7 @@ export default function FAQ() {
     }}>
       <div style={{ width: "100%", maxWidth: 1400, margin: "0 auto" }}>
         <h1 style={{
-          color: "#084734",
+          color: "var(--color-dark-green)",
           fontSize: "clamp(2.5rem, 5vw, 4.5rem)",
           fontWeight: 900,
           margin: "0 0 48px",

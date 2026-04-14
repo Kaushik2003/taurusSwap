@@ -18,11 +18,11 @@ const CtaButton = ({ label, btnBg, btnColor }: { label: string; btnBg?: string; 
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
-        background: btnBg || "#084734",
-        border: `2px solid ${btnColor || "#87E4A2"}`,
+        background: btnBg || "var(--color-dark-green)",
+        border: `2px solid ${btnColor || "var(--color-green)"}`,
         borderRadius: 999,
         padding: "16px 24px",
-        color: btnColor || "#87E4A2",
+        color: btnColor || "var(--color-green)",
         fontSize: 16,
         fontWeight: 900,
         cursor: "pointer",
@@ -30,13 +30,13 @@ const CtaButton = ({ label, btnBg, btnColor }: { label: string; btnBg?: string; 
         fontFamily: "'Inter', sans-serif",
         letterSpacing: "0.01em",
         boxShadow: hovered 
-          ? `2px 2px 0px 0px ${btnColor || "#87E4A2"}`
-          : `4px 4px 0px 0px ${btnColor || "#87E4A2"}`,
+          ? `2px 2px 0px 0px ${btnColor || "var(--color-green)"}`
+          : `4px 4px 0px 0px ${btnColor || "var(--color-green)"}`,
         transform: hovered ? "translate(2px, 2px)" : "translate(0px, 0px)",
       }}
     >
       {label}
-      <ArrowIcon color={btnColor || "#87E4A2"} size={18} />
+      <ArrowIcon color={btnColor || "var(--color-green)"} size={18} />
     </button>
   );
 };
@@ -55,7 +55,7 @@ const tokens = [
   { name: "Governance", ticker: "gALGO", price: "$0.29", change: "+1.45%", up: true, img: "https://assets.coingecko.com/coins/images/4380/large/algorand.png" },
 ];
 
-function TokenRow({ token, cardColor = "#084734" }: { token: { name: string; ticker: string; price: string; change: string; up: boolean; img: string; }; cardColor?: string; }) {
+function TokenRow({ token, cardColor = "var(--color-dark-green)" }: { token: { name: string; ticker: string; price: string; change: string; up: boolean; img: string; }; cardColor?: string; }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div

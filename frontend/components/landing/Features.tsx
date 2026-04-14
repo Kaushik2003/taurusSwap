@@ -38,7 +38,7 @@ function SlotChar({ char, delay = 0, accent }) {
           display: "inline-block",
           transition: spinning ? "transform 0.35s cubic-bezier(0.4,0,0.2,1)" : "none",
           transform: spinning ? "translateY(-80%)" : "translateY(0)",
-          color: accent ? "#084734" : "#084734",
+          color: accent ? "var(--color-dark-green)" : "var(--color-dark-green)",
           fontFamily: "'Inter', sans-serif",
         }}
       >
@@ -58,7 +58,7 @@ function AnimatedValue({ value, accent, delay = 0 }) {
         fontFamily: "'Inter', sans-serif",
         letterSpacing: "-0.05em",
         lineHeight: 1,
-        color: "#084734",
+        color: "var(--color-dark-green)",
         display: "flex",
         alignItems: "baseline",
         gap: 1,
@@ -159,7 +159,7 @@ export default function Features() {
             style={{
               fontSize: "clamp(2.4rem, 4.5vw, 3.6rem)",
               fontWeight: 900,
-              color: "#084734",
+              color: "var(--color-dark-green)",
               margin: 0,
               lineHeight: 1.05,
               letterSpacing: "-0.05em",
@@ -209,11 +209,11 @@ export default function Features() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
-                background: "#084734",
+                background: "var(--color-dark-green)",
                 border: "none",
                 borderRadius: 999,
                 padding: "13px 22px",
-                color: "#87E4A2",
+                color: "var(--color-green)",
                 fontSize: 15,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -225,7 +225,7 @@ export default function Features() {
                 e.currentTarget.style.transform = "translateX(2px)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#084734";
+                e.currentTarget.style.background = "var(--color-dark-green)";
                 e.currentTarget.style.transform = "translateX(0)";
               }}
             >
@@ -233,7 +233,7 @@ export default function Features() {
               <svg viewBox="0 0 18 18" fill="none" width={14} height={14}>
                 <path
                   d="M9.79261 16.1108L17.5398 8.36364L9.79261 0.616477L8.25852 2.15057L13.3807 7.25568H0V9.47159H13.3807L8.25852 14.5852L9.79261 16.1108Z"
-                  fill="#87E4A2"
+                  fill="var(--color-green)"
                 />
               </svg>
             </button>
@@ -271,7 +271,7 @@ export default function Features() {
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
-                background: "#084734",
+                background: "var(--color-dark-green)",
                 boxShadow: "0 0 0 3px rgba(8,71,52,0.2)",
                 display: "inline-block",
                 flexShrink: 0,

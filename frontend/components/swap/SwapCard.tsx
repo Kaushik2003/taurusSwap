@@ -104,13 +104,13 @@ export default function SwapCard() {
 
   return (
     <div className="w-full max-w-[480px] mx-auto relative z-10">
-      <div className="p-5 rounded-3xl bg-white border-[3px] border-[#084734] shadow-[-8px_8px_0_0_#084734]">
+      <div className="p-5 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-8px_8px_0_0_var(--color-dark-green)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-black text-[#084734] uppercase tracking-wider">Swap</span>
+          <span className="text-2xl font-black text-dark-green uppercase tracking-wider">Swap</span>
           <div className="flex items-center gap-2">
-            {poolLoading && <Loader2 className="w-5 h-5 text-[#084734]/40 animate-spin" />}
-            <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-xl bg-white border-2 border-[#084734] text-[#084734] hover:bg-[#87E4A2] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] transition-all">
+            {poolLoading && <Loader2 className="w-5 h-5 text-dark-green/40 animate-spin" />}
+            <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-xl bg-white border-2 border-dark-green text-dark-green hover:bg-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all">
               <Settings className="w-5 h-5" strokeWidth={2.5} />
             </button>
           </div>
@@ -125,24 +125,24 @@ export default function SwapCard() {
 
         {/* Slippage settings */}
         {showSettings && (
-          <div className="mb-4 p-4 rounded-2xl bg-[#C0FCFD] border-2 border-[#084734] animate-scale-in shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-            <p className="text-sm text-[#084734] mb-3 font-black uppercase tracking-wider">Max slippage</p>
+          <div className="mb-4 p-4 rounded-2xl bg-[#C0FCFD] border-2 border-dark-green animate-scale-in shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
+            <p className="text-sm text-dark-green mb-3 font-black uppercase tracking-wider">Max slippage</p>
             <div className="flex gap-2">
               {[0.1, 0.5, 1.0].map(v => (
                 <button
                   key={v}
                   onClick={() => setSlippage(v)}
-                  className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 border-[#084734] ${slippage === v ? 'bg-[#084734] text-white shadow-[-2px_2px_0_0_#084734]' : 'bg-white text-[#084734] hover:bg-white/80'}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 border-dark-green ${slippage === v ? 'bg-dark-green text-white shadow-[-2px_2px_0_0_var(--color-dark-green)]' : 'bg-white text-dark-green hover:bg-white/80'}`}
                 >
                   {v}%
                 </button>
               ))}
-              <div className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white border-2 border-[#084734] text-sm text-[#084734]">
+              <div className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white border-2 border-dark-green text-sm text-dark-green">
                 <input
                   type="number"
                   value={slippage}
                   onChange={e => setSlippage(parseFloat(e.target.value) || 0)}
-                  className="w-16 bg-transparent text-[#084734] outline-none text-right font-black"
+                  className="w-16 bg-transparent text-dark-green outline-none text-right font-black"
                   step={0.1}
                 />
                 <span className="font-bold opacity-50">%</span>
@@ -153,8 +153,8 @@ export default function SwapCard() {
 
         {/* Token selector dropdown */}
         {selectorFor && pool && (
-          <div className="mb-4 p-4 rounded-2xl bg-[#FFC1D9] border-2 border-[#084734] shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-            <p className="text-sm text-[#084734] font-black uppercase tracking-wider mb-3">Select token</p>
+          <div className="mb-4 p-4 rounded-2xl bg-[#FFC1D9] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
+            <p className="text-sm text-dark-green font-black uppercase tracking-wider mb-3">Select token</p>
             <div className="flex flex-wrap gap-2">
               {tokenOptions.map(i => (
                 <button
@@ -164,10 +164,10 @@ export default function SwapCard() {
                     else setBuyIdx(i);
                     setSelectorFor(null);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-[#084734] hover:bg-[#FCA5F1] shadow-[-2px_2px_0_0_#084734] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_#084734] transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all"
                 >
                   <div className="w-5 h-5 rounded-full border border-black/10" style={{ background: getTokenColor(i) }} />
-                  <span className="text-sm font-black text-[#084734]">{getTokenSymbol(pool, i)}</span>
+                  <span className="text-sm font-black text-dark-green">{getTokenSymbol(pool, i)}</span>
                 </button>
               ))}
             </div>
@@ -175,9 +175,9 @@ export default function SwapCard() {
         )}
 
         {/* Sell panel */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-[#084734] shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-[#084734] font-black uppercase tracking-wider">Sell</span>
+            <span className="text-sm text-dark-green font-black uppercase tracking-wider">Sell</span>
           </div>
           <div className="flex items-center gap-3">
             <input
@@ -185,19 +185,19 @@ export default function SwapCard() {
               value={sellAmount}
               onChange={e => setSellAmount(e.target.value.replace(/[^0-9.]/g, ''))}
               placeholder="0"
-              className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-[#084734] outline-none placeholder:text-[#084734]/30 min-w-0"
+              className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
             />
             <button
               onClick={() => setSelectorFor(selectorFor === 'sell' ? null : 'sell')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] hover:bg-[#FCA5F1] transition-all shrink-0"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-[#FCA5F1] transition-all shrink-0"
             >
               <div className="w-6 h-6 rounded-full border border-black/10" style={{ background: getTokenColor(sellIdx) }} />
-              <span className="text-sm font-black text-[#084734]">{pool ? getTokenSymbol(pool, sellIdx) : '...'}</span>
-              <ChevronDown className="w-4 h-4 text-[#084734]" strokeWidth={3} />
+              <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, sellIdx) : '...'}</span>
+              <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
           </div>
           {sellAmount && amountInRaw > 0n && (
-            <p className="text-sm text-[#084734]/60 mt-2 font-bold">{formatRawAsUSD(amountInRaw)}</p>
+            <p className="text-sm text-dark-green/60 mt-2 font-bold">{formatRawAsUSD(amountInRaw)}</p>
           )}
         </div>
 
@@ -205,17 +205,17 @@ export default function SwapCard() {
         <div className="flex justify-center -my-4 relative z-10">
           <button
             onClick={flipTokens}
-            className="w-12 h-12 rounded-full bg-white border-2 border-[#084734] flex items-center justify-center hover:bg-[#FFE169] transition-all shadow-[-3px_3px_0_0_#084734] hover:shadow-[-1px_1px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] group"
+            className="w-12 h-12 rounded-full bg-white border-2 border-dark-green flex items-center justify-center hover:bg-[#FFE169] transition-all shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] group"
           >
-            <ArrowDownUp className="w-5 h-5 text-[#084734] group-hover:rotate-180 transition-transform duration-300" strokeWidth={3} />
+            <ArrowDownUp className="w-5 h-5 text-dark-green group-hover:rotate-180 transition-transform duration-300" strokeWidth={3} />
           </button>
         </div>
 
         {/* Buy panel */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-[#084734] shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative mt-2">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative mt-2">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-[#084734] font-black uppercase tracking-wider">Buy</span>
-            {quoteFetching && <Loader2 className="w-4 h-4 text-[#084734]/40 animate-spin" />}
+            <span className="text-sm text-dark-green font-black uppercase tracking-wider">Buy</span>
+            {quoteFetching && <Loader2 className="w-4 h-4 text-dark-green/40 animate-spin" />}
           </div>
           <div className="flex items-center gap-3">
             <input
@@ -223,44 +223,44 @@ export default function SwapCard() {
               value={buyAmountDisplay}
               readOnly
               placeholder="0"
-              className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-[#084734] outline-none placeholder:text-[#084734]/30 min-w-0"
+              className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
             />
             <button
               onClick={() => setSelectorFor(selectorFor === 'buy' ? null : 'buy')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-[#084734] shadow-[-3px_3px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_#084734] hover:bg-[#87E4A2] transition-all shrink-0"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-green transition-all shrink-0"
             >
               <div className="w-6 h-6 rounded-full border border-black/10" style={{ background: getTokenColor(buyIdx) }} />
-              <span className="text-sm font-black text-[#084734]">{pool ? getTokenSymbol(pool, buyIdx) : '...'}</span>
-              <ChevronDown className="w-4 h-4 text-[#084734]" strokeWidth={3} />
+              <span className="text-sm font-black text-dark-green">{pool ? getTokenSymbol(pool, buyIdx) : '...'}</span>
+              <ChevronDown className="w-4 h-4 text-dark-green" strokeWidth={3} />
             </button>
           </div>
           {quote && (
-            <p className="text-sm text-[#084734]/60 mt-2 font-bold">{formatRawAsUSD(quote.amountOut)}</p>
+            <p className="text-sm text-dark-green/60 mt-2 font-bold">{formatRawAsUSD(quote.amountOut)}</p>
           )}
         </div>
 
         {/* Quote details */}
         {quote && (
-          <div className="mt-4 p-4 rounded-2xl border-[2.5px] border-[#084734] bg-white space-y-2 relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)]">
-            <div className="flex items-center justify-between text-[#084734]/80">
+          <div className="mt-4 p-4 rounded-2xl border-[2.5px] border-dark-green bg-white space-y-2 relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)]">
+            <div className="flex items-center justify-between text-dark-green/80">
               <span className="flex items-center gap-1 font-black uppercase text-xs tracking-wider"><Info className="w-4 h-4" /> Rate</span>
-              <span className="font-bold text-[#084734]">
+              <span className="font-bold text-dark-green">
                 1 {pool ? getTokenSymbol(pool, sellIdx) : ''} = {exchangeRate?.toFixed(6)} {pool ? getTokenSymbol(pool, buyIdx) : ''}
               </span>
             </div>
-            <div className="flex justify-between text-[#084734]/80 font-black uppercase text-xs tracking-wider">
+            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
               <span>Price impact</span>
-              <span className={Number(priceImpactPct) > 5 ? 'text-red-500 font-black' : Number(priceImpactPct) > 1 ? 'text-yellow-600 font-black' : 'text-[#084734] font-bold'}>
+              <span className={Number(priceImpactPct) > 5 ? 'text-red-500 font-black' : Number(priceImpactPct) > 1 ? 'text-yellow-600 font-black' : 'text-dark-green font-bold'}>
                 {priceImpactPct}%
               </span>
             </div>
-            <div className="flex justify-between text-[#084734]/80 font-black uppercase text-xs tracking-wider">
+            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
               <span>Fee ({Number(pool?.feeBps ?? 30n) / 100}%)</span>
-              <span className="text-[#084734] font-bold">{formatRawAsUSD(amountInRaw * (pool?.feeBps ?? 30n) / 10_000n)}</span>
+              <span className="text-dark-green font-bold">{formatRawAsUSD(amountInRaw * (pool?.feeBps ?? 30n) / 10_000n)}</span>
             </div>
-            <div className="flex justify-between text-[#084734]/80 font-black uppercase text-xs tracking-wider">
+            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
               <span>Min. received ({slippage}% slippage)</span>
-              <span className="text-[#084734] font-bold">{minReceived !== null ? rawToDisplay(minReceived > 0n ? minReceived : 0n) : '—'} {pool ? getTokenSymbol(pool, buyIdx) : ''}</span>
+              <span className="text-dark-green font-bold">{minReceived !== null ? rawToDisplay(minReceived > 0n ? minReceived : 0n) : '—'} {pool ? getTokenSymbol(pool, buyIdx) : ''}</span>
             </div>
           </div>
         )}
@@ -291,7 +291,7 @@ export default function SwapCard() {
           {!mounted || !isWalletConnected ? (
             <button
               onClick={() => toggleWalletModal(true)}
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-[#084734] border-[3px] border-[#084734] shadow-[-4px_4px_0_0_#084734] hover:shadow-[-2px_2px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
+              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
             >
               Connect Wallet
             </button>
@@ -313,7 +313,7 @@ export default function SwapCard() {
             <button
               onClick={handleSwap}
               disabled={swapping}
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-[#084734] border-[3px] border-[#084734] shadow-[-4px_4px_0_0_#084734] hover:shadow-[-2px_2px_0_0_#084734] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-3"
+              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-3"
             >
               {swapping ? <><Loader2 className="w-5 h-5 animate-spin" />Swapping…</> : 'Swap Tokens'}
             </button>
