@@ -20,10 +20,14 @@ export default function TradePage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-green">
-      <FloatingOrbs />
 
       <div className="relative z-10 flex flex-col items-center px-4">
-        <div className="w-full max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 mt-20 lg:mt-36 mb-16 px-4 lg:px-12 xl:px-20">
+        <div className="w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 py-20 mb-16 px-4">
+
+          <div className="lg:max-w-[45%]">
+            <h1 className="text-6xl text-foreground mb-1" style={{ fontFamily: "'WiseSans', 'Inter', sans-serif", fontWeight: 900 }}>TRADE PANEL</h1>
+            <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Trade tokens, without limits</p>
+          </div>
 
           <div className="w-full max-w-[500px] flex-shrink-0 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
             {/* Tab bar */}
