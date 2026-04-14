@@ -56,7 +56,7 @@ export function useWalletAssets(algoPrice = 0.18) {
         {
           symbol: "ALGO",
           name: "Algorand",
-          color: "#000000",
+          color: "#6B7FD7",
           icon: "/algo.png",
           rawBalance: microAlgo,
           balance: algoBalance,

@@ -14,12 +14,12 @@ import type { BalancePoint } from "@/hooks/useBalanceHistory";
 import { POOL_TOKEN_SYMBOLS } from "@/lib/tokenDisplay";
 
 const TOKEN_COLORS: Record<string, string> = {
-  ALGO: "#8c8c8c",
+  ALGO: "#6B7FD7",
   USDC: "#2775CA",
   USDT: "#26A17B",
-  USDD: "#00E5FF",
+  USDD: "#00C9B1",
   BUSD: "#F0B90B",
-  TUSD: "#1A88FF",
+  TUSD: "#7B61FF",
 };
 
 interface Props {
