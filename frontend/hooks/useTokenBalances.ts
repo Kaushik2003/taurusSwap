@@ -22,21 +22,23 @@ export function useTokenBalances(tokenAsaIds: number[]): bigint[] {
     queryFn: async () => {
       if (!activeAddress) return tokenAsaIds.map(() => 0n);
 
-      const balances = await Promise.all(
-        tokenAsaIds.map(async (asaId) => {
-          try {
-            const info = await algod
-              .accountAssetInformation(activeAddress, asaId)
-              .do();
-            return BigInt((info as { "asset-holding"?: { amount?: number } })["asset-holding"]?.amount ?? 0);
-          } catch {
-            // Not opted in or network error — treat as zero balance
-            return 0n;
-          }
-        }),
-      );
+      try {
+        const accountInfo = await algod.accountInformation(activeAddress).do();
+        const assets = (accountInfo.assets || []) as Array<Record<string, unknown>>;
+        
+        const balances = tokenAsaIds.map((asaId) => {
+          const asset = assets.find((a: any) =>
+            Number(a["asset-id"] ?? a["assetId"] ?? a.assetId) === Number(asaId)
+          );
+          if (asset) return BigInt((asset as any).amount ?? 0);
+          return 0n;
+        });
 
-      return balances;
+        return balances;
+      } catch (err) {
+        console.error("Failed to fetch account balances:", err);
+        return tokenAsaIds.map(() => 0n);
+      }
     },
     enabled: !!activeAddress && tokenAsaIds.length > 0,
     staleTime: 15_000,

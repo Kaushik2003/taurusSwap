@@ -25,6 +25,25 @@ export default function Navbar() {
   const { activeAddress, wallets } = useWallet();
   const { selectedNetwork, setNetwork, isWalletModalOpen, toggleWalletModal } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   useEffect(() => {
     setMounted(true);
@@ -36,7 +55,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 pt-5 pb-3">
+      <nav className={`sticky top-0 z-50 pt-5 pb-3 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 mr-2 shrink-0">
             <img src="/favicon.ico" alt="TaurusSwap" className="w-10 h-10 rounded-full border-[2.5px] border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)]" />

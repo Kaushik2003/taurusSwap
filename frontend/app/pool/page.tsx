@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Plus, Wallet, ArrowRight, BookOpen, Zap, Shield, Loader2, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Plus, Wallet, Loader2, RefreshCw, BarChart3, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
 import { useWallet } from '@txnlab/use-wallet-react';
@@ -12,6 +13,7 @@ import { PositionCard } from '@/components/pool/PositionCard';
 import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
 
 export default function Pool() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -20,102 +22,123 @@ export default function Pool() {
   const { activeAddress } = useWallet();
   const isWalletConnected = mounted && !!activeAddress;
   const { toggleWalletModal } = useAppStore();
-  const [addLiquidityOpen, setAddLiquidityOpen] = useState(false);
 
   const { data: pool, isLoading: poolLoading, error: poolError, refetch } = usePoolState();
   const {
-    data: positions = [],
-    isLoading: positionsLoading,
+      data: positions = [],
+      isLoading: positionsLoading,
   } = useAllPositions(activeAddress ?? null, pool?.numTicks ?? 0);
 
   const activePositions = positions.filter(p => p.shares > 0n);
 
+  // Calculate aggregate metrics
+  const totalValue = activePositions.reduce((acc, pos) => acc + (pos.positionR * 1000n), 0n);
+  const totalFees = activePositions.reduce((acc, pos) => acc + pos.claimableFees.reduce((a, b) => a + b, 0n), 0n);
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Main */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Your positions</h1>
-            <div className="flex gap-2 items-center">
-              <button
+      {/* Portfolio Header */}
+      <div className="mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-4xl font-black text-foreground tracking-tighter mb-1">Liquidity Portfolio</h1>
+            <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Institutional-Grade Provisioning</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button 
+                variant="outline" 
+                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
                 onClick={() => refetch()}
-                className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
-                title="Refresh pool state"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-              <Button
-                variant="outline"
-                className="rounded-2xl border-border"
-                size="sm"
-                onClick={() => setAddLiquidityOpen(true)}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button 
+                variant="outline" 
+                className="rounded-xl h-11 px-5 border-border/60 font-bold text-muted-foreground hover:text-foreground"
+                onClick={() => router.push('/pool/analytics')}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Analytics
+            </Button>
+            <Button 
+                className="rounded-xl h-11 px-6 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                onClick={() => router.push('/pool/add')}
                 disabled={!isWalletConnected}
-              >
-                <Plus className="w-4 h-4 mr-1" /> New position
-              </Button>
-            </div>
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Liquidity
+            </Button>
+          </div>
+        </div>
+
+        {isWalletConnected && (
+            <PortfolioHeader 
+                totalValue={totalValue}
+                totalFees={totalFees}
+                positionCount={activePositions.length}
+            />
+        )}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Main Content Area */}
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-4 bg-primary rounded-full" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Active Positions</h3>
           </div>
 
-          {/* Pool error */}
           {poolError && (
-            <div className="glass-panel p-4 mb-4 text-sm text-destructive">
-              Failed to load pool: {poolError.message}
+            <div className="glass-panel p-4 mb-4 text-sm text-destructive border-destructive/20 bg-destructive/5">
+              Failed to load pool state: {poolError.message}
             </div>
           )}
 
           {!isWalletConnected ? (
-            <div className="glass-panel p-10 text-center mb-8">
-              <Wallet className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-foreground mb-2">Connect your wallet</h3>
-              <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-                Connect your wallet to view your liquidity positions and earned rewards.
+            <div className="glass-panel p-16 text-center border-dashed border-2">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-6">
+                <Wallet className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-2">Wallet Disconnected</h3>
+              <p className="text-sm text-muted-foreground mb-8 max-w-sm mx-auto font-medium">
+                Connect your Algorand wallet to access your liquidity dashboard and manage your TaurusSwap positions.
               </p>
-              <Button onClick={() => toggleWalletModal(true)} className="rounded-2xl px-6">
-                Connect Wallet
+              <Button onClick={() => toggleWalletModal(true)} className="rounded-xl px-10 h-12 font-black uppercase tracking-widest text-xs">
+                Connect Algorand Wallet
               </Button>
             </div>
           ) : positionsLoading ? (
-            <div className="glass-panel p-10 text-center mb-8">
-              <Loader2 className="w-8 h-8 text-muted-foreground mx-auto mb-3 animate-spin" />
-              <p className="text-sm text-muted-foreground">Loading your positions…</p>
-            </div>
+            <TableSkeleton rows={3} />
           ) : activePositions.length === 0 ? (
-            <div className="glass-panel p-10 text-center mb-8">
-              <p className="text-sm text-muted-foreground mb-2">No active liquidity positions found.</p>
-              <p className="text-xs text-muted-foreground">Add liquidity to start earning fees.</p>
+            <div className="glass-panel p-16 text-center border-dashed border-2">
+              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-6">
+                <Settings2 className="w-8 h-8 text-primary/40" />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-2">No Active Positions</h3>
+              <p className="text-sm text-muted-foreground mb-8 font-medium">You haven't provided liquidity to any ticks in this pool yet.</p>
+              <Button onClick={() => router.push('/pool/add')} className="rounded-xl px-10 h-12 font-black uppercase tracking-widest text-xs">
+                Open New Position
+              </Button>
             </div>
           ) : (
-            <div className="space-y-3 mb-8">
-              {activePositions.map(pos => (
-                <PositionCard key={pos.tickId} position={pos} pool={pool!} />
-              ))}
-            </div>
+            <PositionsTable 
+                positions={activePositions}
+                pool={pool!}
+            />
           )}
 
-          {/* Info cards */}
-          <div className="grid sm:grid-cols-3 gap-3">
-            {[
-              { icon: BookOpen, title: 'Learn about liquidity', desc: 'Understand concentrated liquidity and earn more.' },
-              { icon: Zap, title: 'Fee tiers explained', desc: 'Pick the right fee tier for your strategy.' },
-              { icon: Shield, title: 'Impermanent loss', desc: 'Learn how to manage risk as a liquidity provider.' },
-            ].map(c => (
-              <div key={c.title} className="glass-panel-hover p-4 cursor-pointer group">
-                <c.icon className="w-5 h-5 text-primary mb-2" />
-                <h4 className="text-sm font-medium text-foreground mb-1">{c.title}</h4>
-                <p className="text-xs text-muted-foreground">{c.desc}</p>
-                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground mt-2 group-hover:translate-x-1 transition-transform" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Sidebar — live pool stats */}
-        <div className="w-full lg:w-80 shrink-0">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Orbital AMM pool</h3>
-          {poolLoading ? (
-            <div className="glass-panel p-6 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+          {/* Contextual Educational Content */}
+          <div className="grid sm:grid-cols-2 gap-4 mt-8">
+            <div className="glass-panel p-6 border-border/40 hover:bg-muted/10 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <BarChart3 className="w-4 h-4" />
+                    </div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Risk Management</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
             </div>
           ) : pool ? (
             <div className="glass-panel p-4 space-y-3">
@@ -148,22 +171,18 @@ export default function Pool() {
                       <span className="text-foreground font-medium">{getTokenSymbol(pool, i)}</span>
                       <span className="text-muted-foreground font-mono text-[10px]">{asaId}</span>
                     </div>
-                    <span className="text-muted-foreground">{rawToDisplay((pool.reserves[i] - pool.virtualOffset) * 1000n)}</span>
-                  </div>
-                ))}
-              </div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.</p>
             </div>
-          ) : null}
+          </div>
+        </div>
+
+        {/* Sidebar Analytics */}
+        <div className="w-full lg:w-[350px] shrink-0">
+          {pool && <AnalyticsPanel pool={pool} />}
         </div>
       </div>
-
-      {pool && (
-        <AddLiquidityModal
-          open={addLiquidityOpen}
-          onOpenChange={setAddLiquidityOpen}
-          pool={pool}
-        />
-      )}
     </div>
   );
 }
