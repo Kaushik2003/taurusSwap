@@ -406,7 +406,7 @@ function Group35() {
     <div className="absolute contents inset-[-89.19%_69.69%_-10.47%_-95.71%]" data-name="Group">
       <div className="absolute inset-[-89.19%_69.69%_-10.47%_-95.71%] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[842.08px_495.32px] mask-size-[879.84px_555.36px] opacity-18" data-name="Rectangle" style={{ maskImage: `url('${imgRectangle}')` }}>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute left-0 max-w-none size-full top-0" src={imgRectangle1} />
+          <img alt="" className="absolute left-0 max-w-none size-full top-0" src={imgRectangle1.src} />
         </div>
       </div>
     </div>

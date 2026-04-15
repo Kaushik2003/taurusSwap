@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-
+.vscode/
 # Test and coverage output
 .pytest_cache/
 .coverage
@@ -58,3 +58,4 @@ node_modules/
 .tours/
 
 animations/
+frontend/package-lock.json

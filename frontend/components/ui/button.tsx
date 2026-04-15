@@ -52,6 +52,10 @@ const sizeStyles: Record<ButtonSize, string> = {
 const base =
   "inline-flex items-center justify-center rounded-full font-semibold transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
 
+export function buttonVariants({ variant = "default", size = "default" }: { variant?: ButtonVariant; size?: ButtonSize } = {}) {
+  return [base, variantStyles[variant], sizeStyles[size]].filter(Boolean).join(" ");
+}
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;

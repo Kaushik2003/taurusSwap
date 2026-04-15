@@ -8,7 +8,7 @@ const stats = [
   { label: "24H swap volume", value: "$45M", color: "#21C95E", accent: true },
 ];
 
-function SlotChar({ char, delay = 0, accent }) {
+function SlotChar({ char, delay = 0, accent }: { char: string; delay?: number; accent: boolean }) {
   const [displayed, setDisplayed] = useState("0");
   const [spinning, setSpinning] = useState(false);
 
@@ -49,7 +49,7 @@ function SlotChar({ char, delay = 0, accent }) {
   );
 }
 
-function AnimatedValue({ value, accent, delay = 0 }) {
+function AnimatedValue({ value, accent, delay = 0 }: { value: string; accent: boolean; delay?: number }) {
   const chars = value.split("");
   return (
     <div
@@ -72,7 +72,7 @@ function AnimatedValue({ value, accent, delay = 0 }) {
   );
 }
 
-function StatCard({ label, value, accent, delay }) {
+function StatCard({ label, value, accent, delay }: { label: string; value: string; accent: boolean; delay: number }) {
   // Use the high-fidelity double-border style for consistency with buttons
   return (
     <div
