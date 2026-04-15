@@ -1,18 +1,17 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import Providers from '@/components/Providers';
+import Navbar from '@/components/Navbar';
 import './globals.css';
 
-const inter = Inter({
+const geistSans = Geist({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
 });
 
-const spaceGrotesk = Space_Grotesk({
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-space',
 });
 
 export const metadata: Metadata = {
@@ -24,10 +23,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen flex flex-col bg-background text-foreground antialiased font-sans">
+        <Providers>
+          <Navbar />
+          <main className="flex-grow">{children}</main>
+        </Providers>
       </body>
     </html>
   );
 }
+

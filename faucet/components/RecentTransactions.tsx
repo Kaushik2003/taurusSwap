@@ -27,6 +27,13 @@ function formatTime(seconds: number) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs));
+}
+
 export default function RecentTransactions() {
   const { activeAddress } = useWallet();
   const [view, setView] = useState<'global' | 'user'>('global');
@@ -47,144 +54,147 @@ export default function RecentTransactions() {
   });
 
   return (
-    <div className="glass-monolith p-1 mt-12 overflow-hidden">
-      <div className="bg-[var(--surface-container-high)] p-6 sm:p-8">
+    <div className="glass-panel overflow-hidden shadow-[-6px_6px_0_0_var(--dark-green)] mt-12">
+      <div className="bg-white">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-8 border-b-2 border-dark-green/10">
           <div>
-            <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--on-background)]/40 mb-1">
-              Transaction_Protocol_v1.0
-            </p>
-            <h2 className="text-xl font-black text-[var(--on-background)] uppercase tracking-tight italic">
-              Recent_Activity_<span className="text-[var(--secondary)]">Feed</span>
+            <h2 className="text-2xl font-black text-dark-green uppercase tracking-tight font-wise">
+              Recent Activity
             </h2>
+            <p className="text-sm font-bold text-dark-green/40 uppercase tracking-widest mt-1">
+              Live Network Transactions
+            </p>
           </div>
 
           {/* View Toggle */}
-          <div className="flex p-1 bg-[var(--surface-container-low)] border border-[var(--outline-variant)]">
+          <div className="flex p-1 bg-green/5 rounded-2xl border-2 border-dark-green/10">
             <button
               onClick={() => setView('global')}
-              className={`px-4 py-1.5 text-[10px] font-technical tracking-widest uppercase transition-all ${
+              className={cn(
+                "px-5 py-2 text-[11px] font-black tracking-widest uppercase transition-all rounded-xl",
                 view === 'global'
-                  ? 'bg-[var(--secondary)] text-[var(--on-secondary)] font-bold'
-                  : 'text-[var(--on-background)]/40 hover:text-[var(--on-background)]'
-              }`}
+                  ? 'bg-dark-green text-green'
+                  : 'text-dark-green/40 hover:text-dark-green'
+              )}
             >
-              [ GLOBAL_LOG ]
+              Global
             </button>
             <button
               onClick={() => setView('user')}
               disabled={!activeAddress}
-              className={`px-4 py-1.5 text-[10px] font-technical tracking-widest uppercase transition-all disabled:opacity-20 disabled:cursor-not-allowed ${
+              className={cn(
+                "px-5 py-2 text-[11px] font-black tracking-widest uppercase transition-all rounded-xl disabled:opacity-20",
                 view === 'user'
-                  ? 'bg-[var(--secondary)] text-[var(--on-secondary)] font-bold'
-                  : 'text-[var(--on-background)]/40 hover:text-[var(--on-background)]'
-              }`}
+                  ? 'bg-dark-green text-green'
+                  : 'text-dark-green/40 hover:text-dark-green'
+              )}
             >
-              [ USER_LOG ]
+              My History
             </button>
           </div>
         </div>
 
         {/* Transactions List */}
-        <div className="space-y-px bg-[var(--outline-variant)] border border-[var(--outline-variant)]">
+        <div className="divide-y-2 divide-dark-green/5">
           {isLoading ? (
-            <div className="bg-[var(--surface-container-low)] p-12 flex flex-col items-center justify-center gap-4">
-              <Loader className="w-6 h-6 text-[var(--secondary)] animate-spin" />
-              <p className="text-[9px] font-technical uppercase tracking-[0.2em] text-[var(--on-background)]/40">
-                Synchronizing_Ledger...
+            <div className="p-16 flex flex-col items-center justify-center gap-4">
+              <Loader className="w-8 h-8 text-dark-green animate-spin" />
+              <p className="text-[11px] font-black uppercase tracking-widest text-dark-green/30">
+                Syncing Ledger...
               </p>
             </div>
           ) : isError ? (
-            <div className="bg-[var(--surface-container-low)] p-12 flex flex-col items-center justify-center gap-4 text-center">
-              <div className="w-8 h-8 rounded-full bg-[var(--error-container)] flex items-center justify-center">
-                <span className="text-[var(--error)] font-bold">!</span>
+            <div className="p-16 flex flex-col items-center justify-center gap-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center border-2 border-red-200">
+                <span className="text-red-500 font-black">!</span>
               </div>
-              <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--error)]/60 max-w-[200px]">
-                Failed to establish connection to indexer.
+              <p className="text-xs font-black uppercase tracking-widest text-red-500/60 max-w-[240px]">
+                Failed to connect to indexer.
               </p>
               <button 
                 onClick={() => refetch()}
-                className="text-[9px] font-technical uppercase tracking-widest text-[var(--secondary)] hover:underline"
+                className="text-xs font-black uppercase tracking-widest text-dark-green hover:underline decoration-2"
               >
-                [ RETRY_HANDSHAKE ]
+                Retry Handshake
               </button>
             </div>
           ) : data && data.length > 0 ? (
-            data.map((tx) => (
-              <div 
-                key={tx.txId} 
-                className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--surface-container-low)] hover:bg-[var(--surface-container-high)] transition-colors gap-4"
-              >
-                {/* Left: Asset & Amount */}
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-[var(--secondary)]/10 border border-[var(--secondary)]/20 rounded-full shrink-0 group-hover:bg-[var(--secondary)]/20 transition-colors">
-                    <Droplets className="w-4 h-4 text-[var(--secondary)]" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-bold text-[var(--on-background)] tracking-tight">
-                        +{tx.amount} {tx.symbol}
-                      </span>
+            <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-dark-green">
+              {data.map((tx) => (
+                <div 
+                  key={tx.txId} 
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-green/5 transition-colors gap-4"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 flex items-center justify-center bg-white border-2 border-dark-green/10 rounded-2xl group-hover:border-dark-green/30 transition-colors shadow-sm">
+                      <Droplets className="w-5 h-5 text-dark-green" />
                     </div>
-                    <p className="text-[10px] font-mono text-[var(--on-background)]/40">
-                      ID: {tx.assetId} // Round: {tx.confirmedRound}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right: Receiver & Link */}
-                <div className="flex items-center justify-between sm:justify-end gap-6">
-                  <div className="text-right">
-                    <p className="text-[9px] font-technical uppercase tracking-widest text-[var(--on-background)]/30 mb-0.5">
-                      Target_Address
-                    </p>
-                    <p className="text-[11px] font-mono text-[var(--on-background)]/60">
-                      {truncate(tx.receiver)}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-px bg-[var(--outline-variant)] hidden sm:block" />
-                    <div className="text-right">
-                      <p className="text-[9px] font-technical uppercase tracking-widest text-[var(--secondary)] mb-0.5">
-                        {formatTime(tx.timestamp)}
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-base font-black text-dark-green tracking-tight">
+                          +{tx.amount} {tx.symbol}
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-black text-dark-green/30 uppercase tracking-widest">
+                        Asset #{tx.assetId} — Round {tx.confirmedRound}
                       </p>
-                      <a
-                        href={`https://testnet.explorer.perawallet.app/tx/${tx.txId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-[9px] font-technical uppercase tracking-widest text-[var(--on-background)]/40 hover:text-[var(--secondary)] transition-colors"
-                      >
-                        [ VIEW ] <ExternalLink className="w-3 h-3" />
-                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-8">
+                    <div className="text-right hidden xs:block">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-dark-green/30 mb-0.5">
+                        Recipient
+                      </p>
+                      <p className="text-xs font-mono font-medium text-dark-green/60">
+                        {truncate(tx.receiver)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="h-10 w-[2px] bg-dark-green/5 hidden sm:block" />
+                      <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-dark-green mb-0.5">
+                          {formatTime(tx.timestamp)}
+                        </p>
+                        <a
+                          href={`https://testnet.explorer.perawallet.app/tx/${tx.txId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-end gap-1.5 text-[10px] font-black uppercase tracking-widest text-dark-green/40 hover:text-dark-green transition-all"
+                        >
+                          View <ExternalLink className="w-3.5 h-3.5" strokeWidth={3} />
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
-            <div className="bg-[var(--surface-container-low)] p-12 flex flex-col items-center justify-center gap-4">
-              <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--on-background)]/30 text-center">
-                No recent activity detected in this sector.
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <p className="text-xs font-black uppercase tracking-widest text-dark-green/20 text-center">
+                No active requisition history.
               </p>
             </div>
           )}
         </div>
 
         {/* Footer info */}
-        <div className="mt-6 flex items-center justify-between">
+        <div className="p-6 bg-green/10 flex items-center justify-between border-t-2 border-dark-green/10">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[var(--secondary)] animate-pulse" />
-            <span className="text-[9px] font-technical uppercase tracking-widest text-[var(--on-background)]/30">
-              Ledger_Status: SYNCHRONIZED
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse border border-dark-green/10" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-dark-green/40">
+              Indexer Sync State: OK
             </span>
           </div>
-          <p className="text-[8px] font-technical uppercase tracking-widest text-[var(--on-background)]/20">
-            Source: Algorand_Indexer_v2
+          <p className="text-[8px] font-black uppercase tracking-widest text-dark-green/20">
+            Source: Algorand Testnet
           </p>
         </div>
       </div>
     </div>
+
   );
 }

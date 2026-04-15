@@ -17,108 +17,127 @@ const ALGO_EXPLORER_BASE = 'https://testnet.explorer.perawallet.app/tx';
 export default function StatusCard({ status }: Props) {
   if (status.type === 'idle') return null;
 
-  if (status.type === 'loading') {
-    return (
-      <div className="mt-8 flex items-center gap-4 px-5 py-4 bg-[var(--surface-container-low)] border-l-2 border-[var(--secondary)] animate-pulse">
-        <Loader className="w-5 h-5 text-[var(--secondary)] animate-spin shrink-0" />
-        <div className="min-w-0">
-          <p className="text-xs font-technical uppercase tracking-widest text-[var(--secondary)]">
-            Executing_Transaction
-          </p>
-          <p className="text-sm text-[var(--on-background)]/60 font-mono mt-0.5">
-            Syncing with Algorand Node...
-          </p>
+  return (
+    <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+      {status.type === 'loading' && (
+        <div className="flex items-center gap-5 px-6 py-5 bg-white rounded-3xl border-2 border-dark-green shadow-[-6px_6px_0_0_var(--dark-green)] group">
+          <div className="w-12 h-12 rounded-2xl bg-green/10 flex items-center justify-center shrink-0 border-2 border-dark-green/10">
+            <Loader className="w-6 h-6 text-dark-green animate-spin" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-widest text-dark-green/40 mb-0.5">
+              Protocol Execution
+            </p>
+            <p className="text-sm font-black text-dark-green uppercase tracking-tight">
+              Synchronizing with Node...
+            </p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  if (status.type === 'success') {
-    const claimedPercent = Math.min(((status.dailyLimit - status.remaining) / status.dailyLimit) * 100, 100);
+      {status.type === 'success' && (() => {
+        const claimedPercent = Math.min(((status.dailyLimit - status.remaining) / status.dailyLimit) * 100, 100);
+        return (
+          <div className="glass-panel overflow-hidden shadow-[-8px_8px_0_0_var(--dark-green)] border-2 border-dark-green bg-white">
+            <div className="p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-3xl bg-[#9FE870] flex items-center justify-center border-2 border-dark-green shadow-[-4px_4px_0_0_var(--dark-green)] shrink-0">
+                    <CheckCircle className="w-8 h-8 text-dark-green" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-dark-green/40 mb-1">
+                      Success Confirmation
+                    </h3>
+                    <p className="text-4xl font-black text-dark-green font-wise tracking-tight">
+                      +{status.claimed} {status.symbol}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right hidden xs:block">
+                  <p className="text-[10px] font-black text-dark-green/30 uppercase tracking-widest">Network</p>
+                  <p className="text-xs font-black text-dark-green uppercase mt-1">Algorand Testnet</p>
+                </div>
+              </div>
 
-    return (
-      <div className="mt-8 glass-monolith p-1 animate-glow">
-        <div className="bg-[var(--surface-container-high)] p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-6 h-6 text-[var(--secondary)]" />
-              <div>
-                <h3 className="text-sm font-technical uppercase tracking-widest text-[var(--on-background)]">
-                  Transaction_Complete
-                </h3>
-                <p className="text-xl font-black text-[var(--secondary)] mt-1">
-                  +{status.claimed} {status.symbol}
-                </p>
+              {/* Technical Metadata */}
+              <div className="mt-8 bg-green/5 rounded-2xl border-2 border-dark-green/10 p-5 font-mono text-xs overflow-hidden">
+                <div className="flex justify-between items-center text-dark-green/30 mb-3 uppercase font-black text-[10px] tracking-widest">
+                  <span>Requisition Receipt</span>
+                  <span className="bg-white px-2 py-0.5 rounded-md border border-dark-green/10">ID: {status.txId.slice(0, 8)}</span>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-dark-green/60 leading-relaxed overflow-hidden text-ellipsis whitespace-nowrap">
+                    <span className="font-black text-dark-green/40 mr-2">TX:</span>
+                    <a 
+                      href={`${ALGO_EXPLORER_BASE}/${status.txId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-dark-green hover:underline decoration-2 font-bold"
+                    >
+                      {status.txId}
+                    </a>
+                  </p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-green-600 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    Confirmed on ledger
+                  </p>
+                </div>
+              </div>
+
+              {/* Drip Progress Bar */}
+              <div className="mt-8">
+                <div className="flex justify-between items-end mb-3">
+                  <span className="text-[11px] font-black text-dark-green/40 uppercase tracking-widest">Daily Quota Status</span>
+                  <span className="text-xs font-black text-dark-green uppercase">
+                    {status.dailyLimit - status.remaining} / {status.dailyLimit} <span className="text-dark-green/40">{status.symbol}</span>
+                  </span>
+                </div>
+                <div className="h-5 bg-green/10 rounded-full border-2 border-dark-green/10 p-0.5 overflow-hidden">
+                  <div 
+                    className="h-full bg-dark-green rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(159,232,112,0.3)]"
+                    style={{ width: `${claimedPercent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-3">
+                  <p className="text-[9px] font-black text-dark-green/30 uppercase tracking-widest">Rate limited</p>
+                  <p className="text-[9px] font-black text-dark-green/30 uppercase tracking-widest">Reset in 24h</p>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-technical text-[var(--on-background)]/40 uppercase">Network</p>
-              <p className="text-xs font-mono font-bold text-[var(--secondary)]">Algorand_Testnet</p>
+            
+            <div className="bg-dark-green py-3 px-8">
+              <p className="text-[10px] font-black text-green uppercase tracking-[0.3em] text-center">
+                Verified Cryptographic Proof
+              </p>
             </div>
           </div>
+        );
+      })()}
 
-          {/* Technical Metadata Block */}
-          <div className="mt-6 bg-[var(--background)]/50 p-4 font-mono text-[11px] border-l border-[var(--outline-variant)]">
-            <div className="flex justify-between items-center text-[var(--on-background)]/40 mb-2 uppercase tracking-tighter">
-              <span>Metadata</span>
-              <span>ID: {status.txId.slice(0, 8)}</span>
+      {status.type === 'error' && (
+        <div className="bg-red-50 border-2 border-red-500 rounded-3xl p-6 shadow-[-6px_6px_0_0_rgba(239,68,68,1)] animate-shake">
+          <div className="flex items-start gap-5">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center shrink-0 border-2 border-red-200">
+              <XCircle className="w-6 h-6 text-red-600" />
             </div>
-            <p className="text-[var(--on-background)]/80 break-all leading-relaxed">
-              TX_HASH: <a 
-                href={`${ALGO_EXPLORER_BASE}/${status.txId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--secondary)] hover:underline"
+            <div className="min-w-0">
+              <h3 className="text-xs font-black uppercase tracking-widest text-red-600 mb-2">
+                Execution Fault
+              </h3>
+              <p className="text-sm font-bold text-red-800 leading-relaxed bg-white/50 p-3 rounded-xl border border-red-100">
+                {status.message}
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-5 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors py-2 px-4 bg-white rounded-full border border-red-200 shadow-sm"
               >
-                {status.txId}
-              </a>
-            </p>
-            <p className="mt-1 text-[var(--on-background)]/60">STATUS: PROCESSED_AND_CONFIRMED</p>
-          </div>
-
-          {/* Drip Progress Bar */}
-          <div className="mt-6">
-            <div className="flex justify-between items-end mb-2">
-              <span className="text-[10px] font-technical text-[var(--on-background)]/40 uppercase">Daily_Quota</span>
-              <span className="text-xs font-mono text-[var(--on-background)]">
-                {status.dailyLimit - status.remaining} / {status.dailyLimit} {status.symbol}
-              </span>
+                [ Restart Engine ]
+              </button>
             </div>
-            <div className="h-1 bg-[var(--surface-container-highest)] relative overflow-hidden">
-              <div 
-                className="absolute inset-y-0 left-0 bg-[var(--secondary)] transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(163,250,0,0.5)]"
-                style={{ width: `${claimedPercent}%` }}
-              />
-            </div>
-            <p className="mt-2 text-[10px] text-[var(--on-background)]/30 text-right uppercase tracking-tighter">
-              Reset in 24h
-            </p>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // error
-  return (
-    <div className="mt-8 bg-[var(--surface-container-low)] border-l-2 border-[var(--error)] p-5 animate-slide-up">
-      <div className="flex items-start gap-4">
-        <XCircle className="w-5 h-5 text-[var(--error)] shrink-0 mt-0.5" />
-        <div className="min-w-0">
-          <h3 className="text-xs font-technical uppercase tracking-widest text-[var(--error)]">
-            Execution_Failure
-          </h3>
-          <p className="text-sm font-mono text-[var(--on-background)]/80 mt-2 leading-relaxed">
-            {status.message}
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-4 text-[10px] font-technical uppercase tracking-widest text-[var(--on-background)]/40 hover:text-[var(--on-background)] transition-colors"
-          >
-            [ Restart_Engine ]
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

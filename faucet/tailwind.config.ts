@@ -9,14 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'green': '#9FE870',
+        'dark-green': '#163300',
+        'background': '#9FE870',
+        'foreground': '#0A3F2F',
+        'primary': '#0A3F2F',
+        'border': '#0A3F2F',
         brand: {
-          green: '#CEF17B',
-          dark: '#084734',
+          green: '#9FE870',
+          dark: '#0A3F2F',
           mid: '#0a5a42',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        wise: ['WiseSans', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.4s ease-out',

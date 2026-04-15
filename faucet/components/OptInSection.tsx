@@ -16,6 +16,13 @@ function getAlgod() {
   return new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
 }
 
+import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs));
+}
+
 export default function OptInSection() {
   const { activeAddress, signTransactions } = useWallet();
   const { data: optInStatus, isLoading } = useOptInStatus();
@@ -73,28 +80,28 @@ export default function OptInSection() {
   }
 
   return (
-    <div className="mb-12">
+    <div className="mb-14">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 border-b border-[var(--outline-variant)] pb-2">
-        <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--on-background)]/40">
-          00 // Eligibility_Check
+      <div className="flex items-center justify-between mb-6 px-2">
+        <p className="text-xs font-black uppercase tracking-widest text-dark-green/60">
+          Available Assets
         </p>
         {!allOptedIn && notOptedIn.length > 1 && (
           <button
             onClick={() => optIn(notOptedIn.map((t) => t.assetId))}
             disabled={pending.length > 0 || isLoading}
-            className="text-[10px] font-technical uppercase tracking-widest text-[var(--secondary)] hover:text-[var(--on-background)] transition-colors disabled:opacity-20"
+            className="text-[11px] font-black uppercase tracking-widest text-dark-green hover:underline underline-offset-4 decoration-2 transition-all disabled:opacity-20"
           >
-            {pending.length > 0 ? 'Syncing...' : `[ Opt_In_All (${notOptedIn.length}) ]`}
+            {pending.length > 0 ? 'Syncing...' : `Opt In All (${notOptedIn.length})`}
           </button>
         )}
       </div>
 
       {/* Token grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {isLoading
-          ? FAUCET_TOKENS.map((t) => (
-              <div key={t.assetId} className="h-14 bg-[var(--surface-container-low)] animate-pulse border-l-2 border-[var(--outline-variant)]" />
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 bg-green/10 rounded-2xl animate-pulse" />
             ))
           : FAUCET_TOKENS.map((token) => {
               const isOptedIn = optInStatus?.[token.assetId] === true;
@@ -103,37 +110,38 @@ export default function OptInSection() {
               return (
                 <div
                   key={token.assetId}
-                  className={`flex items-center gap-4 px-4 py-3 border-l-2 transition-all ${
+                  className={cn(
+                    "relative flex items-center gap-4 px-5 py-4 rounded-3xl border-2 transition-all",
                     isOptedIn
-                      ? 'bg-[var(--secondary)]/5 border-[var(--secondary)]'
-                      : 'bg-[var(--surface-container-low)] border-[var(--outline-variant)]'
-                  }`}
+                      ? 'bg-white border-dark-green shadow-[-4px_4px_0_0_var(--dark-green)]'
+                      : 'bg-green/5 border-dark-green/10 opacity-70'
+                  )}
                 >
                   {/* Symbol Swatch */}
                   <div 
-                    className="w-10 h-10 flex items-center justify-center shrink-0 bg-[var(--background)] border border-[var(--outline-variant)]"
+                    className="w-12 h-12 flex items-center justify-center shrink-0 rounded-2xl border-2 border-dark-green/10 bg-white"
                   >
-                    <span
-                      className="w-4 h-4"
+                    <div
+                      className="w-5 h-5 rounded-full border border-dark-green/20"
                       style={{ background: token.color }}
                     />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-bold leading-none ${isOptedIn ? 'text-[var(--on-background)]' : 'text-[var(--on-background)]/60'}`}>
+                    <p className="text-sm font-black text-dark-green uppercase">
                       {token.symbol}
                     </p>
-                    <p className="text-[9px] font-mono text-[var(--on-background)]/20 mt-1 uppercase tracking-tighter">ID::{token.assetId}</p>
+                    <p className="text-[10px] font-black text-dark-green/30 uppercase tracking-widest mt-0.5">#{token.assetId}</p>
                   </div>
 
                   {/* Status / action */}
                   {isOptedIn ? (
-                    <div className="flex items-center gap-1.5 text-[9px] font-technical uppercase tracking-widest text-[var(--secondary)]">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-100/50 px-3 py-1.5 rounded-full border border-green-200">
                       <CheckCircle className="w-3 h-3" />
-                      Ready
+                      Active
                     </div>
                   ) : isPending ? (
-                    <div className="flex items-center gap-1.5 text-[9px] font-technical uppercase tracking-widest text-[var(--on-background)]/40 animate-pulse">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-dark-green/40 animate-pulse px-3 py-1.5 rounded-full border border-dark-green/10">
                       <Loader className="w-3 h-3 animate-spin" />
                       Syncing
                     </div>
@@ -141,9 +149,9 @@ export default function OptInSection() {
                     <button
                       onClick={() => optIn([token.assetId])}
                       disabled={pending.length > 0}
-                      className="px-3 py-2 bg-[var(--background)] text-[10px] font-technical uppercase tracking-widest border border-[var(--outline-variant)] text-[var(--on-background)]/60 hover:text-[var(--secondary)] hover:border-[var(--secondary)] transition-all disabled:opacity-20"
+                      className="px-4 py-2 bg-[#FCA5F1] text-[11px] font-black uppercase tracking-widest border-2 border-dark-green text-dark-green rounded-full shadow-[-2px_2px_0_0_var(--dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--dark-green)] transition-all disabled:opacity-20 active:scale-95"
                     >
-                      Opt_In
+                      Opt In
                     </button>
                   )}
                 </div>
@@ -153,22 +161,31 @@ export default function OptInSection() {
 
       {/* Verification Banner */}
       {allOptedIn && (
-        <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-[var(--secondary)]/10 border-l-2 border-[var(--secondary)]">
-          <CheckCircle className="w-4 h-4 text-[var(--secondary)] shrink-0" />
-          <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--secondary)]">
-            Status: All_Systems_Operational // Identity_Verified
-          </p>
+        <div className="mt-6 flex items-center gap-3 px-5 py-4 bg-white rounded-3xl border-2 border-dark-green shadow-[-4px_4px_0_0_var(--dark-green)] animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center border border-green-200 shrink-0">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-dark-green">
+              Status: Verified Client
+            </p>
+            <p className="text-[9px] font-bold text-dark-green/40 uppercase tracking-widest mt-0.5">
+              All selected assets are opted-in and ready for requisition.
+            </p>
+          </div>
         </div>
       )}
 
       {/* Terminal Errors */}
       {error && (
-        <div className="mt-4 px-4 py-3 bg-[var(--error)]/10 border-l-2 border-[var(--error)]">
-          <p className="text-[10px] font-technical uppercase tracking-widest text-[var(--error)]">
-            Fault: {error}
+        <div className="mt-6 px-5 py-4 bg-red-50 rounded-3xl border-2 border-red-500 shadow-[-4px_4px_0_0_rgba(239,68,68,1)]">
+          <p className="text-[11px] font-black uppercase tracking-widest text-red-600 flex items-center gap-2">
+            <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+            Error: {error}
           </p>
         </div>
       )}
     </div>
+
   );
 }
