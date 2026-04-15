@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-3 mr-2 shrink-0">
             <img 
-              src="/favicon.ico" 
+              src="/logo.png" 
               alt="TaurusSwap" 
               className="w-12 h-12 rounded-full border-[2.5px] border-dark-green shadow-[-3px_3px_0_0_var(--dark-green)]" 
             />
