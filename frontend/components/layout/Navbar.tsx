@@ -18,6 +18,7 @@ const navItems = [
   { label: 'Explore', to: '/explore', bg: '#B6F4CC' },
   { label: 'Pool', to: '/pool', bg: '#FFC1D9' },
   { label: 'Portfolio', to: '/portfolio', bg: '#C0FCFD' },
+  { label: 'Docs', to: '/docs', bg: '#FFE5B4' },
 ];
 
 export default function Navbar() {
@@ -106,7 +107,7 @@ export default function Navbar() {
                           key={n.id}
                           type="button"
                           onClick={() => {
-                            setNetwork(n.id);
+                            setNetwork(n.id as any);
                             setNetworkOpen(false);
                           }}
                           className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-dark-green/70 hover:text-dark-green hover:bg-dark-green/10 transition-colors"

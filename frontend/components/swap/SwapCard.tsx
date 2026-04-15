@@ -112,7 +112,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
         slippageBps,
         async (txns) => {
           const encoded = txns.map(t => algosdk.encodeUnsignedTransaction(t));
-          return signTransactions(encoded);
+          return signTransactions(encoded) as any;
         },
       );
       setSwapTxId(txId);

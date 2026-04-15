@@ -48,7 +48,7 @@ export function PositionCard({ position, pool }: PositionCardProps) {
         poolAppId: POOL_APP_ID,
         sender: activeAddress,
         tickId: position.tickId,
-        signer,
+        signer: signer as any,
       });
       setClaimTxId(txId);
       setClaimStatus('success');
@@ -71,7 +71,7 @@ export function PositionCard({ position, pool }: PositionCardProps) {
         sender: activeAddress,
         tickId: position.tickId,
         shares: position.shares,
-        signer,
+        signer: signer as any,
       });
       setRemoveTxId(txId);
       setRemoveStatus('success');

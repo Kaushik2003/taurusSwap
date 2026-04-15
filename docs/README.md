@@ -297,9 +297,12 @@ The key insight from the paper: by using sphere geometry for AMM invariants, mul
 
 <table>
   <tr>
+    <td align="center"><a href="https://github.com/manovHacksaw"><img src="https://github.com/manovHacksaw.png" width="80px;" alt=""/><br /><sub><b>Manobendra Mandal</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Kaushik2003"><img src="https://github.com/Kaushik2003.png" width="80px;" alt=""/><br /><sub><b>Kaushik Samadder</b></sub></a></td>
     <td align="center"><a href="https://github.com/MitudruDutta"><img src="https://github.com/MitudruDutta.png" width="80px;" alt=""/><br /><sub><b>Mitudru Dutta</b></sub></a></td>
     <td align="center"><a href="https://github.com/pauldebanshu19"><img src="https://github.com/pauldebanshu19.png" width="80px;" alt=""/><br /><sub><b>Debanshu Paul</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Kaushik2003"><img src="https://github.com/Kaushik2003.png" width="80px;" alt=""/><br /><sub><b>Kaushik</b></sub></a></td>
+    <td align="center"><a href="https://github.com/rajarshidattapy"><img src="https://github.com/rajarshidattapy.png" width="80px;" alt=""/><br /><sub><b>Rajarshi Datta</b></sub></a></td>
+    
   </tr>
 </table>
 

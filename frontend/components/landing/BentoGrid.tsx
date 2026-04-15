@@ -92,7 +92,7 @@ function TokenRow({ token, cardColor = "var(--color-dark-green)" }: { token: { n
         cursor: "pointer",
       }}
     >
-      <img src={token.img} alt={token.name} width={50} height={50} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
+      <img src={token.img} alt={token.name} width={50} height={50} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ color: cardColor, fontWeight: 700, fontSize: 18 }}>{token.name}</span>
