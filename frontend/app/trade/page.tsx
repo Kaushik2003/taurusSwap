@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import FloatingOrbs from '../../components/landing/FloatingOrbs';
 import SwapCard from '../../components/swap/SwapCard';
 import LimitCard from '../../components/swap/LimitCard';
@@ -48,7 +48,7 @@ export default function TradePage() {
             </div>
 
             {/* Card */}
-            {activeTab === 'swap'  && <SwapCard />}
+            {activeTab === 'swap'  && <Suspense fallback={null}><SwapCard /></Suspense>}
             {activeTab === 'limit' && <LimitCard />}
             {activeTab === 'buy'   && <BuyCard />}
             {activeTab === 'sell'  && <SellCard />}

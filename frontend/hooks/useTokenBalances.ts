@@ -24,7 +24,7 @@ export function useTokenBalances(tokenAsaIds: number[]): bigint[] {
 
       try {
         const accountInfo = await algod.accountInformation(activeAddress).do();
-        const assets = (accountInfo.assets || []) as Array<Record<string, unknown>>;
+        const assets = (accountInfo.assets || []) as unknown as Array<Record<string, unknown>>;
         
         const balances = tokenAsaIds.map((asaId) => {
           const asset = assets.find((a: any) =>

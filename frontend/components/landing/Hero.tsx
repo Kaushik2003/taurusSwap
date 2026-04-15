@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import { motion } from 'framer-motion'
 import DummySwap from '../swap/DummySwap'
 import localFont from 'next/font/local';
@@ -55,7 +55,9 @@ const Hero = () => {
               {...fadeUp(0.22)}
             >
               <div className="lg:absolute lg:inset-x-0 lg:top-0">
-                <DummySwap />
+                <Suspense fallback={null}>
+                  <DummySwap />
+                </Suspense>
               </div>
             </motion.div>
           </div>

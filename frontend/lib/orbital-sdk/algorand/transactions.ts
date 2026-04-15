@@ -174,7 +174,7 @@ export async function buildCrossingSwapGroup(
       sender,
       receiver: poolAddress,
       amount: recipe.totalAmountIn,
-      assetIndex: tokenInAsaId,
+      assetIndex: tokenAsaIds[recipe.tokenInIdx],
       suggestedParams: withFlatFee(sp),
     }),
   );

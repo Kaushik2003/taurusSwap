@@ -3,7 +3,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 
 type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "positive" | "warning" | "negative" | "neo";
-type ButtonSize = "default" | "sm";
+type ButtonSize = "default" | "sm" | "icon";
 
 const variantStyles: Record<ButtonVariant, string> = {
   default:
@@ -47,6 +47,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 const sizeStyles: Record<ButtonSize, string> = {
   default: "h-11 px-5 text-sm",
   sm: "h-9 px-4 text-xs",
+  icon: "h-9 w-9 p-0",
 };
 
 const base =
