@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDownUp, ChevronDown, Settings, Info, Loader2, X } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { useSwapUIStore } from '@/store/useSwapUIStore';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { usePoolState } from '@/hooks/usePoolState';
 import { useSwapQuote } from '@/hooks/useSwapQuote';
@@ -22,11 +21,7 @@ import { getAlgodConfigFromViteEnvironment } from '@/utils/network/getAlgoClient
 import { POOL_APP_ID } from '@/hooks/useAlgodClient';
 
 
-interface SwapCardProps {
-  redirectTo?: string;
-}
-
-export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
+export default function DummySwap() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { activeAddress, signTransactions } = useWallet();
@@ -38,18 +33,12 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const sellIdx = useSwapUIStore((s) => s.sellIdx);
-  const buyIdx = useSwapUIStore((s) => s.buyIdx);
-  const sellAmount = useSwapUIStore((s) => s.sellAmount);
-  const setSellIdx = useSwapUIStore((s) => s.setSellIdx);
-  const setBuyIdx = useSwapUIStore((s) => s.setBuyIdx);
-  const setSellAmount = useSwapUIStore((s) => s.setSellAmount);
-  const flipStore = useSwapUIStore((s) => s.flip);
-  useEffect(() => {
+  const [sellIdx, setSellIdx] = useState(0);
+  const [buyIdx, setBuyIdx] = useState(1);
+  const [sellAmount, setSellAmount] = useState(() => {
     const initial = searchParams?.get('sell');
-    if (initial) setSellAmount(initial.replace(/[^0-9.]/g, ''));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return initial ? initial.replace(/[^0-9.]/g, '') : '';
+  });
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
   const [swapping, setSwapping] = useState(false);
@@ -93,38 +82,24 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
   useEffect(() => { setSwapTxId(null); setSwapError(null); }, [sellAmount, sellIdx, buyIdx]);
 
   const handleSwap = async () => {
-    if (!quote || !activeAddress || !signTransactions) return;
+    if (!sellAmount || amountInRaw === 0n) return;
+    
     setSwapping(true);
     setSwapError(null);
     setSwapTxId(null);
+    
     try {
-      const cfg = getAlgodConfigFromViteEnvironment();
-      const algod = new algosdk.Algodv2(cfg.token ?? '', cfg.server, cfg.port);
-      const slippageBps = Math.round(slippage * 100);
-
-      const { txId } = await executeSwap(
-        algod,
-        POOL_APP_ID,
-        activeAddress,
-        sellIdx,
-        buyIdx,
-        amountInRaw,
-        slippageBps,
-        async (txns) => {
-          const encoded = txns.map(t => algosdk.encodeUnsignedTransaction(t));
-          return signTransactions(encoded);
-        },
-      );
-      setSwapTxId(txId);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const mockTxId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      setSwapTxId(mockTxId);
       setSellAmount('');
     } catch (e: unknown) {
-      setSwapError(e instanceof Error ? e.message : 'Swap failed');
+      setSwapError('Swap simulation failed');
     } finally {
       setSwapping(false);
     }
   };
 
-  // Token selector state (simple dropdown list)
   const [selectorFor, setSelectorFor] = useState<'sell' | 'buy' | null>(null);
 
   const tokenOptions = Array.from({ length: n }, (_, i) => i).filter(
@@ -135,8 +110,10 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
     <div className="w-full max-w-[480px] mx-auto relative z-10">
       <div className="p-5 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-8px_8px_0_0_var(--color-dark-green)]">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-black text-dark-green uppercase tracking-wider">Swap</span>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <span className="text-xl font-black text-dark-green uppercase tracking-widest">Swap</span>
+          </div>
           <div className="flex items-center gap-2">
             {poolLoading && <Loader2 className="w-5 h-5 text-dark-green/40 animate-spin" />}
             <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-xl bg-white border-2 border-dark-green text-dark-green hover:bg-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all">
@@ -145,14 +122,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
           </div>
         </div>
 
-        {/* Pool error */}
-        {poolError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-100 border-2 border-red-500 text-red-700 text-sm font-bold">
-            Failed to load pool: {poolError.message}
-          </div>
-        )}
-
-        {/* Settings Popover */}
+        {/* Settings Popover and Selector Modal (remain Same) */}
         {showSettings && (
           <div className="absolute top-[70px] right-2 z-[60] w-[320px] p-5 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-8px_8px_0_0_var(--color-dark-green)] animate-scale-in">
             <div className="flex items-center justify-between mb-6">
@@ -160,6 +130,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               <button 
                 onClick={() => setShowSettings(false)}
                 className="p-1.5 rounded-lg text-dark-green/40 hover:text-dark-green hover:bg-green/10 transition-colors"
+                title="Close settings"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -186,14 +157,6 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
                   <span className="text-[10px] font-black text-dark-green">15 minutes</span>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between group cursor-pointer hover:bg-green/10 p-1.5 -mx-1.5 rounded-lg transition-colors">
-                <span className="text-[10px] font-black text-dark-green uppercase tracking-wider">Trade options</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] font-bold text-dark-green/60">Default</span>
-                  <ChevronDown className="w-4 h-4 text-dark-green/60 -rotate-90" />
-                </div>
-              </div>
             </div>
 
             <div className="mt-5 pt-4 border-t-2 border-dark-green/10">
@@ -212,7 +175,6 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
           </div>
         )}
 
-        {/* Token selector modal overlay */}
         {selectorFor && pool && (
           <div className="absolute inset-x-5 top-24 bottom-24 z-[70] p-6 rounded-3xl bg-white border-[3px] border-dark-green shadow-[-12px_12px_0_0_var(--color-dark-green)] animate-scale-in flex flex-col">
             <div className="flex items-center justify-between mb-4">
@@ -220,6 +182,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               <button 
                 onClick={() => setSelectorFor(null)}
                 className="p-1 rounded-lg hover:bg-green/10 transition-colors"
+                title="Close selector"
               >
                 <X className="w-4 h-4 text-dark-green" />
               </button>
@@ -233,7 +196,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
                     else setBuyIdx(i);
                     setSelectorFor(null);
                   }}
-                  className="flex items-center justify-between w-full p-3 rounded-2xl bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-1px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all group"
+                  className="flex items-center justify-between w-full p-3 rounded-2xl bg-white border-2 border-dark-green hover:bg-[#FCA5F1] shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[1px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <img src={getTokenIcon(i)} alt={getTokenSymbol(pool, i)} className="w-8 h-8 rounded-full border-2 border-dark-green object-cover" />
@@ -242,20 +205,14 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
                       <p className="text-[10px] font-bold text-dark-green/40">Asset ID: {FAUCET_TOKENS[i]?.assetId ?? i}</p>
                     </div>
                   </div>
-                  <div className="w-6 h-6 rounded-full border-2 border-dark-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                     <div className="w-2 h-2 rounded-full bg-dark-green" />
-                  </div>
                 </button>
               ))}
-            </div>
-            <div className="mt-4 pt-4 border-t-2 border-dark-green/10 text-center">
-               <p className="text-[9px] font-black text-dark-green/30 uppercase tracking-widest">More tokens available via governance</p>
             </div>
           </div>
         )}
 
-        {/* Sell panel */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative">
+        {/* Token panels */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-dark-green font-black uppercase tracking-wider">Sell</span>
           </div>
@@ -263,15 +220,12 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
             <input
               type="text"
               value={sellAmount}
-              onChange={e => {
-                const next = e.target.value.replace(/[^0-9.]/g, '');
-                setSellAmount(next);
-              }}
+              onChange={e => setSellAmount(e.target.value.replace(/[^0-9.]/g, ''))}
               placeholder="0"
               className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
             />
             <button
-              onClick={() => setSelectorFor(selectorFor === 'sell' ? null : 'sell')}
+              onClick={() => setSelectorFor('sell')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-[#FCA5F1] transition-all shrink-0"
             >
               <img src={getTokenIcon(sellIdx)} alt={pool ? getTokenSymbol(pool, sellIdx) : ''} className="w-6 h-6 rounded-full border border-black/10 object-cover" />
@@ -280,18 +234,15 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
             </button>
           </div>
           <div className="flex items-center justify-between mt-2 min-h-[20px]">
-            <p className="text-sm text-dark-green/60 font-bold">
-              {sellAmount && amountInRaw > 0n ? formatRawAsUSD(amountInRaw) : ''}
-            </p>
+            <span />
             {mounted && isWalletConnected && (
               <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
-                 {formatBal(sellBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, sellIdx) : ''}
+                {formatBal(sellBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, sellIdx) : ''}
               </p>
             )}
           </div>
         </div>
 
-        {/* Flip button */}
         <div className="flex justify-center -my-4 relative z-10">
           <button
             onClick={flipTokens}
@@ -301,8 +252,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
           </button>
         </div>
 
-        {/* Buy panel */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative mt-2">
+        <div className="p-4 sm:p-5 rounded-3xl bg-[#f8f9fa] border-2 border-dark-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] relative mt-2">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-dark-green font-black uppercase tracking-wider">Buy</span>
             {quoteFetching && <Loader2 className="w-4 h-4 text-dark-green/40 animate-spin" />}
@@ -316,7 +266,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
               className="flex-1 bg-transparent text-4xl sm:text-5xl font-black text-dark-green outline-none placeholder:text-dark-green/30 min-w-0"
             />
             <button
-              onClick={() => setSelectorFor(selectorFor === 'buy' ? null : 'buy')}
+              onClick={() => setSelectorFor('buy')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border-2 border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)] hover:bg-green transition-all shrink-0"
             >
               <img src={getTokenIcon(buyIdx)} alt={pool ? getTokenSymbol(pool, buyIdx) : ''} className="w-6 h-6 rounded-full border border-black/10 object-cover" />
@@ -325,9 +275,7 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
             </button>
           </div>
           <div className="flex items-center justify-between mt-2 min-h-[20px]">
-            <p className="text-sm text-dark-green/60 font-bold">
-              {quote ? formatRawAsUSD(quote.amountOut) : ''}
-            </p>
+            <span />
             {mounted && isWalletConnected && (
               <p className="text-xs font-black text-dark-green/70 uppercase tracking-wider">
                  {formatBal(buyBalance?.balance ?? 0)} {pool ? getTokenSymbol(pool, buyIdx) : ''}
@@ -336,99 +284,18 @@ export default function SwapCard({ redirectTo }: SwapCardProps = {}) {
           </div>
         </div>
 
-        {/* Quote details */}
-        {quote && (
-          <div className="mt-4 p-4 rounded-2xl border-[2.5px] border-dark-green bg-white space-y-2 relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)]">
-            <div className="flex items-center justify-between text-dark-green/80">
-              <span className="flex items-center gap-1 font-black uppercase text-xs tracking-wider"><Info className="w-4 h-4" /> Rate</span>
-              <span className="font-bold text-dark-green">
-                1 {pool ? getTokenSymbol(pool, sellIdx) : ''} = {exchangeRate?.toFixed(6)} {pool ? getTokenSymbol(pool, buyIdx) : ''}
-              </span>
-            </div>
-            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
-              <span>Price impact</span>
-              <span className={Number(priceImpactPct) > 5 ? 'text-red-500 font-black' : Number(priceImpactPct) > 1 ? 'text-yellow-600 font-black' : 'text-dark-green font-bold'}>
-                {priceImpactPct}%
-              </span>
-            </div>
-            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
-              <span>Fee ({Number(pool?.feeBps ?? 30n) / 100}%)</span>
-              <span className="text-dark-green font-bold">{formatRawAsUSD(amountInRaw * (pool?.feeBps ?? 30n) / 10_000n)}</span>
-            </div>
-            <div className="flex justify-between text-dark-green/80 font-black uppercase text-xs tracking-wider">
-              <span>Min. received ({slippage}% slippage)</span>
-              <span className="text-dark-green font-bold">{minReceived !== null ? rawToDisplay(minReceived > 0n ? minReceived : 0n) : '—'} {pool ? getTokenSymbol(pool, buyIdx) : ''}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Quote error */}
-        {quoteError && amountInRaw > 0n && (
-          <div className="mx-3 mb-2 p-2 rounded-lg bg-yellow-500/10 text-yellow-400 text-xs font-bold">
-            Quote failed: {quoteError.message}
-          </div>
-        )}
-
-        {/* Swap error */}
-        {swapError && (
-          <div className="mx-3 mb-2 p-2 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold break-all">
-            {swapError}
-          </div>
-        )}
-
-        {/* Success */}
-        {swapTxId && (
-          <div className="mx-3 mb-2 p-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold break-all">
-            Swapped! TX: {swapTxId.slice(0, 12)}…
-          </div>
-        )}
-
-        {/* CTA */}
-        <div className="mt-5">
-          {redirectTo ? (
-            <button
-              onClick={() => {
-                if (sellAmount) {
-                  router.push(`${redirectTo}?sell=${encodeURIComponent(sellAmount)}`);
-                } else {
-                  router.push(redirectTo);
-                }
-              }}
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
-            >
-              Get Started
-            </button>
-          ) : !mounted || !isWalletConnected ? (
-            <button
-              onClick={() => toggleWalletModal(true)}
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all"
-            >
-              Connect Wallet
-            </button>
-          ) : !sellAmount || amountInRaw === 0n ? (
-            <button
-              disabled
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-gray-200 text-gray-500 border-[3px] border-gray-400 cursor-not-allowed"
-            >
-              Enter an amount
-            </button>
-          ) : !quote ? (
-            <button
-              disabled
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-gray-200 text-gray-500 border-[3px] border-gray-400 cursor-not-allowed flex items-center justify-center gap-3"
-            >
-              {quoteFetching ? <><Loader2 className="w-5 h-5 animate-spin" />Getting quote…</> : 'Enter an amount'}
-            </button>
-          ) : (
-            <button
-              onClick={handleSwap}
-              disabled={swapping}
-              className="w-full rounded-2xl h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all disabled:opacity-60 disabled:scale-100 flex items-center justify-center gap-3"
-            >
-              {swapping ? <><Loader2 className="w-5 h-5 animate-spin" />Swapping…</> : 'Swap Tokens'}
-            </button>
-          )}
+        <div className="mt-8">
+          <button
+            onClick={() => router.push('/trade')}
+            className="w-full rounded-full h-16 text-lg font-black uppercase tracking-widest bg-[#FFE169] text-dark-green border-[3px] border-dark-green shadow-[-4px_4px_0_0_var(--color-dark-green)] hover:shadow-[-2px_2px_0_0_var(--color-dark-green)] hover:translate-y-[2px] hover:translate-x-[-2px] hover:bg-[#ffe88f] transition-all flex items-center justify-center"
+          >
+            Get Started
+          </button>
         </div>
+
+
+
+
       </div>
     </div>
   );

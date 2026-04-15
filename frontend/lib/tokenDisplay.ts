@@ -16,6 +16,22 @@ export function rawToDisplay(raw: bigint, decimals = POOL_TOKEN_DECIMALS): strin
   return `${whole}.${frac.toString().padStart(decimals, '0')}`;
 }
 
+/**
+ * Raw microunits → display capped at `maxDecimals` fractional digits,
+ * trimming trailing zeros (e.g. 993_000n → "0.993", 1_000_000n → "1").
+ */
+export function rawToDisplayShort(
+  raw: bigint,
+  maxDecimals = 4,
+  decimals = POOL_TOKEN_DECIMALS,
+): string {
+  const full = rawToDisplay(raw, decimals);
+  const [wholePart, fracPart = ''] = full.split('.');
+  if (!fracPart) return wholePart;
+  const truncated = fracPart.slice(0, maxDecimals).replace(/0+$/, '');
+  return truncated ? `${wholePart}.${truncated}` : wholePart;
+}
+
 /** Human string → raw microunits (e.g. "1.5" → 1_500_000n). Returns null on invalid input. */
 export function displayToRaw(display: string, decimals = POOL_TOKEN_DECIMALS): bigint | null {
   if (!display || isNaN(Number(display))) return null;

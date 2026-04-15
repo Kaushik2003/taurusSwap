@@ -1,29 +1,59 @@
 "use client";
+import { useState } from 'react';
 import FloatingOrbs from '../../components/landing/FloatingOrbs';
 import SwapCard from '../../components/swap/SwapCard';
+import LimitCard from '../../components/swap/LimitCard';
+import BuyCard from '../../components/swap/BuyCard';
+import SellCard from '../../components/swap/SellCard';
+
+type Tab = 'swap' | 'limit' | 'buy' | 'sell';
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'swap',  label: 'Swap'  },
+  { id: 'limit', label: 'Limit' },
+  { id: 'buy',   label: 'Buy'   },
+  { id: 'sell',  label: 'Sell'  },
+];
 
 export default function TradePage() {
+  const [activeTab, setActiveTab] = useState<Tab>('swap');
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-green">
-      <FloatingOrbs />
 
       <div className="relative z-10 flex flex-col items-center px-4">
-        <div className="w-full max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 mt-20 lg:mt-36 mb-16 px-4 lg:px-12 xl:px-20">
-          <div className="flex-1 text-center lg:text-left animate-fade-in-up w-full">
-            <div className="mx-auto lg:mx-0 mb-6 inline-flex rounded-full border-2 border-dark-green px-4 py-1.5 text-sm font-bold text-dark-green bg-[#C0FCFD] shadow-[-2px_2px_0_0_var(--dark-green)] uppercase tracking-widest">
-              Algorand Ecosystem
-            </div>
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-dark-green mb-6 leading-[1.05] tracking-tighter">
-              Trade tokens,<br className="hidden lg:block" /> without limits.
-            </h1>
-            <p className="text-lg sm:text-xl text-dark-green/70 max-w-lg mx-auto lg:mx-0 font-bold mb-8">
-              Swap, earn, and build on Algorand with institutional-grade liquidity and sub-4 second finality. Built for everyone.
-            </p>
+        <div className="w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 py-20 mb-16 px-4">
+
+          <div className="lg:max-w-[45%]">
+            <h1 className="text-6xl text-foreground mb-1" style={{ fontFamily: "'WiseSans', 'Inter', sans-serif", fontWeight: 900 }}>TRADE PANEL</h1>
+            <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Trade tokens, without limits</p>
           </div>
 
           <div className="w-full max-w-[500px] flex-shrink-0 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-            <SwapCard />
+            {/* Tab bar */}
+            <div className="flex gap-2 mb-4">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-2.5 rounded-2xl text-sm font-black uppercase tracking-wider border-[3px] border-dark-green transition-all
+                    ${activeTab === tab.id
+                      ? 'bg-dark-green text-white shadow-[-3px_3px_0_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)] hover:bg-[#FFE169] hover:translate-y-[2px] hover:translate-x-[-2px] hover:shadow-[-1px_1px_0_0_var(--color-dark-green)]'
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Card */}
+            {activeTab === 'swap'  && <SwapCard />}
+            {activeTab === 'limit' && <LimitCard />}
+            {activeTab === 'buy'   && <BuyCard />}
+            {activeTab === 'sell'  && <SellCard />}
           </div>
+
         </div>
       </div>
     </div>

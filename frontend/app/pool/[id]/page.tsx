@@ -156,29 +156,31 @@ export default function PositionPage({ params }: PageProps) {
         {/* Left Column: Management & Terminal */}
         <div className="flex-1 space-y-6">
           
-          {/* ACTION BUTTON GROUP - PREMIUM TERMINAL CONTROLS */}
+          {/* ACTION BUTTON GROUP */}
           <div className="flex flex-wrap gap-3">
-            <Button 
-              className="rounded-xl h-14 flex-[1.5] font-black uppercase tracking-widest text-xs bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 border-b-4 border-primary-foreground/20 active:border-b-0 transition-all" 
+            <Button
+              variant="positive"
+              className="flex-[1.5]"
               onClick={() => router.push(`/pool/add?mode=manual`)}
             >
               <TrendingUp className="w-4 h-4 mr-2" />
               Add Liquidity
             </Button>
-            
-            <Button 
-              variant="outline" 
-              className="rounded-xl h-14 flex-1 font-black uppercase tracking-widest text-[10px] bg-emerald-500/5 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all" 
-              onClick={() => handleAction('claim')} 
+
+            <Button
+              variant="warning"
+              className="flex-1"
+              onClick={() => handleAction('claim')}
               disabled={totalClaimable === 0n || claimStatus === 'loading'}
             >
               {claimStatus === 'loading' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Coins className="w-4 h-4 mr-2" />}
-              Claim Fees (${rawToDisplay(totalClaimable)})
+              Claim Fees
             </Button>
-            
-            <Button 
-              className="rounded-xl h-14 flex-1 font-black uppercase tracking-widest text-[10px] bg-rose-500/5 border border-rose-500/20 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all shadow-sm" 
-              onClick={() => handleAction('remove')} 
+
+            <Button
+              variant="negative"
+              className="flex-1"
+              onClick={() => handleAction('remove')}
               disabled={removeStatus === 'loading'}
             >
               {removeStatus === 'loading' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wallet className="w-4 h-4 mr-2" />}
