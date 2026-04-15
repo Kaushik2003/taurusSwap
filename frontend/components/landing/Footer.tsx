@@ -24,10 +24,9 @@ const Footer = () => {
             translateY: 0,
             transition: {
                 type: 'spring' as const,
-                stiffness: 100,
-                damping: 12,
-                duration: 0.4,
-                delay: i * 0.08,
+                stiffness: 55,
+                damping: 16,
+                delay: i * 0.1,
             },
         }),
         hidden: { translateY: 200 },
