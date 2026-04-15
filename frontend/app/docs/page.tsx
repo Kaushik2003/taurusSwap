@@ -49,7 +49,7 @@ const sections = [
 export default function DocsPage() {
   return (
     <div className="page-slide-in">
-      <h1>taurusSwap Documentation</h1>
+      <h1>Taurus Swap Documentation</h1>
 
       <p className="text-lg leading-relaxed mb-8">
         Welcome to the technical documentation for <strong>taurusSwap</strong> — an implementation of the

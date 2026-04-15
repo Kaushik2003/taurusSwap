@@ -4,7 +4,7 @@ export default function Glossary() {
       <h1>Glossary</h1>
 
       <p>
-        Alphabetized definitions of terms used throughout the taurusSwap documentation.
+        Alphabetized definitions of terms used throughout the Taurus Swap documentation.
       </p>
 
       <h2 id="a">A</h2>
