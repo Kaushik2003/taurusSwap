@@ -18,7 +18,10 @@ export const metadata: Metadata = {
   title: 'TaurusSwap Faucet — Get Testnet Tokens',
   description:
     'Claim free testnet stablecoins (USDC, USDT, USDD, BUSD, TUSD) for the TaurusSwap AMM on Algorand.',
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
