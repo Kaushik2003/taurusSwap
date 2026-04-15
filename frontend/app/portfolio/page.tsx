@@ -86,7 +86,6 @@ export default function Portfolio() {
   if (!mounted || !isWalletConnected) {
     return (
       <div className="max-w-[1400px] mx-auto px-4 py-8">
-<<<<<<< HEAD
         {/* Header */}
         <div className="mb-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -94,37 +93,6 @@ export default function Portfolio() {
               <h1 className="text-4xl font-black text-foreground tracking-tighter mb-1">Portfolio</h1>
               <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Track & Manage Your Assets</p>
             </div>
-=======
-        <div
-          className="relative rounded-3xl overflow-hidden mb-8"
-          style={{
-            background:
-              "linear-gradient(135deg, hsl(70 55% 20% / 0.5), hsl(80 45% 15% / 0.5), hsl(240 10% 8%))",
-          }}
-        >
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 20% 50%, hsl(70 55% 37% / 0.3), transparent 50%), radial-gradient(circle at 80% 30%, hsl(80 45% 30% / 0.2), transparent 40%)",
-            }}
-          />
-          <div className="relative p-10 sm:p-16 text-center">
-            <Wallet className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-              Your crypto portfolio
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Connect your wallet to track your tokens and DeFi positions.
-            </p>
-            <Button
-              variant="neo"
-              onClick={() => toggleWalletModal(true)}
-              className="px-10 h-14 text-sm font-black uppercase tracking-widest"
-            >
-              Connect Wallet
-            </Button>
->>>>>>> 350d23e758dc5910bedbfa03dca2a752a05c3261
           </div>
         </div>
 
