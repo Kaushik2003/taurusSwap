@@ -2,7 +2,7 @@
 
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 
-type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "positive" | "warning" | "negative";
+type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "positive" | "warning" | "negative" | "neo";
 type ButtonSize = "default" | "sm";
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -37,6 +37,11 @@ const variantStyles: Record<ButtonVariant, string> = {
     "bg-[#A8200D] text-white border-2 border-[#A8200D] " +
     "hover:ring-2 hover:ring-[#A8200D] hover:ring-offset-2 " +
     "focus-visible:ring-2 focus-visible:ring-[#A8200D] focus-visible:ring-offset-2",
+  neo:
+    "bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] " +
+    "shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589] " +
+    "hover:brightness-110 active:scale-[0.98] transition-all " +
+    "font-bold uppercase tracking-widest text-[10px]",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

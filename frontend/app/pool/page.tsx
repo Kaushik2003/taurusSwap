@@ -60,28 +60,31 @@ export default function Pool() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button
-              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589] hover:brightness-110 transition-all flex items-center justify-center m-1"
+            <Button
+              variant="neo"
+              className="px-6"
               onClick={() => refetch()}
             >
               <RefreshCw className="w-4 h-4 mr-2" strokeWidth={2.5} />
               Refresh
-            </button>
-            <button
-              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589] hover:brightness-110 transition-all flex items-center justify-center m-1"
+            </Button>
+            <Button
+              variant="neo"
+              className="px-6"
               onClick={() => router.push('/pool/analytics')}
             >
               <BarChart3 className="w-4 h-4 mr-2" strokeWidth={2.5} />
               Analytics
-            </button>
-            <button
-              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-8 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589] hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center m-1"
+            </Button>
+            <Button
+              variant="neo"
+              className="px-8"
               onClick={() => router.push('/pool/add')}
               disabled={!mounted || !isWalletConnected}
             >
               <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
               Add Liquidity
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -126,12 +129,13 @@ export default function Pool() {
               <p className="text-sm text-dark-green/60 mb-8 max-w-sm mx-auto font-bold">
                 Connect your Algorand wallet to access your liquidity dashboard and manage your TaurusSwap positions.
               </p>
-              <button 
+              <Button 
                 onClick={() => toggleWalletModal(true)} 
-                className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-12 h-14 rounded-full font-bold uppercase tracking-widest text-xs shadow-[0_0_0_2px_#052c05,0_0_0_4px_#89f589] hover:brightness-110 transition-all m-2"
+                variant="neo"
+                className="px-12 h-14 text-xs"
               >
                 Connect Algorand Wallet
-              </button>
+              </Button>
             </div>
           ) : positionsLoading ? (
             <TableSkeleton rows={3} />
@@ -142,12 +146,13 @@ export default function Pool() {
               </div>
               <h3 className="text-xl font-black text-dark-green uppercase mb-2">No Active Positions</h3>
               <p className="text-sm text-dark-green/60 mb-8 font-bold">You haven't provided liquidity to any ticks in this pool yet.</p>
-              <button 
+              <Button 
                 onClick={() => router.push('/pool/add')} 
-                className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-12 h-14 rounded-full font-bold uppercase tracking-widest text-xs shadow-[0_0_0_2px_#052c05,0_0_0_4px_#89f589] hover:brightness-110 transition-all m-2"
+                variant="neo"
+                className="px-12 h-14 text-xs"
               >
                 Open New Position
-              </button>
+              </Button>
             </div>
           ) : (
             <PositionsTable

@@ -115,28 +115,29 @@ export default function SendModal({ open, onClose, assets }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-sm rounded-3xl bg-[hsl(240_8%_8%)] border border-border/30 p-6">
+      <DialogContent className="max-w-sm rounded-[2rem] bg-white border-[3px] border-dark-green p-6 shadow-[-12px_12px_0_0_rgba(5,44,5,0.1)]">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold text-foreground">
-            Send
+          <DialogTitle className="text-xl font-black text-dark-green uppercase tracking-wider">
+            Send Assets
           </DialogTitle>
         </DialogHeader>
 
         {status === "success" ? (
-          <div className="text-center py-4 space-y-3">
-            <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
-              <span className="text-green-400 text-2xl">✓</span>
+          <div className="text-center py-6 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-green/20 border-2 border-dark-green flex items-center justify-center mx-auto shadow-[-4px_4px_0_0_var(--color-dark-green)]">
+              <span className="text-dark-green text-3xl font-black">✓</span>
             </div>
-            <p className="text-sm text-foreground font-semibold">Sent successfully!</p>
+            <p className="text-lg font-black text-dark-green uppercase">Success!</p>
+            <p className="text-xs text-dark-green/60 font-bold px-4">Your transaction has been confirmed on the Algorand blockchain.</p>
             <a
               href={`https://testnet.explorer.perawallet.app/tx/${txId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline block"
+              className="text-xs text-dark-green underline font-black block"
             >
               View on Pera Explorer ↗
             </a>
-            <Button className="w-full mt-2" onClick={handleClose}>
+            <Button variant="neo" className="w-full mt-2" onClick={handleClose}>
               Done
             </Button>
           </div>
@@ -144,32 +145,34 @@ export default function SendModal({ open, onClose, assets }: Props) {
           <div className="space-y-4 mt-2">
             {/* Token selector */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Token</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-dark-green/40 mb-2 ml-1">Select Token</p>
               <div className="relative">
                 <button
                   onClick={() => setShowTokenPicker((v) => !v)}
-                  className="w-full flex items-center justify-between gap-2 bg-muted/30 rounded-2xl px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+                  className="w-full flex items-center justify-between gap-2 bg-[#f8f9fa] border-2 border-dark-green rounded-2xl px-4 py-3.5 text-sm font-black text-dark-green hover:bg-[#e9ecef] transition-all shadow-[-4px_4px_0_0_rgba(0,0,0,0.05)]"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-[10px] shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-[10px] shrink-0 border border-black/10"
                       style={{ background: asset?.color ?? "#888" }}
                     >
                       {asset?.symbol.slice(0, 2)}
                     </div>
-                    <span>{asset?.symbol}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {asset?.balance.toLocaleString("en-US", {
-                        maximumFractionDigits: 4,
-                      })}{" "}
-                      available
-                    </span>
+                    <div className="text-left">
+                      <p className="uppercase">{asset?.symbol}</p>
+                      <p className="text-[10px] text-dark-green/40">
+                        {asset?.balance.toLocaleString("en-US", {
+                          maximumFractionDigits: 4,
+                        })}{" "}
+                        Available
+                      </p>
+                    </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  <ChevronDown className="w-5 h-5 text-dark-green" strokeWidth={3} />
                 </button>
 
                 {showTokenPicker && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-[hsl(240_8%_10%)] border border-border/30 rounded-2xl overflow-hidden z-50 shadow-xl">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-dark-green rounded-2xl overflow-hidden z-50 shadow-[-8px_8px_0_0_rgba(5,44,5,0.1)]">
                     {assets.map((a, i) => (
                       <button
                         key={a.symbol}
@@ -178,20 +181,20 @@ export default function SendModal({ open, onClose, assets }: Props) {
                           setShowTokenPicker(false);
                           setAmount("");
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted/40 transition-colors ${
-                          i === selectedIdx ? "bg-primary/10" : ""
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 text-sm hover:bg-green transition-colors ${
+                          i === selectedIdx ? "bg-green/30" : ""
                         }`}
                       >
                         <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-[10px] shrink-0"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-[10px] shrink-0"
                           style={{ background: a.color }}
                         >
                           {a.symbol.slice(0, 2)}
                         </div>
-                        <span className="font-medium text-foreground">
+                        <span className="font-black text-dark-green uppercase">
                           {a.symbol}
                         </span>
-                        <span className="ml-auto text-xs text-muted-foreground">
+                        <span className="ml-auto text-[10px] font-bold text-dark-green/40">
                           {a.balance.toLocaleString("en-US", {
                             maximumFractionDigits: 4,
                           })}
@@ -205,32 +208,32 @@ export default function SendModal({ open, onClose, assets }: Props) {
 
             {/* Recipient */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">
-                Recipient address
+              <p className="text-[10px] font-black uppercase tracking-widest text-dark-green/40 mb-2 ml-1">
+                Recipient Address
               </p>
               <input
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
                 placeholder="Algorand address (58 chars)"
-                className="w-full bg-muted/30 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary font-mono"
+                className="w-full bg-[#f8f9fa] border-2 border-dark-green rounded-2xl px-4 py-3.5 text-sm text-dark-green font-bold placeholder:text-dark-green/20 outline-none focus:bg-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] transition-all"
               />
             </div>
 
             {/* Amount */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Amount</p>
-              <div className="flex gap-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-dark-green/40 mb-2 ml-1">Amount</p>
+              <div className="flex gap-3">
                 <input
                   value={amount}
                   onChange={(e) =>
                     setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                   }
                   placeholder="0.00"
-                  className="flex-1 bg-muted/30 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+                  className="flex-1 bg-[#f8f9fa] border-2 border-dark-green rounded-2xl px-4 py-3.5 text-sm text-dark-green font-bold placeholder:text-dark-green/20 outline-none focus:bg-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] transition-all"
                 />
                 <button
                   onClick={handleMax}
-                  className="px-4 py-3 rounded-2xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+                  className="px-5 py-3 rounded-2xl bg-dark-green text-[#89f589] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-[-3px_3px_0_0_rgba(0,0,0,0.1)] active:scale-95"
                 >
                   Max
                 </button>
@@ -242,14 +245,15 @@ export default function SendModal({ open, onClose, assets }: Props) {
             )}
 
             <Button
-              className="w-full"
+              variant="neo"
+              className="w-full h-14 text-sm"
               onClick={handleSend}
               disabled={
                 status === "submitting" || !recipient || !amount || !asset
               }
             >
               {status === "submitting" ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
               ) : null}
               {status === "submitting" ? "Sending…" : `Send ${asset?.symbol ?? ""}`}
             </Button>

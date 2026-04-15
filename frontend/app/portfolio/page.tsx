@@ -109,8 +109,9 @@ export default function Portfolio() {
               Connect your wallet to track your tokens and DeFi positions.
             </p>
             <Button
+              variant="neo"
               onClick={() => toggleWalletModal(true)}
-              className="rounded-2xl px-8 h-12 text-base font-semibold"
+              className="px-10 h-14 text-sm font-black uppercase tracking-widest"
             >
               Connect Wallet
             </Button>
@@ -349,7 +350,7 @@ export default function Portfolio() {
             </div>
 
             {/* Action tiles */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-4">
               {[
                 { icon: Send, label: "Send", action: () => setSendOpen(true) },
                 {
@@ -363,12 +364,12 @@ export default function Portfolio() {
                 <button
                   key={a.label}
                   onClick={a.action}
-                  className="glass-panel-hover p-4 flex flex-col items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                  className="bg-white border-2 border-dark-green rounded-2xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[-6px_6px_0_0_var(--color-dark-green)] group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <a.icon className="w-4 h-4 text-primary" />
+                  <div className="w-12 h-12 rounded-xl bg-green/20 border border-dark-green/10 flex items-center justify-center group-hover:bg-[#9FE870] transition-colors">
+                    <a.icon className="w-5 h-5 text-dark-green" strokeWidth={2.5} />
                   </div>
-                  <span className="text-xs text-muted-foreground">{a.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-dark-green">{a.label}</span>
                 </button>
               ))}
             </div>
@@ -531,20 +532,24 @@ export default function Portfolio() {
       {/* ── ACTIVITY ── */}
       {tab === "activity" && (
         <div className="space-y-4">
-          <div className="flex justify-end p-1 bg-muted/40 rounded-xl border border-border/20 w-fit ml-auto">
-            {(["personal", "global"] as ActivityView[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setActivityView(v)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                  activityView === v
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {v} activity
-              </button>
-            ))}
+          <div className="flex justify-end mb-4">
+            <div className="inline-flex p-1.5 bg-[#9FE870]/20 border border-dark-green/10 rounded-full">
+              {(["personal", "global"] as ActivityView[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setActivityView(v)}
+                  className={`
+                    px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-200
+                    ${activityView === v 
+                      ? "bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589] z-10" 
+                      : "text-dark-green/50 hover:text-dark-green"
+                    }
+                  `}
+                >
+                  {v} activity
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="glass-panel overflow-hidden">

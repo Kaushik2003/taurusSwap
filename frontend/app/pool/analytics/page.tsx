@@ -125,9 +125,10 @@ export default function AnalyticsPage() {
           href={getExplorerUrl(pool?.appId ?? '', 'application')}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
         >
-          View Contract <ExternalLink className="w-3 h-3" />
+          <Button variant="neo" className="h-9 px-4">
+            View Contract <ExternalLink className="w-3 h-3 ml-2" strokeWidth={2.5} />
+          </Button>
         </a>
       </div>
 
@@ -153,17 +154,22 @@ export default function AnalyticsPage() {
       </div>
 
       <Tabs.Root defaultValue="overview" className="w-full">
-        <Tabs.List className="flex items-center gap-1 p-1 bg-muted/40 rounded-xl border border-border/30 w-fit mb-6">
-          {(['overview', 'depth'] as const).map((tab) => (
-            <Tabs.Trigger
-              key={tab}
-              value={tab}
-              className="px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.18em] transition-all text-muted-foreground hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border/20"
-            >
-              {tab}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
+        <div className="inline-flex p-1.5 rounded-full border border-dark-green/10 mb-8 bg-dark-green/[0.02]">
+          <Tabs.List className="inline-flex items-center gap-1 bg-transparent w-fit h-10">
+            {(['overview', 'depth'] as const).map((tab) => (
+              <Tabs.Trigger
+                key={tab}
+                value={tab}
+                className="rounded-full transition-all text-dark-green/50 hover:text-dark-green
+                  data-[state=active]:bg-[#052c05] data-[state=active]:text-[#89f589] data-[state=active]:border-[1.5px] data-[state=active]:border-[#89f589]
+                  data-[state=active]:shadow-[0_0_0_2px_#052c05,0_0_0_3.5px_#89f589]
+                  px-8 h-full font-bold uppercase tracking-widest text-[10px]"
+              >
+                {tab}
+              </Tabs.Trigger>
+            ))}
+          </Tabs.List>
+        </div>
 
         <Tabs.Content value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
