@@ -15,10 +15,10 @@ const wiseSans = localFont({ src: '../../public/fonts/wise-sans.otf' });
 
 const navItems = [
   { label: 'Trade', to: '/trade', bg: '#FCA5F1' },
-  { label: 'Explore', to: '/explore', bg: '#B6F4CC' },
   { label: 'Pool', to: '/pool', bg: '#FFC1D9' },
   { label: 'Portfolio', to: '/portfolio', bg: '#C0FCFD' },
   { label: 'Docs', to: '/docs', bg: '#FFE5B4' },
+  { label: 'Faucet', to: 'https://taurus-faucet.vercel.app/', bg: '#FDE68A' },
 ];
 
 export default function Navbar() {
