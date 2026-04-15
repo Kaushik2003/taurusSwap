@@ -9,13 +9,15 @@ import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
 import { networks } from '@/data/mock';
 import ConnectWallet from '../ConnectWallet';
+import localFont from 'next/font/local';
+
+const wiseSans = localFont({ src: '../../public/fonts/wise-sans.otf' });
 
 const navItems = [
   { label: 'Trade', to: '/trade', bg: '#FCA5F1' },
   { label: 'Explore', to: '/explore', bg: '#B6F4CC' },
   { label: 'Pool', to: '/pool', bg: '#FFC1D9' },
   { label: 'Portfolio', to: '/portfolio', bg: '#C0FCFD' },
-  { label: 'Faucet', to: 'https://taurus-faucet.vercel.app/', bg: '#FFE169' },
 ];
 
 export default function Navbar() {
@@ -32,13 +34,13 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -58,8 +60,9 @@ export default function Navbar() {
     <>
       <nav className={`sticky top-0 z-50 pt-5 pb-3 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 mr-2 shrink-0">
-            <img src="/favicon.ico" alt="TaurusSwap" className="w-10 h-10 rounded-full border-[2.5px] border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)]" />
+          <Link href="/" className="flex items-center gap-3 mr-2 shrink-0">
+            <img src="/favicon.ico" alt="TaurusSwap" className="w-14 h-14 rounded-full border-[2.5px] border-dark-green shadow-[-3px_3px_0_0_var(--color-dark-green)]" />
+            <span className={`hidden sm:block text-2xl font-black text-dark-green tracking-widest leading-none ${wiseSans.className}`}>TAURUS SWAP</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-3 ml-2">
@@ -149,10 +152,10 @@ export default function Navbar() {
                               {activeAddress}
                             </div>
                           </div>
-                          
+
                           <div className="h-px bg-border/40" />
                           <button
-                            onClick={() => { 
+                            onClick={() => {
                               if (activeAddress) navigator.clipboard.writeText(activeAddress);
                               setWalletOpen(false);
                             }}
@@ -161,7 +164,7 @@ export default function Navbar() {
                             <Copy className="w-[20px] h-[20px] text-dark-green" strokeWidth={2} />
                             Copy address
                           </button>
-                          
+
                           <div className="h-px bg-border/40" />
                           <button
                             onClick={async () => {
@@ -252,12 +255,12 @@ export default function Navbar() {
       </nav>
 
       {(networkOpen || walletOpen) && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => {
             setNetworkOpen(false);
             setWalletOpen(false);
-          }} 
+          }}
         />
       )}
       <ConnectWallet openModal={isWalletModalOpen} closeModal={() => toggleWalletModal(false)} />
