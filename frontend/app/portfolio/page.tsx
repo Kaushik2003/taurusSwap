@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
   Send,
@@ -118,10 +119,15 @@ export default function Portfolio() {
       {/* Portfolio Header & Navigation */}
       <div className="flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16 mb-4 px-1">
         {/* Left: Title */}
-        <div className="lg:max-w-[45%]">
+        <motion.div
+          className="lg:max-w-[45%]"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        >
           <h1 className="text-6xl text-foreground mb-1" style={{ fontFamily: "'WiseSans', 'Inter', sans-serif", fontWeight: 900 }}>PORTFOLIO</h1>
           <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Asset Management & Activity</p>
-        </div>
+        </motion.div>
 
         {/* Right: Account & Tabs */}
         <div className="w-full flex flex-col items-start lg:items-end gap-6">
@@ -174,6 +180,15 @@ export default function Portfolio() {
       />
 
 
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
 
       {/* ── OVERVIEW ── */}
       {tab === "overview" && (
@@ -716,6 +731,9 @@ export default function Portfolio() {
           )}
         </div>
       )}
+
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

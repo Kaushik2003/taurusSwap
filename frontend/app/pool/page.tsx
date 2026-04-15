@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Plus, Wallet, Loader2, RefreshCw, BarChart3, Settings2, Activity, Zap, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
@@ -54,10 +55,14 @@ export default function Pool() {
       {/* Portfolio Header */}
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          >
             <h1 className="text-6xl text-foreground mb-1" style={{ fontFamily: "'WiseSans', 'Inter', sans-serif", fontWeight: 900 }}>LIQUIDITY POOL PROFILE</h1>
             <p className="text-muted-foreground font-medium uppercase text-xs tracking-[0.2em]">Institutional-Grade Provisioning</p>
-          </div>
+          </motion.div>
 
           <div className="flex items-center gap-4">
             <Button
@@ -163,51 +168,32 @@ export default function Pool() {
 
           {/* Info Cards */}
           <div className="grid sm:grid-cols-2 gap-4 mt-8">
-            <div className="glass-panel p-6 hover:bg-muted/10 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">LP Strategy Guide</h4>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.</p>
-            </div>
-
-            <div className="glass-panel p-6 hover:bg-muted/10 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Geometric AMM Docs</h4>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
-                Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.
-              </p>
-            </div>
-
-            <div className="glass-panel p-6 hover:bg-muted/10 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Fee Compounding</h4>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
-                Earned fees accumulate per-tick and can be claimed or reinvested into new positions to compound your yield over time.
-              </p>
-            </div>
-
-            <div className="glass-panel p-6 hover:bg-muted/10 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Depeg Protection</h4>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
-                The Torus Invariant constrains prices geometrically — positions stay solvent even when one stablecoin depegs from its peg.
-              </p>
-            </div>
+            {([
+              { icon: BarChart3, bg: 'bg-primary/10',      color: 'text-primary',     title: 'LP Strategy Guide',   body: 'Learn how to manage impermanent loss and optimize your tick ranges for maximum fee generation in multi-asset pools.' },
+              { icon: Activity,  bg: 'bg-primary/10',      color: 'text-primary',     title: 'Geometric AMM Docs',  body: 'Deep dive into the O(1) Torus Invariant and the mathematics of spherical concentrated liquidity on Algorand.' },
+              { icon: Zap,       bg: 'bg-amber-500/10',    color: 'text-amber-600',   title: 'Fee Compounding',     body: 'Earned fees accumulate per-tick and can be claimed or reinvested into new positions to compound your yield over time.' },
+              { icon: Shield,    bg: 'bg-blue-500/10',     color: 'text-blue-600',    title: 'Depeg Protection',    body: 'The Torus Invariant constrains prices geometrically — positions stay solvent even when one stablecoin depegs from its peg.' },
+            ] as const).map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <motion.div
+                  key={card.title}
+                  className="glass-panel p-6 hover:bg-muted/10 transition-colors cursor-pointer group"
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: i * 0.07 }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`p-2 rounded-lg ${card.bg} ${card.color}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground">{card.title}</h4>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">{card.body}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 

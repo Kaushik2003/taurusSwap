@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { TrendingUp, Wallet, Coins, Percent } from "lucide-react";
 import { rawToDisplay } from "@/lib/tokenDisplay";
 
@@ -46,9 +47,12 @@ export function PortfolioHeader({ totalValue, totalFees, positionCount }: Portfo
           suffix: "Est."
         },
       ].map((item, i) => (
-        <div 
-          key={i} 
+        <motion.div
+          key={i}
           className="glass-panel p-5 border-border/50 relative overflow-hidden group hover:border-primary/30 transition-all duration-300"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: i * 0.07 }}
         >
           <div className="flex items-center justify-between relative z-10">
             <div>
@@ -69,7 +73,7 @@ export function PortfolioHeader({ totalValue, totalFees, positionCount }: Portfo
           <div className="absolute -bottom-4 -right-4 w-16 h-16 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
             <item.icon className="w-full h-full text-foreground" />
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

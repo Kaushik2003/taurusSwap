@@ -133,6 +133,83 @@ body {
   }
 }
 
+/* ─── Shared utility classes ───────────────────────────────────────────────── */
+
+/* Table rows */
+.data-table-row {
+  transition: background-color 150ms ease-out;
+}
+.data-table-row:hover {
+  background-color: rgba(10, 63, 47, 0.04);
+}
+
+/* Percentage badges */
+.percentage-up   { color: hsl(152, 69%, 35%); }
+.percentage-down { color: hsl(0, 72%, 50%); }
+
+/* Input focus — smooth border/shadow */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 63, 47, 0.2);
+  transition: box-shadow 150ms ease-out;
+}
+
+/* Stagger helpers — add delay-stagger-{1..6} to list children */
+.delay-stagger-1 { animation-delay: 60ms  !important; }
+.delay-stagger-2 { animation-delay: 120ms !important; }
+.delay-stagger-3 { animation-delay: 180ms !important; }
+.delay-stagger-4 { animation-delay: 240ms !important; }
+.delay-stagger-5 { animation-delay: 300ms !important; }
+.delay-stagger-6 { animation-delay: 360ms !important; }
+
+/* Card mount animation — lightweight, no Framer Motion needed */
+.card-enter {
+  animation: cardEnter 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab content switch */
+.tab-enter {
+  animation: tabEnter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tabEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal backdrop & panel */
+.modal-backdrop-enter {
+  animation: backdropEnter 180ms ease-out both;
+}
+.modal-panel-enter {
+  animation: modalPanelEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes backdropEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalPanelEnter {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-enter,
+  .tab-enter,
+  .modal-backdrop-enter,
+  .modal-panel-enter {
+    animation: none;
+  }
+}
+
 /* Custom Scrollbar Styles */
 @layer base {
   ::-webkit-scrollbar {
