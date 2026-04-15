@@ -171,7 +171,7 @@ export default function SearchOverlay({
           to   { opacity: 1; }
         }
         @keyframes paletteFadeIn {
-          from { opacity: 0; transform: scale(0.97) translateY(-10px); }
+          from { opacity: 0; transform: scale(0.96) translateY(-12px); }
           to   { opacity: 1; transform: scale(1)    translateY(0); }
         }
         .palette-result-list::-webkit-scrollbar { width: 4px; }
@@ -182,7 +182,10 @@ export default function SearchOverlay({
         }
       `}</style>
 
-      {/* ── Backdrop ── */}
+      {/* ── Backdrop + centering shell ── */}
+      {/* Using a single fixed inset-0 flex container avoids the broken-fixed-
+          positioning bug that occurs when any ancestor has a CSS transform.
+          Flexbox centering on a fixed-inset-0 element is always viewport-relative. */}
       <div
         aria-hidden
         onClick={onClose}
@@ -190,33 +193,34 @@ export default function SearchOverlay({
           position: 'fixed',
           inset: 0,
           zIndex: 200,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          paddingTop: '14vh',
+          paddingLeft: '1rem',
+          paddingRight: '1rem',
           background: 'rgba(0,0,0,0.38)',
           backdropFilter: 'blur(3px)',
           WebkitBackdropFilter: 'blur(3px)',
-          animation: 'overlayFadeIn 0.15s ease both',
+          animation: 'overlayFadeIn 0.2s ease both',
         }}
-      />
-
+      >
       {/* ── Panel ── */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Search documentation"
+        onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'fixed',
-          top: '16vh',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'calc(100% - 2rem)',
+          width: '100%',
           maxWidth: '640px',
-          zIndex: 201,
           background: '#fff',
           border: '1.5px solid rgba(22,51,0,0.12)',
           borderRadius: '14px',
           boxShadow:
             '0 0 0 1px rgba(22,51,0,0.04), 0 8px 16px -4px rgba(22,51,0,0.08), 0 24px 64px -8px rgba(22,51,0,0.18)',
           overflow: 'hidden',
-          animation: 'paletteFadeIn 0.16s cubic-bezier(0.16,1,0.3,1) both',
+          animation: 'paletteFadeIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
 
@@ -511,6 +515,7 @@ export default function SearchOverlay({
           ))}
         </div>
       </div>
+      </div>{/* end centering shell */}
     </>
   );
 }
