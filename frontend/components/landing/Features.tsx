@@ -196,8 +196,8 @@ export default function Features() {
             flexDirection: "column",
             gap: 28,
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.6s ease, transform 0.6s ease",
+            transform: visible ? "translateY(0)" : "translateY(44px)",
+            transition: "opacity 1.0s cubic-bezier(0.16,1,0.3,1), transform 1.0s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
           <h1
@@ -263,8 +263,8 @@ export default function Features() {
             flexDirection: "column",
             gap: 12,
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(24px)",
-            transition: "opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s",
+            transform: visible ? "translateY(0)" : "translateY(52px)",
+            transition: "opacity 1.0s cubic-bezier(0.16,1,0.3,1) 0.18s, transform 1.0s cubic-bezier(0.16,1,0.3,1) 0.18s",
           }}
         >
           {/* Header */}

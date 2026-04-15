@@ -185,10 +185,10 @@ function LinkRow({ item, revealDelay = 0 }: LinkRowProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
     >
       {wrapper}
     </motion.div>
@@ -218,7 +218,7 @@ export default function FAQ() {
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           {links.map((item, i) => (
-            <LinkRow key={item.id} item={item} revealDelay={i * 0.09} />
+            <LinkRow key={item.id} item={item} revealDelay={i * 0.12} />
           ))}
           {/* Bottom border */}
           <div style={{ borderTop: "2px solid rgba(8,71,52,0.15)" }} />

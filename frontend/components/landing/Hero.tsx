@@ -8,9 +8,9 @@ import localFont from 'next/font/local';
 const wiseSans = localFont({ src: '../../public/fonts/wise-sans.otf' });
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 40 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const, delay },
+  transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] as const, delay },
 });
 
 const Hero = () => {
@@ -43,7 +43,7 @@ const Hero = () => {
 
               <motion.p
                 className="text-base sm:text-lg md:text-xl text-green/85 max-w-lg mx-auto lg:mx-0 font-bold mb-7"
-                {...fadeUp(0.14)}
+                {...fadeUp(0.22)}
               >
                 A simpler, more efficient way to trade stablecoins — built for better prices and smoother execution.
               </motion.p>
@@ -52,7 +52,7 @@ const Hero = () => {
             {/* Swap card */}
             <motion.div
               className="relative w-full max-w-[500px] mx-auto lg:mx-0 flex-shrink-0 lg:min-h-[560px]"
-              {...fadeUp(0.22)}
+              {...fadeUp(0.38)}
             >
               <div className="lg:absolute lg:inset-x-0 lg:top-0">
                 <Suspense fallback={null}>
