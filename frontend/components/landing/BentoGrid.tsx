@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { motion } from "framer-motion";
 
 const ArrowIcon = ({ color, size = 20 }: { color: string; size?: number }) => (
   <svg viewBox="0 0 18 18" fill="none" width={size} height={size}>
@@ -234,15 +235,18 @@ const cards = [
   },
 ];
 
-function BentoCard({ card, tall = false, children }: { card: { label: string; headline: string; body: string; cta: string; icon: ReactNode; color: string; bg: string; btnBg: string; btnColor: string; }; tall?: boolean; children?: ReactNode }) {
+function BentoCard({ card, tall = false, revealDelay = 0, children }: { card: { label: string; headline: string; body: string; cta: string; icon: ReactNode; color: string; bg: string; btnBg: string; btnColor: string; }; tall?: boolean; revealDelay?: number; children?: ReactNode }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         background: card.bg,
-        /* removed border */
         borderRadius: 40,
         padding: "40px 48px",
         display: "flex",
@@ -272,7 +276,7 @@ function BentoCard({ card, tall = false, children }: { card: { label: string; he
         </div>
       </div>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -303,31 +307,31 @@ export default function BentoGrid() {
         }}>
 
           {/* Web App (tall) */}
-          <BentoCard card={cards[0]} tall>
+          <BentoCard card={cards[0]} tall revealDelay={0}>
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8, zIndex: 2 }}>
               {tokens.map(t => <TokenRow key={t.ticker} token={t} cardColor={cards[0].color} />)}
             </div>
           </BentoCard>
 
           {/* Wallet (tall) */}
-          <BentoCard card={cards[1]} tall>
+          <BentoCard card={cards[1]} tall revealDelay={0.1}>
             <div style={{ display: "flex", justifyContent: "center", marginTop: 12, zIndex: 2 }}>
               <WalletMockup />
             </div>
           </BentoCard>
 
           {/* PFOF */}
-          <BentoCard card={cards[2]}>
+          <BentoCard card={cards[2]} revealDelay={0.05}>
             <PFOFDecoration />
           </BentoCard>
 
           {/* Liquidity */}
-          <BentoCard card={cards[3]}>
+          <BentoCard card={cards[3]} revealDelay={0.15}>
             <LiquidityDecoration />
           </BentoCard>
 
           {/* Developer API */}
-          <BentoCard card={cards[4]}>
+          <BentoCard card={cards[4]} revealDelay={0.1}>
             <div style={{
               position: "absolute", bottom: 20, right: 16,
               background: "rgba(253,244,255,0.1)", borderRadius: 8,
@@ -340,7 +344,7 @@ export default function BentoGrid() {
           </BentoCard>
 
           {/* Ecosystem */}
-          <BentoCard card={cards[5]}>
+          <BentoCard card={cards[5]} revealDelay={0.2}>
             <div style={{
               position: "absolute", bottom: 16, right: 16,
               width: 80, height: 80,

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useInView } from "framer-motion";
 
 const stats = [
   { label: "All time volume", value: "$2.5B+", color: "#FFFFFF", accent: false },
@@ -166,15 +167,13 @@ function StatCard({ label, value, accent, delay }) {
 }
 
 export default function Features() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 100);
-    return () => clearTimeout(t);
-  }, []);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const visible = isInView;
 
   return (
     <div
+      ref={ref}
       style={{
         width: "100%",
         padding: "40px 0",

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const ExternalArrow = () => (
   <svg viewBox="0 0 20 20" fill="none" width={32} height={32} style={{ flexShrink: 0 }}>
@@ -111,9 +112,10 @@ interface LinkRowProps {
     icon: React.ReactNode;
     isLink: boolean;
   };
+  revealDelay?: number;
 }
 
-function LinkRow({ item }: LinkRowProps) {
+function LinkRow({ item, revealDelay = 0 }: LinkRowProps) {
   const [hovered, setHovered] = useState(false);
 
   const inner = (
@@ -164,25 +166,32 @@ function LinkRow({ item }: LinkRowProps) {
     </div>
   );
 
-  if (item.isLink) {
-    return (
-      <a
-        href={item.href || "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ textDecoration: "none", display: "block" }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {inner}
-      </a>
-    );
-  }
-
-  return (
+  const wrapper = item.isLink ? (
+    <a
+      href={item.href || "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: "none", display: "block" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {inner}
+    </a>
+  ) : (
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       {inner}
     </div>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
+    >
+      {wrapper}
+    </motion.div>
   );
 }
 
@@ -208,8 +217,8 @@ export default function FAQ() {
         </h1>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {links.map(item => (
-            <LinkRow key={item.id} item={item} />
+          {links.map((item, i) => (
+            <LinkRow key={item.id} item={item} revealDelay={i * 0.09} />
           ))}
           {/* Bottom border */}
           <div style={{ borderTop: "2px solid rgba(8,71,52,0.15)" }} />
