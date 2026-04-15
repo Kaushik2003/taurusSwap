@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, X } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import DocSearch from './DocSearch';
 
 const navStructure = [
   {
@@ -72,68 +71,29 @@ const navStructure = [
 
 export default function DocsSidebar() {
   const pathname = usePathname();
-  const [query, setQuery] = useState('');
-
-  const filtered = useMemo(() => {
-    if (!query.trim()) return navStructure;
-    const q = query.toLowerCase();
-    return navStructure
-      .map((section) => ({
-        ...section,
-        items: section.items.filter(
-          (item) =>
-            item.label.toLowerCase().includes(q) ||
-            item.href.toLowerCase().includes(q) ||
-            section.group.toLowerCase().includes(q),
-        ),
-      }))
-      .filter((section) => section.items.length > 0);
-  }, [query]);
 
   return (
     <aside className="docs-sidebar p-4">
-      <div className="relative">
-        <Search className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search docs... (⌘K)"
-          className="docs-search-input"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {query && (
-          <button
-            onClick={() => setQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Clear search"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
+      <DocSearch />
 
       <nav>
-        {filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground px-2 py-4">No results for &ldquo;{query}&rdquo;</p>
-        ) : (
-          filtered.map((section) => (
-            <div key={section.group} className="docs-nav-group">
-              <div className="docs-nav-title">{section.group}</div>
-              {section.items.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`docs-nav-item ${isActive ? 'active' : ''}`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          ))
-        )}
+        {navStructure.map((section) => (
+          <div key={section.group} className="docs-nav-group">
+            <div className="docs-nav-title">{section.group}</div>
+            {section.items.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`docs-nav-item ${isActive ? 'active' : ''}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </aside>
   );

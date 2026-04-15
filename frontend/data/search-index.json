@@ -1,0 +1,194 @@
+[
+  {
+    "title": "What is Orbital AMM?",
+    "slug": "/docs/introduction/what-is-orbital",
+    "section": "Introduction",
+    "content": "Orbital AMM is a novel automated market maker design that generalizes concentrated liquidity to any number of tokens. Reserves live on an n-dimensional sphere. Capital efficiency, stablecoins, multi-token pool, sphere invariant, concentrated liquidity, ticks, torus invariant."
+  },
+  {
+    "title": "Why Algorand?",
+    "slug": "/docs/introduction/why-algorand",
+    "section": "Introduction",
+    "content": "Building Orbital AMM on Algorand. AVM native 512-bit math via mulw opcode, sqrt as first-class opcode, box storage for tick state, low latency finality, cost-efficient transactions. EVM comparison, Algorand Virtual Machine."
+  },
+  {
+    "title": "Quickstart",
+    "slug": "/docs/introduction/quickstart",
+    "section": "Introduction",
+    "content": "Get started with taurusSwap in 5 minutes. Install SDK, connect to Algorand, read pool state, execute your first swap. npm install algosdk, initialize Algod client, testnet mainnet sandbox."
+  },
+  {
+    "title": "Math Overview",
+    "slug": "/docs/math/overview",
+    "section": "Math",
+    "content": "Bird's-eye view of the mathematical pipeline. Reserves on a sphere, polar decomposition, ticks as spherical caps, consolidation, torus formation. Pipeline: reserves, alpha, w component, tick boundary, torus invariant verification."
+  },
+  {
+    "title": "Sphere AMM",
+    "slug": "/docs/math/sphere-amm",
+    "section": "Math",
+    "content": "The sphere invariant is the foundation of Orbital AMM. Deriving the invariant: sum of (r - xi)^2 = r^2. Center at (r,r,...,r). Prices as partial derivatives. Instantaneous price computation, marginal exchange rates."
+  },
+  {
+    "title": "Polar Decomposition",
+    "slug": "/docs/math/polar-decomposition",
+    "section": "Math",
+    "content": "Decomposing reserves into two orthogonal components: alpha (scalar projection onto equal-price axis) and w (orthogonal residual). Equal-price direction vector v = (1/sqrt(n),...). Trading moves w, alpha encodes total value."
+  },
+  {
+    "title": "Ticks and Caps",
+    "slug": "/docs/math/ticks-and-caps",
+    "section": "Math",
+    "content": "Ticks are spherical caps that define concentrated liquidity regions. Each tick is the intersection of the sphere with a half-space. Tick boundary hyperplane, cap radius, liquidity within a tick, tick crossing condition."
+  },
+  {
+    "title": "Consolidation",
+    "slug": "/docs/math/consolidation",
+    "section": "Math",
+    "content": "Consolidating multiple ticks into a single interior sphere and boundary circle. Summing liquidity contributions, effective radius, alpha_bound, s_bound calculation. Multi-tick pool state."
+  },
+  {
+    "title": "Torus Invariant",
+    "slug": "/docs/math/torus-invariant",
+    "section": "Math",
+    "content": "The master equation for multi-tick pools. r_int^2 = (alpha_int - r_int*sqrt(n))^2 + (|w| - s_bound)^2. Interior sphere, boundary subspace, simultaneous constraint satisfaction. On-chain verification."
+  },
+  {
+    "title": "Capital Efficiency",
+    "slug": "/docs/math/capital-efficiency",
+    "section": "Math",
+    "content": "Orbital achieves dramatically higher capital efficiency than uniform liquidity pools. 150x efficiency multiplier for 5-token pool at 0.99 depeg threshold compared to Curve. Concentrated liquidity vs uniform liquidity, LP returns."
+  },
+  {
+    "title": "Protocol Architecture",
+    "slug": "/docs/protocol/architecture",
+    "section": "Protocol",
+    "content": "Compute-off-chain, verify-on-chain pattern. SDK solves torus invariant for trade output, contract performs O(1) verification. Transaction group: ASA transfer input, app call with claimedOut, minOut slippage. Frontend SDK contract flow."
+  },
+  {
+    "title": "Smart Contract",
+    "slug": "/docs/protocol/smart-contract",
+    "section": "Protocol",
+    "content": "Orbital AMM AVM smart contract. PyTeal or Algorand Python. Global state, box storage for ticks and tokens. swap, add_liquidity, remove_liquidity, claim_fees methods. Budget padding transactions, opcode cost."
+  },
+  {
+    "title": "State Layout",
+    "slug": "/docs/protocol/state-layout",
+    "section": "Protocol",
+    "content": "Global state fields: n_tokens, radius, alpha, tick_count, fee_rate. Box storage: reserves box, tick boxes, fee_growth boxes, token ASA ID mapping. Box naming conventions, encoding."
+  },
+  {
+    "title": "Swap Verification",
+    "slug": "/docs/protocol/swap-verification",
+    "section": "Protocol",
+    "content": "How the contract verifies a swap. Reads new reserves from claimedOut, computes alpha and w, checks torus invariant, verifies output >= minOut, emits inner transaction payout. Verification steps on-chain."
+  },
+  {
+    "title": "Tick Crossing",
+    "slug": "/docs/protocol/tick-crossing",
+    "section": "Protocol",
+    "content": "When a trade exhausts the current tick's liquidity, the pool crosses to the next tick. Crossing condition: |w| exceeds tick boundary. Contract checks crossed tick boxes, updates boundary state. Multi-hop swaps."
+  },
+  {
+    "title": "Fee Accounting",
+    "slug": "/docs/protocol/fee-accounting",
+    "section": "Protocol",
+    "content": "Fee growth tracking per tick. fee_growth_inside computed from global and tick-level accumulators. LP fee claims proportional to liquidity share. Uniswap V3 fee accounting model adapted for sphere AMM."
+  },
+  {
+    "title": "Unit Scaling",
+    "slug": "/docs/protocol/unit-scaling",
+    "section": "Protocol",
+    "content": "Internal units vs display units. AMOUNT_SCALE factor converts between microunits (ASA base) and scaled internal representation. Preventing overflow in 512-bit arithmetic. Token decimals, precision."
+  },
+  {
+    "title": "SDK Overview",
+    "slug": "/docs/sdk/overview",
+    "section": "SDK",
+    "content": "taurusSwap SDK is a TypeScript library for interacting with Orbital AMM pools. Reads pool state, computes quotes, builds transaction groups, handles unit conversions. Does not sign or send transactions."
+  },
+  {
+    "title": "Installation",
+    "slug": "/docs/sdk/installation",
+    "section": "SDK",
+    "content": "Install taurusSwap SDK: npm install @taurusswap/sdk. Peer dependency algosdk v3.5.0+. TypeScript configuration, strict mode, moduleResolution. yarn add, package setup."
+  },
+  {
+    "title": "Reading Pool State",
+    "slug": "/docs/sdk/reading-pool-state",
+    "section": "SDK",
+    "content": "Fetch decoded pool state from Algorand. readPoolState(algodClient, poolAppId). Returns radius, n_tokens, ticks array, token ASA IDs, fee_rate. Decoding global state and box storage."
+  },
+  {
+    "title": "Quoting Swaps",
+    "slug": "/docs/sdk/quoting-swaps",
+    "section": "SDK",
+    "content": "Get a price quote before executing a swap. quoteSwap(poolState, tokenInIdx, tokenOutIdx, amountIn). Returns claimedOut, priceImpact, fee, route. Solving torus invariant client-side."
+  },
+  {
+    "title": "Executing Swaps",
+    "slug": "/docs/sdk/executing-swaps",
+    "section": "SDK",
+    "content": "Build and submit swap transaction groups. buildSwapTxns(algodClient, poolAppId, sender, quote, minAmountOut). Sign with Pera, Defly, or any algosdk signer. atomic group, ASA transfer, app call."
+  },
+  {
+    "title": "Adding Liquidity",
+    "slug": "/docs/sdk/adding-liquidity",
+    "section": "SDK",
+    "content": "Provide liquidity to an Orbital AMM pool. buildAddLiquidityTxns, tick range selection, LP tokens minted proportional to liquidity share. Single-sided and multi-sided deposits."
+  },
+  {
+    "title": "Managing Positions",
+    "slug": "/docs/sdk/managing-positions",
+    "section": "SDK",
+    "content": "Track and manage LP positions. readPosition, buildRemoveLiquidityTxns, buildClaimFeesTxns. Position NFT or account-based tracking. Fee accumulation, removal, uncollected fees."
+  },
+  {
+    "title": "API Reference",
+    "slug": "/docs/sdk/api-reference",
+    "section": "SDK",
+    "content": "Complete SDK API reference. readPoolState, quoteSwap, buildSwapTxns, buildAddLiquidityTxns, buildRemoveLiquidityTxns, buildClaimFeesTxns. Type definitions, PoolState, Quote, Transaction interfaces."
+  },
+  {
+    "title": "Frontend Overview",
+    "slug": "/docs/frontend/overview",
+    "section": "Frontend",
+    "content": "taurusSwap frontend is built with Next.js App Router, React, Tailwind CSS, and @txnlab/use-wallet-react. Component architecture, page structure, wallet integration, state management with Zustand."
+  },
+  {
+    "title": "Data Hooks",
+    "slug": "/docs/frontend/data-hooks",
+    "section": "Frontend",
+    "content": "React hooks for fetching and caching pool data. usePoolState, useSwapQuote, useWalletAssets, useTokenBalances. React Query for caching, staleness, refetch. AlgodClient integration."
+  },
+  {
+    "title": "Visualizations",
+    "slug": "/docs/frontend/visualizations",
+    "section": "Frontend",
+    "content": "Recharts-based charts for pool analytics. BalanceHistoryChart, LiquidityDepthChart. Tick visualization, price range display, LP position chart. Responsive, animated, real-time updates."
+  },
+  {
+    "title": "Glossary",
+    "slug": "/docs/reference/glossary",
+    "section": "Reference",
+    "content": "Key terms: AMM, sphere invariant, torus invariant, tick, cap, polar decomposition, alpha, w component, radius, concentrated liquidity, LP, ASA, AVM, claimedOut, minOut, slippage, price impact, fee growth."
+  },
+  {
+    "title": "Constants",
+    "slug": "/docs/reference/constants",
+    "section": "Reference",
+    "content": "Protocol constants. AMOUNT_SCALE, MAX_TOKENS, MIN_LIQUIDITY, FEE_DENOMINATOR, GLOBAL_STATE_KEYS, BOX_NAMES. Deployed app IDs for testnet and mainnet."
+  },
+  {
+    "title": "Deployed Addresses",
+    "slug": "/docs/reference/deployed-addresses",
+    "section": "Reference",
+    "content": "Testnet and mainnet contract addresses, app IDs. USDC-USDT-USDe pool, ASA IDs for each token. Algorand testnet, mainnet deployment details."
+  },
+  {
+    "title": "Paper",
+    "slug": "/docs/reference/paper",
+    "section": "Reference",
+    "content": "Original Orbital AMM paper by Dave White, Dan Robinson, Ciamac Moallemi from Paradigm, June 2025. Multi-asset concentrated liquidity, sphere invariant derivation, torus invariant, capital efficiency analysis."
+  }
+]
