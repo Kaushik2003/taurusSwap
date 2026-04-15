@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, ArrowRight, Hash } from 'lucide-react';
+import {
+  Search, X, ArrowRight,
+  BookOpen, Pi, Layers, Code2, Monitor, FileText,
+} from 'lucide-react';
 import searchIndex from '@/data/search-index.json';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface SearchEntry {
   title: string;
@@ -14,50 +19,98 @@ interface SearchEntry {
 
 const INDEX = searchIndex as SearchEntry[];
 
-// Highlight matching text — wraps matched span in <mark>
-function highlight(text: string, query: string): React.ReactNode {
-  if (!query) return text;
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return text;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="bg-[#9FE870]/40 text-inherit rounded-[2px] px-[1px]">
+// ─── Section metadata ─────────────────────────────────────────────────────────
+
+const SECTION_META: Record<string, { icon: ReactNode; color: string }> = {
+  Introduction: {
+    icon: <BookOpen className="w-3 h-3" />,
+    color: '#2563eb',
+  },
+  Math: {
+    icon: <Pi className="w-3 h-3" />,
+    color: '#7c3aed',
+  },
+  Protocol: {
+    icon: <Layers className="w-3 h-3" />,
+    color: '#0891b2',
+  },
+  SDK: {
+    icon: <Code2 className="w-3 h-3" />,
+    color: '#059669',
+  },
+  Frontend: {
+    icon: <Monitor className="w-3 h-3" />,
+    color: '#d97706',
+  },
+  Reference: {
+    icon: <FileText className="w-3 h-3" />,
+    color: '#dc2626',
+  },
+};
+
+const SUGGESTIONS = ['sphere', 'swap', 'liquidity', 'torus', 'SDK', 'tick'];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Wrap every occurrence of query in a <mark>. */
+function highlight(text: string, query: string): ReactNode {
+  if (!query || !text) return text;
+  const q = query.toLowerCase();
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  let lower = text.toLowerCase();
+  let idx: number;
+
+  // eslint-disable-next-line no-cond-assign
+  while ((idx = lower.indexOf(q, cursor)) !== -1) {
+    if (idx > cursor) parts.push(text.slice(cursor, idx));
+    parts.push(
+      <mark
+        key={idx}
+        className="bg-[#fef08a] text-[#713f12] rounded-[2px] px-[1px] not-italic font-[inherit]"
+      >
         {text.slice(idx, idx + query.length)}
-      </mark>
-      {text.slice(idx + query.length)}
-    </>
-  );
+      </mark>,
+    );
+    cursor = idx + query.length;
+    lower = lower.slice(0, cursor) + '\x00'.repeat(lower.length - cursor);
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return parts.length ? <>{parts}</> : text;
 }
 
-// Extract a short snippet around the first match in content
+/** Pull a readable snippet centred on the first query match. */
 function getSnippet(content: string, query: string): string {
-  const lower = content.toLowerCase();
-  const idx = lower.indexOf(query.toLowerCase());
-  if (idx === -1) return content.slice(0, 90) + '…';
-  const start = Math.max(0, idx - 30);
-  const end = Math.min(content.length, idx + query.length + 60);
+  const q = query.toLowerCase();
+  const idx = content.toLowerCase().indexOf(q);
+  if (idx === -1) return content.slice(0, 88) + (content.length > 88 ? '…' : '');
+  const start = Math.max(0, idx - 28);
+  const end = Math.min(content.length, idx + query.length + 56);
   return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
 }
 
-function search(query: string): SearchEntry[] {
+/** Case-insensitive search ranked by title > section > content. */
+function runSearch(query: string): SearchEntry[] {
   const q = query.toLowerCase().trim();
   if (!q) return [];
-
-  return INDEX.filter((entry) => {
-    const inTitle = entry.title.toLowerCase().includes(q);
-    const inSection = entry.section.toLowerCase().includes(q);
-    const inContent = entry.content.toLowerCase().includes(q);
-    return inTitle || inSection || inContent;
-  }).sort((a, b) => {
-    // Title matches rank first, then section, then content
-    const aTitle = a.title.toLowerCase().includes(q);
-    const bTitle = b.title.toLowerCase().includes(q);
-    if (aTitle && !bTitle) return -1;
-    if (!aTitle && bTitle) return 1;
-    return 0;
-  });
+  return INDEX
+    .filter((e) =>
+      e.title.toLowerCase().includes(q) ||
+      e.section.toLowerCase().includes(q) ||
+      e.content.toLowerCase().includes(q),
+    )
+    .sort((a, b) => {
+      const aT = a.title.toLowerCase().includes(q);
+      const bT = b.title.toLowerCase().includes(q);
+      if (aT !== bT) return aT ? -1 : 1;
+      const aS = a.section.toLowerCase().includes(q);
+      const bS = b.section.toLowerCase().includes(q);
+      if (aS !== bS) return aS ? -1 : 1;
+      return 0;
+    });
 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 interface DocSearchProps {
   onNavigate?: () => void;
@@ -73,19 +126,18 @@ export default function DocSearch({ onNavigate }: DocSearchProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Debounce
+  // Debounce input → search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 180);
     return () => clearTimeout(t);
   }, [query]);
 
-  // Reset active index when results change
-  const results = useMemo(() => search(debouncedQuery), [debouncedQuery]);
+  const results = useMemo(() => runSearch(debouncedQuery), [debouncedQuery]);
   useEffect(() => setActiveIndex(0), [debouncedQuery]);
 
-  // Cmd/Ctrl+K global shortcut
+  // ⌘K / Ctrl+K global shortcut
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         inputRef.current?.focus();
@@ -93,26 +145,24 @@ export default function DocSearch({ onNavigate }: DocSearchProps) {
         setOpen(true);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   // Close on outside click
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+    const onMouse = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('mousedown', onMouse);
+    return () => document.removeEventListener('mousedown', onMouse);
   }, []);
 
-  // Scroll active item into view
+  // Scroll active result into view
   useEffect(() => {
-    if (!listRef.current) return;
-    const active = listRef.current.querySelector<HTMLElement>('[data-active="true"]');
-    active?.scrollIntoView({ block: 'nearest' });
+    listRef.current
+      ?.querySelector<HTMLElement>('[data-active="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
 
   const navigate = useCallback(
@@ -129,33 +179,24 @@ export default function DocSearch({ onNavigate }: DocSearchProps) {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (!open || results.length === 0) {
-        if (e.key === 'Escape') {
-          setQuery('');
-          setOpen(false);
-          inputRef.current?.blur();
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, results.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setActiveIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (results[activeIndex]) navigate(results[activeIndex].slug);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        if (query) {
-          setQuery('');
-          setOpen(false);
-        } else {
-          setOpen(false);
-          inputRef.current?.blur();
-        }
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          if (open && results.length) setActiveIndex((i) => Math.min(i + 1, results.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (open && results.length) setActiveIndex((i) => Math.max(i - 1, 0));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (open && results[activeIndex]) navigate(results[activeIndex].slug);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          if (query) setQuery('');
+          else { setOpen(false); inputRef.current?.blur(); }
+          break;
       }
     },
     [open, results, activeIndex, navigate, query],
@@ -164,23 +205,19 @@ export default function DocSearch({ onNavigate }: DocSearchProps) {
   const showDropdown = open && query.trim().length > 0;
 
   return (
-    <div ref={containerRef} className="relative mb-4">
-      {/* Input */}
+    <div ref={containerRef} className="relative" style={{ marginBottom: '1rem' }}>
+
+      {/* ── Input ── */}
       <div className="relative">
-        <Search
-          className="search-icon pointer-events-none"
-          aria-hidden
-        />
+        <Search className="search-icon pointer-events-none" aria-hidden />
         <input
           ref={inputRef}
           type="text"
           placeholder="Search docs… (⌘K)"
-          className="docs-search-input pr-16"
+          className="docs-search-input"
+          style={{ paddingRight: query ? '2.25rem' : '3rem', marginBottom: 0 }}
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           role="combobox"
@@ -191,108 +228,206 @@ export default function DocSearch({ onNavigate }: DocSearchProps) {
           spellCheck={false}
         />
 
-        {/* Right-side affordances */}
-        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+        {/* Right affordance */}
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
           {query ? (
             <button
-              className="pointer-events-auto p-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => { setQuery(''); setOpen(false); inputRef.current?.focus(); }}
-              aria-label="Clear"
+              onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+              aria-label="Clear search"
               tabIndex={-1}
+              className="p-1 rounded text-[#163300]/40 hover:text-[#163300]/70 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           ) : (
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground leading-none">
+            <kbd className="hidden sm:inline-flex items-center rounded border border-[#163300]/15 bg-[#163300]/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-[#163300]/40 leading-none select-none">
               ⌘K
             </kbd>
           )}
         </div>
       </div>
 
-      {/* Dropdown */}
+      {/* ── Dropdown ── */}
       {showDropdown && (
         <div
-          className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 rounded-lg border-2 border-dark-green bg-white shadow-[0_8px_24px_rgba(22,51,0,0.12)] overflow-hidden"
-          style={{ maxHeight: '360px', overflowY: 'auto' }}
           role="presentation"
+          className="docs-search-dropdown"
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 'calc(100% + 6px)',
+            zIndex: 60,
+            background: '#fff',
+            border: '1.5px solid rgba(22,51,0,0.14)',
+            borderRadius: '10px',
+            boxShadow:
+              '0 4px 6px -1px rgba(22,51,0,0.06), 0 10px 24px -4px rgba(22,51,0,0.12), 0 0 0 1px rgba(22,51,0,0.04)',
+            overflow: 'hidden',
+            animation: 'searchDropdownIn 0.14s cubic-bezier(0.16,1,0.3,1) both',
+          }}
         >
           {results.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
-              <Search className="w-5 h-5 opacity-40" />
-              <p className="text-sm font-medium">No results for &ldquo;{debouncedQuery}&rdquo;</p>
-              <p className="text-xs opacity-60">Try a different keyword</p>
+            /* ── Empty state ── */
+            <div className="px-4 py-6 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#163300]/[0.06]">
+                <Search className="w-4 h-4 text-[#163300]/40" />
+              </div>
+              <p className="text-sm font-semibold text-[#163300]/70 mb-1">
+                No results for &ldquo;{debouncedQuery}&rdquo;
+              </p>
+              <p className="text-xs text-[#163300]/40 mb-4">
+                Try searching for a topic or keyword
+              </p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { setQuery(s); setOpen(true); }}
+                    className="rounded-full border border-[#163300]/12 bg-[#163300]/[0.04] px-2.5 py-1 text-[11px] font-medium text-[#163300]/60 hover:bg-[#163300]/[0.08] hover:text-[#163300]/80 transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
-            <ul ref={listRef} role="listbox" aria-label="Search results">
-              {results.map((entry, i) => {
-                const isActive = i === activeIndex;
-                const snippet = getSnippet(entry.content, debouncedQuery);
-                return (
-                  <li
-                    key={entry.slug}
-                    role="option"
-                    aria-selected={isActive}
-                    data-active={isActive}
-                    className={`group flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors border-b border-border/30 last:border-b-0 ${
-                      isActive ? 'bg-[#163300] text-white' : 'hover:bg-[#f0faea] text-foreground'
-                    }`}
-                    onMouseEnter={() => setActiveIndex(i)}
-                    onClick={() => navigate(entry.slug)}
-                  >
-                    <div className={`mt-0.5 shrink-0 w-6 h-6 rounded-md flex items-center justify-center ${
-                      isActive ? 'bg-white/15' : 'bg-dark-green/8'
-                    }`}>
-                      <Hash className={`w-3 h-3 ${isActive ? 'text-[#9FE870]' : 'text-dark-green/50'}`} />
-                    </div>
+            <>
+              {/* Result count hint */}
+              <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#163300]/35">
+                  {results.length} result{results.length !== 1 ? 's' : ''}
+                </span>
+              </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[11px] font-bold uppercase tracking-wider ${
-                          isActive ? 'text-[#9FE870]/80' : 'text-dark-green/40'
-                        }`}>
+              {/* ── Result list ── */}
+              <ul
+                ref={listRef}
+                role="listbox"
+                aria-label="Search results"
+                style={{ maxHeight: '292px', overflowY: 'auto' }}
+              >
+                {results.map((entry, i) => {
+                  const isActive = i === activeIndex;
+                  const meta = SECTION_META[entry.section] ?? SECTION_META.Reference;
+                  const snippet = getSnippet(entry.content, debouncedQuery);
+
+                  return (
+                    <li
+                      key={entry.slug}
+                      role="option"
+                      aria-selected={isActive}
+                      data-active={isActive}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      onClick={() => navigate(entry.slug)}
+                      className="group relative mx-1.5 mb-0.5 flex cursor-pointer items-start gap-3 rounded-[7px] px-2.5 py-2 transition-colors"
+                      style={{
+                        background: isActive ? 'rgba(22,51,0,0.05)' : 'transparent',
+                        borderLeft: isActive ? `2px solid ${meta.color}` : '2px solid transparent',
+                      }}
+                    >
+                      {/* Section icon pill */}
+                      <div
+                        className="mt-0.5 shrink-0 flex h-6 w-6 items-center justify-center rounded-md"
+                        style={{
+                          background: `${meta.color}18`,
+                          color: meta.color,
+                        }}
+                      >
+                        {meta.icon}
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        {/* Section label */}
+                        <span
+                          className="block text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5"
+                          style={{ color: `${meta.color}99` }}
+                        >
                           {entry.section}
                         </span>
-                      </div>
-                      <p className={`text-sm font-semibold truncate leading-snug mt-0.5 ${
-                        isActive ? 'text-white' : 'text-foreground'
-                      }`}>
-                        {highlight(entry.title, debouncedQuery)}
-                      </p>
-                      <p className={`text-xs mt-0.5 leading-relaxed line-clamp-1 ${
-                        isActive ? 'text-white/60' : 'text-muted-foreground'
-                      }`}>
-                        {highlight(snippet, debouncedQuery)}
-                      </p>
-                    </div>
 
-                    <ArrowRight className={`mt-1 w-3.5 h-3.5 shrink-0 transition-opacity ${
-                      isActive ? 'opacity-100 text-[#9FE870]' : 'opacity-0 group-hover:opacity-40'
-                    }`} />
-                  </li>
-                );
-              })}
-            </ul>
+                        {/* Title */}
+                        <p className="text-[13px] font-semibold text-[#163300] leading-snug truncate">
+                          {highlight(entry.title, debouncedQuery)}
+                        </p>
+
+                        {/* Preview */}
+                        <p className="mt-0.5 text-[11.5px] leading-relaxed text-[#163300]/50 line-clamp-1">
+                          {highlight(snippet, debouncedQuery)}
+                        </p>
+                      </div>
+
+                      {/* Arrow — shows on hover/active */}
+                      <ArrowRight
+                        className="mt-1.5 w-3 h-3 shrink-0 transition-all duration-100"
+                        style={{
+                          color: isActive ? meta.color : 'transparent',
+                          opacity: isActive ? 1 : 0,
+                        }}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
 
-          {/* Footer hint */}
-          <div className="flex items-center gap-3 border-t-2 border-border px-3 py-2 bg-muted/30">
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <kbd className="rounded border border-border bg-background px-1 py-0.5 font-mono text-[9px]">↑</kbd>
-              <kbd className="rounded border border-border bg-background px-1 py-0.5 font-mono text-[9px]">↓</kbd>
-              navigate
-            </span>
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <kbd className="rounded border border-border bg-background px-1 py-0.5 font-mono text-[9px]">↵</kbd>
-              open
-            </span>
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <kbd className="rounded border border-border bg-background px-1 py-0.5 font-mono text-[9px]">esc</kbd>
-              close
-            </span>
+          {/* ── Footer keyboard hints ── */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '7px 12px',
+              borderTop: '1px solid rgba(22,51,0,0.08)',
+              background: 'rgba(22,51,0,0.02)',
+            }}
+          >
+            {[
+              { keys: ['↑', '↓'], label: 'navigate' },
+              { keys: ['↵'], label: 'open' },
+              { keys: ['esc'], label: 'close' },
+            ].map(({ keys, label }) => (
+              <span key={label} className="flex items-center gap-1">
+                {keys.map((k) => (
+                  <kbd
+                    key={k}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '18px',
+                      padding: '1px 4px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(22,51,0,0.14)',
+                      background: '#fff',
+                      fontFamily: 'var(--font-geist-mono, monospace)',
+                      fontSize: '9px',
+                      lineHeight: 1.6,
+                      color: 'rgba(22,51,0,0.5)',
+                      boxShadow: '0 1px 0 rgba(22,51,0,0.1)',
+                    }}
+                  >
+                    {k}
+                  </kbd>
+                ))}
+                <span style={{ fontSize: '10px', color: 'rgba(22,51,0,0.35)', marginLeft: '2px' }}>
+                  {label}
+                </span>
+              </span>
+            ))}
           </div>
         </div>
       )}
+
+      {/* Dropdown open animation */}
+      <style>{`
+        @keyframes searchDropdownIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
