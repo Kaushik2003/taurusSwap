@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/taurus-banner.svg" alt="TaurusSwap" width="100%" />
+  <img src="assets/taurus-banner.svg" alt="TaurusSwap" width="100%" />
 </p>
 
 <h1 align="center">TaurusSwap</h1>
