@@ -407,10 +407,10 @@ function BentoCard({ card, tall = false, revealDelay = 0, children }: { card: { 
   const [hovered, setHovered] = useState(false);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 48 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: revealDelay }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
