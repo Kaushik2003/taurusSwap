@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from 'react';
+import { use, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import algosdk from 'algosdk';
 import { useQueryClient } from '@tanstack/react-query';
@@ -14,7 +14,12 @@ import {
   ShieldCheck, 
   AlertTriangle,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Share2,
+  Copy,
+  Check,
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -22,7 +27,7 @@ import { useAlgodClient, POOL_APP_ID } from '@/hooks/useAlgodClient';
 import { usePoolState } from '@/hooks/usePoolState';
 import { usePosition } from '@/hooks/usePosition';
 import { rawToDisplay, getTokenSymbol, getTokenColor } from '@/lib/tokenDisplay';
-import { claimFees, removeLiquidity, TickState } from '@/lib/orbital-sdk';
+import { claimFees, removeLiquidity, TickState, capitalEfficiency, xMax, mulScaled, PRECISION, AMOUNT_SCALE } from '@/lib/orbital-sdk';
 import { StatusBadge } from '@/components/pool/StatusBadge';
 import { Skeleton, CardSkeleton } from '@/components/ui/skeleton';
 import { getExplorerUrl } from '@/lib/explorer';
@@ -47,6 +52,22 @@ export default function PositionPage({ params }: PageProps) {
   const [removeStatus, setRemoveStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [interpretedError, setInterpretedError] = useState<{ title: string; message: string; action?: string } | null>(null);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      // fallback: open native share sheet on mobile
+      if (navigator.share) {
+        navigator.share({ title: `TaurusSwap Pos #${tickId.toString().padStart(4,'0')}`, url });
+      }
+    }
+  }, [tickId]);
 
   const tick = pool?.ticks.find(t => t.id === tickId);
   const isInterior = tick?.state === TickState.INTERIOR;
@@ -82,10 +103,41 @@ export default function PositionPage({ params }: PageProps) {
     }
   };
 
-  const currentValueUnits = position ? position.positionR * 1000n : 0n;
-  const initialValueUnits = position ? position.positionR * 1000n : 0n; // Simplified
-  const pnlPercent = 2.4; // Simulated
-  const estApr = 12.8;   // Simulated
+  // Per-token value at equal price: positionR * invSqrtN / PRECISION (AMOUNT_SCALE units) → × AMOUNT_SCALE for raw microunits
+  const depositPerTokenRaw = (tick && pool && position)
+    ? position.positionR * pool.invSqrtN / PRECISION * AMOUNT_SCALE
+    : 0n;
+  const totalValueRaw = depositPerTokenRaw * BigInt(pool?.n ?? 1);
+
+  // Pool share as a percentage of totalR
+  const poolSharePct = (pool && pool.totalR > 0n && position)
+    ? Number(position.positionR * 10_000n / pool.totalR) / 100
+    : 0;
+
+  // Capital efficiency from tick geometry
+  const efficiency = (tick && pool) ? (() => {
+    try { return capitalEfficiency(tick.r, tick.k, pool.n, pool.sqrtN, pool.invSqrtN); }
+    catch { return null; }
+  })() : null;
+
+  // Depeg price from tick geometry (inverse of kFromDepegPrice)
+  // Returns 0 for full-range positions (k = kMax → xMax = r → denominator = 0)
+  const depegPrice = (tick && pool) ? (() => {
+    try {
+      const xMaxVal = xMax(tick.r, tick.k, pool.n, pool.sqrtN);
+      const N = BigInt(pool.n);
+      const kSqrtN = mulScaled(tick.k, pool.sqrtN, PRECISION);
+      const xOther = (kSqrtN - xMaxVal) / (N - 1n);
+      const denominator = tick.r - xMaxVal;
+      // denominator = 0 means full-range tick: can handle complete depeg ($0 lower bound)
+      if (denominator <= 0n) return 0;
+      const price = Number(tick.r - xOther) / Number(denominator);
+      if (!isFinite(price) || isNaN(price) || price < 0) return 0;
+      return price;
+    } catch { return null; }
+  })() : null;
+  const isFullRange = depegPrice === 0;
+  const upperBound = (depegPrice && depegPrice > 0) ? 1 / depegPrice : null;
 
   if (poolLoading || posLoading || !pool) {
     return (
@@ -125,7 +177,7 @@ export default function PositionPage({ params }: PageProps) {
             <ArrowLeft className="w-3 h-3 mr-2" />
             Portfolio
           </Button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-4xl font-black text-foreground tracking-tighter">Pos #{tickId.toString().padStart(4, '0')}</h1>
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
                <div className={`w-1.5 h-1.5 rounded-full ${isInterior ? 'bg-primary' : 'bg-rose-500'} animate-pulse`} />
@@ -133,24 +185,68 @@ export default function PositionPage({ params }: PageProps) {
                  {isInterior ? 'In Range' : 'Out of Range'}
                </span>
             </div>
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/40 bg-background/60 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 text-muted-foreground hover:text-primary group"
+              title="Copy position link"
+            >
+              {shareCopied
+                ? <Check className="w-3 h-3 text-primary" />
+                : <Share2 className="w-3 h-3 group-hover:scale-110 transition-transform" />}
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {shareCopied ? 'Copied!' : 'Share'}
+              </span>
+            </button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 flex-[1.5] p-6 gap-6 md:gap-12">
            <div className="space-y-1">
              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live Value</p>
-             <p className="text-xl font-black text-foreground tracking-tight">${rawToDisplay(currentValueUnits)}</p>
+             <p className="text-xl font-black text-foreground tracking-tight">${rawToDisplay(totalValueRaw)}</p>
            </div>
            <div className="space-y-1">
-             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Est. APR</p>
-             <p className="text-xl font-black text-primary tracking-tight">{estApr}%</p>
+             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Pool Share</p>
+             <p className="text-xl font-black text-primary tracking-tight">{poolSharePct.toFixed(2)}%</p>
            </div>
            <div className="space-y-1 col-span-2 md:col-span-1 border-t md:border-t-0 pt-4 md:pt-0 border-border/20">
              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Efficiency</p>
-             <p className="text-xl font-black text-foreground tracking-tight">~25x</p>
+             <p className="text-xl font-black text-foreground tracking-tight">
+               {efficiency !== null ? `~${efficiency.toFixed(1)}x` : '—'}
+             </p>
            </div>
         </div>
       </div>
+
+      {/* OUT-OF-RANGE BANNER */}
+      {!isInterior && !bannerDismissed && (
+        <div className="mb-6 flex items-center gap-4 px-5 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600">
+          <div className="w-8 h-8 rounded-xl bg-rose-500/15 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-widest mb-0.5">Position Out of Range</p>
+            <p className="text-[11px] font-medium text-rose-500/80 leading-snug">
+              This tick is no longer earning fees. Consider opening a new position to resume yield.
+            </p>
+          </div>
+          <button
+            onClick={() => router.push('/pool/add?mode=manual')}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Re-balance
+          </button>
+          <button
+            onClick={() => setBannerDismissed(true)}
+            className="shrink-0 p-1.5 rounded-full hover:bg-rose-500/20 transition-colors"
+            aria-label="Dismiss banner"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Left Column: Management & Terminal */}
@@ -198,42 +294,47 @@ export default function PositionPage({ params }: PageProps) {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8">
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Total Value</p>
-                <p className="text-2xl font-black text-foreground">${rawToDisplay(currentValueUnits)}</p>
+                <p className="text-2xl font-black text-foreground">${rawToDisplay(totalValueRaw)}</p>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                    <span className="w-1 h-1 rounded-full bg-primary" /> Active Principal
                 </p>
               </div>
-              
+
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Total P&L</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-black text-emerald-500">+$12.43</p>
-                  <p className="text-xs font-bold text-emerald-500/80">{pnlPercent}%</p>
-                </div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Lifetime Growth</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Depeg Protection</p>
+                <p className={`text-2xl font-black ${isFullRange ? 'text-primary' : 'text-foreground'}`}>
+                  {depegPrice === null ? '—' : isFullRange ? 'Full Range' : `$${depegPrice.toFixed(4)}`}
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                  {isFullRange ? 'No Lower Bound' : 'Lower Bound'}
+                </p>
               </div>
 
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Yield (APR)</p>
-                <p className="text-2xl font-black text-primary">{estApr}%</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Est. Annualized</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Capital Efficiency</p>
+                <p className="text-2xl font-black text-primary">
+                  {efficiency !== null ? `~${efficiency.toFixed(1)}x` : '—'}
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">vs. Full-Range</p>
               </div>
 
               <div className="space-y-1 border-t border-border/20 pt-6">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Total Fees</p>
-                <p className="text-xl font-black text-foreground">${rawToDisplay(totalClaimable + 4500n)}</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase text-[9px]">Claimed + Unclaimed</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Claimable Fees</p>
+                <p className="text-xl font-black text-foreground">${rawToDisplay(totalClaimable)}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase text-[9px]">Unclaimed</p>
               </div>
 
               <div className="space-y-1 border-t border-border/20 pt-6">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Initial Basis</p>
-                <p className="text-xl font-black text-foreground/60">${rawToDisplay(initialValueUnits)}</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase text-[9px]">At Time of Init</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Fee Rate</p>
+                <p className="text-xl font-black text-foreground/60">
+                  {pool ? `${(Number(pool.feeBps) / 100).toFixed(2)}%` : '—'}
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase text-[9px]">Per Swap</p>
               </div>
 
               <div className="space-y-1 border-t border-border/20 pt-6">
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">Pool Share</p>
-                <p className="text-xl font-black text-foreground">0.08%</p>
+                <p className="text-xl font-black text-foreground">{poolSharePct.toFixed(2)}%</p>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Liquidity Weight</p>
               </div>
             </div>
@@ -256,11 +357,15 @@ export default function PositionPage({ params }: PageProps) {
                 <div className="flex mb-4 items-center justify-between relative px-2">
                   <div className="absolute left-0 -top-6 flex flex-col items-start translate-x-[-10%]">
                     <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider mb-1">Lower Bound</span>
-                    <span className="text-xs font-black text-foreground">$0.9850</span>
+                    <span className="text-xs font-black text-foreground">
+                      {depegPrice === null ? '—' : isFullRange ? '$0.0000' : `$${depegPrice.toFixed(4)}`}
+                    </span>
                   </div>
                   <div className="absolute right-0 -top-6 flex flex-col items-end translate-x-[10%]">
                     <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider mb-1">Upper Bound</span>
-                    <span className="text-xs font-black text-foreground">$1.0150</span>
+                    <span className="text-xs font-black text-foreground">
+                      {upperBound !== null ? `$${upperBound.toFixed(4)}` : isFullRange ? '∞' : '—'}
+                    </span>
                   </div>
                 </div>
                 <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-muted/30 border border-border/40 relative">
@@ -288,8 +393,8 @@ export default function PositionPage({ params }: PageProps) {
                   <div>
                     <p className="text-[10px] font-black text-foreground uppercase tracking-widest mb-1.5">Efficiency Insight</p>
                     <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                      {isInterior 
-                        ? "Your position is currently centered near the protocol peg. Fee generation is optimized with 25x capital leverage." 
+                      {isInterior
+                        ? `Your position is currently centered near the protocol peg. Fee generation is optimized with ${efficiency !== null ? `~${efficiency.toFixed(1)}x` : 'concentrated'} capital efficiency.`
                         : "Price has deviated from your protected range. Consider widening your bounds or re-initializing your position to resume fee earning."}
                     </p>
                   </div>
@@ -309,7 +414,7 @@ export default function PositionPage({ params }: PageProps) {
               </div>
               <div className="text-right">
                 <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-60">Total Value</p>
-                <p className="text-lg font-black text-foreground">${rawToDisplay(currentValueUnits)}</p>
+                <p className="text-lg font-black text-foreground">${rawToDisplay(totalValueRaw)}</p>
               </div>
             </div>
 
@@ -318,7 +423,7 @@ export default function PositionPage({ params }: PageProps) {
                 const symbol = getTokenSymbol(pool, i);
                 const color = getTokenColor(i);
                 const fee = position.claimableFees[i];
-                const valuePerAsset = Number(rawToDisplay(currentValueUnits)) / pool.n;
+                const valuePerAsset = Number(rawToDisplay(depositPerTokenRaw));
                 
                 return (
                   <div key={i} className="group">

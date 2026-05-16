@@ -15,6 +15,7 @@ import { AddLiquidityModal } from '@/components/pool/AddLiquidityModal';
 import { PortfolioHeader } from '@/components/pool/PortfolioHeader';
 import { PositionsTable } from '@/components/pool/PositionsTable';
 import { AnalyticsPanel } from '@/components/pool/AnalyticsPanel';
+import { TransactionFeed } from '@/components/pool/TransactionFeed';
 
 function TableSkeleton({ rows = 3 }: { rows?: number }) {
   return (
@@ -165,6 +166,15 @@ export default function Pool() {
               pool={pool!}
             />
           )}
+
+          {/* Live Transaction Feed */}
+          <div className="mt-8">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-4 bg-primary rounded-full" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Recent Activity</h3>
+            </div>
+            <TransactionFeed limit={15} />
+          </div>
 
           {/* Info Cards */}
           <div className="grid sm:grid-cols-2 gap-4 mt-8">

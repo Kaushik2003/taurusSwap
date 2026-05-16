@@ -7,6 +7,8 @@ import { tokens, pools } from '@/data/mock';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import MiniSparkline from '@/components/shared/MiniSparkline';
 import TokenIcon from '@/components/shared/TokenIcon';
+import { usePoolStats } from '@/hooks/usePoolStats';
+import { TransactionFeed } from '@/components/pool/TransactionFeed';
 
 type Tab = 'tokens' | 'pools' | 'transactions';
 type SortKey = 'price' | 'change1h' | 'change1d' | 'fdv' | 'volume24h';
@@ -17,11 +19,19 @@ const tabVariants = {
   exit:    { opacity: 0,       transition: { duration: 0.12, ease: 'easeIn' as const } },
 };
 
+function fmtUsd(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
+
 export default function Explore() {
   const [tab, setTab] = useState<Tab>('tokens');
   const [sortKey, setSortKey] = useState<SortKey>('volume24h');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [search, setSearch] = useState('');
+
+  const stats = usePoolStats();
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -42,10 +52,10 @@ export default function Explore() {
   }, [sortKey, sortDir, search]);
 
   const metrics = [
-    { label: '24H Volume',    value: '$18.9B', change: '+12.4%', up: true  },
-    { label: 'Total TVL',     value: '$4.82B', change: '+3.2%',  up: true  },
-    { label: 'v3 TVL',        value: '$3.1B',  change: '+2.8%',  up: true  },
-    { label: 'Transactions',  value: '1.2M',   change: '-5.1%',  up: false },
+    { label: '24H Volume',   value: stats.isLoading ? '…' : fmtUsd(stats.volume24hUsd), change: null, up: true  },
+    { label: 'Total TVL',    value: stats.isLoading ? '…' : fmtUsd(stats.tvlUsd),        change: null, up: true  },
+    { label: '24H Fees',     value: stats.isLoading ? '…' : fmtUsd(stats.fees24hUsd),    change: null, up: true  },
+    { label: 'Active Ticks', value: stats.isLoading ? '…' : String(stats.activeTicks),   change: null, up: true  },
   ];
 
   const SortHeader = ({ label, sortId }: { label: string; sortId: SortKey }) => (
@@ -82,10 +92,12 @@ export default function Explore() {
             <p className="text-xs text-muted-foreground mb-1">{m.label}</p>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-foreground">{m.value}</span>
-              <span className={`text-xs flex items-center gap-0.5 ${m.up ? 'percentage-up' : 'percentage-down'}`}>
-                {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {m.change}
-              </span>
+              {m.change && (
+                <span className={`text-xs flex items-center gap-0.5 ${m.up ? 'percentage-up' : 'percentage-down'}`}>
+                  {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {m.change}
+                </span>
+              )}
             </div>
           </motion.div>
         ))}
@@ -198,8 +210,8 @@ export default function Explore() {
         )}
 
         {tab === 'transactions' && (
-          <motion.div key="transactions" variants={tabVariants} initial="enter" animate="visible" exit="exit" className="text-center py-16">
-            <p className="text-muted-foreground">Connect wallet to view transaction history</p>
+          <motion.div key="transactions" variants={tabVariants} initial="enter" animate="visible" exit="exit">
+            <TransactionFeed limit={25} />
           </motion.div>
         )}
       </AnimatePresence>

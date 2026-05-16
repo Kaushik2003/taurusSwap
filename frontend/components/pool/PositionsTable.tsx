@@ -12,7 +12,26 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./StatusBadge";
 import { getTokenSymbol, getTokenColor, rawToDisplay } from "@/lib/tokenDisplay";
 import type { PositionInfo, PoolState } from "@/lib/orbital-sdk";
-import { TickState } from "@/lib/orbital-sdk";
+import { TickState, xMax, mulScaled, PRECISION } from "@/lib/orbital-sdk";
+
+function depegPriceFromTick(
+  r: bigint, k: bigint, n: number, sqrtN: bigint,
+): number | null {
+  try {
+    const xMaxVal = xMax(r, k, n, sqrtN);
+    const N = BigInt(n);
+    const kSqrtN = mulScaled(k, sqrtN, PRECISION);
+    const xOther = (kSqrtN - xMaxVal) / (N - 1n);
+    const denominator = r - xMaxVal;
+    // denominator = 0 → full-range tick (k = kMax), lower bound is $0
+    if (denominator <= 0n) return 0;
+    const price = Number(r - xOther) / Number(denominator);
+    if (!isFinite(price) || isNaN(price) || price < 0) return 0;
+    return price;
+  } catch {
+    return null;
+  }
+}
 import { getExplorerUrl } from "@/lib/explorer";
 
 interface PositionsTableProps {
@@ -40,6 +59,9 @@ export function PositionsTable({ positions, pool }: PositionsTableProps) {
             const tick = pool.ticks.find(t => t.id === pos.tickId);
             const totalClaimable = pos.claimableFees.reduce((a, b) => a + b, 0n);
             const isInterior = tick?.state === TickState.INTERIOR;
+            const depegPrice = tick
+              ? depegPriceFromTick(tick.r, tick.k, pool.n, pool.sqrtN)
+              : null;
             
             // Estimated value based on shares + depeg k
             // For now displaying total shares as the primary 'Value' metric
@@ -75,8 +97,16 @@ export function PositionsTable({ positions, pool }: PositionsTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-foreground">$1.00</span>
-                    <span className="text-[10px] text-muted-foreground">protection</span>
+                    {depegPrice === null ? (
+                      <span className="text-[11px] font-bold text-muted-foreground">—</span>
+                    ) : depegPrice === 0 ? (
+                      <span className="text-[11px] font-bold text-primary">Full Range</span>
+                    ) : (
+                      <>
+                        <span className="text-[11px] font-bold text-foreground">${depegPrice.toFixed(4)}</span>
+                        <span className="text-[10px] text-muted-foreground">lower bound</span>
+                      </>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">

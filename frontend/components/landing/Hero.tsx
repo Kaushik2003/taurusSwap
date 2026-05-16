@@ -4,6 +4,7 @@ import React, { Suspense } from 'react'
 import { motion } from 'framer-motion'
 import DummySwap from '../swap/DummySwap'
 import localFont from 'next/font/local';
+import { usePoolStats } from '@/hooks/usePoolStats';
 
 const wiseSans = localFont({ src: '../../public/fonts/wise-sans.otf' });
 
@@ -13,7 +14,22 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] as const, delay },
 });
 
+function fmtUsd(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
+
 const Hero = () => {
+  const stats = usePoolStats();
+
+  const liveStats = [
+    { label: 'Total TVL',   value: stats.isLoading ? '…' : fmtUsd(stats.tvlUsd) },
+    { label: '24H Volume',  value: stats.isLoading ? '…' : fmtUsd(stats.volume24hUsd) },
+    { label: '24H Fees',    value: stats.isLoading ? '…' : fmtUsd(stats.fees24hUsd) },
+    { label: 'Active Ticks', value: stats.isLoading ? '…' : String(stats.activeTicks) },
+  ];
+
   return (
     <div className="w-full flex items-center min-h-[calc(100svh-5rem)] lg:min-h-[calc(100svh-4rem)]">
       <div className="w-full max-w-[1640px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-20 py-12 sm:py-16 md:py-20 lg:py-16">
@@ -47,6 +63,19 @@ const Hero = () => {
               >
                 A simpler, more efficient way to trade stablecoins — built for better prices and smoother execution.
               </motion.p>
+
+              {/* Live stats strip */}
+              <motion.div
+                className="flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start"
+                {...fadeUp(0.36)}
+              >
+                {liveStats.map(s => (
+                  <div key={s.label} className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-green/50">{s.label}</span>
+                    <span className="text-lg font-black text-green leading-tight">{s.value}</span>
+                  </div>
+                ))}
+              </motion.div>
             </div>
 
             {/* Swap card */}
