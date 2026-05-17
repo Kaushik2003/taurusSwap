@@ -176,6 +176,78 @@ export async function executeSwap(
   return { txId: txid, amountOut: submittedAmountOut };
 }
 
+/**
+ * Build a swap transaction group without signing or submitting.
+ * Returns unsigned transactions ready for wallet signing and submission.
+ *
+ * @param client        Algod client
+ * @param poolAppId     Pool application ID
+ * @param sender        Algorand address of the sender
+ * @param poolState     Current pool state (from readPoolState)
+ * @param tokenInIdx    Index of the token to sell
+ * @param tokenOutIdx   Index of the token to buy
+ * @param amountInRaw   Amount to sell in raw microunits (e.g. 1_000_000n = 1 USDC)
+ * @param slippageBps   Slippage tolerance in basis points (default 0.5% = 50)
+ */
+export async function buildSwapTxns(
+  client: algosdk.Algodv2,
+  poolAppId: number,
+  sender: string,
+  poolState: PoolState,
+  tokenInIdx: number,
+  tokenOutIdx: number,
+  amountInRaw: bigint,
+  slippageBps = DEFAULT_SLIPPAGE_BPS,
+): Promise<algosdk.Transaction[]> {
+  if (tokenInIdx === tokenOutIdx) {
+    throw new Error("tokenInIdx and tokenOutIdx must be different");
+  }
+  if (slippageBps < 0 || slippageBps > 10_000) {
+    throw new Error("slippageBps must be between 0 and 10000");
+  }
+
+  const quote = getSwapQuote(poolState, tokenInIdx, tokenOutIdx, amountInRaw);
+  const tokenInAsaId = poolState.tokenAsaIds[tokenInIdx];
+  const tokenOutAsaId = poolState.tokenAsaIds[tokenOutIdx];
+
+  if (quote.ticksCrossed === 0) {
+    const exactAmountOut = computeExactSimpleSwapAmountOut(
+      poolState,
+      tokenInIdx,
+      tokenOutIdx,
+      amountInRaw,
+    );
+    if (exactAmountOut <= 0n) {
+      throw new Error("Swap amount too small for current pool state");
+    }
+    const minAmountOut = (exactAmountOut * BigInt(10_000 - slippageBps)) / 10_000n;
+    return buildSwapGroup(
+      client, poolAppId, sender,
+      tokenInAsaId, tokenOutAsaId,
+      tokenInIdx, tokenOutIdx,
+      amountInRaw, exactAmountOut, minAmountOut,
+      poolState.n,
+    );
+  } else {
+    const minAmountOut = (quote.amountOut * BigInt(10_000 - slippageBps)) / 10_000n;
+    const swapFee = (amountInRaw * poolState.feeBps) / 10_000n;
+    const recipe: TradeRecipe = {
+      tokenInIdx,
+      tokenOutIdx,
+      totalAmountIn: amountInRaw,
+      effectiveAmountIn: amountInRaw - swapFee,
+      totalAmountOut: quote.amountOut,
+      minAmountOut,
+      segments: quote.route,
+    };
+    return buildCrossingSwapGroup(
+      client, poolAppId, sender,
+      tokenInAsaId, tokenOutAsaId,
+      recipe, poolState.n,
+    );
+  }
+}
+
 const FEE_DENOMINATOR = 10_000n;
 const INVARIANT_TOLERANCE = 1_000n;
 

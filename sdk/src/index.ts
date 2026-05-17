@@ -1,5 +1,16 @@
+// ── Client (main entry point) ─────────────────────────────────────────────────
+export { TaurusClient } from "./client";
+export type {
+  TaurusClientConfig,
+  QuoteParams,
+  BuildSwapParams,
+  BuildAddLiquidityParams,
+  BuildRemoveLiquidityParams,
+  BuildClaimFeesParams,
+} from "./client";
+
 // ── Pool operations ───────────────────────────────────────────────────────────
-export { executeSwap, getSwapQuote } from "./pool/swap";
+export { executeSwap, getSwapQuote, buildSwapTxns } from "./pool/swap";
 export { readPoolState, readPosition } from "./pool/state-reader";
 export {
   getAllPrices,
