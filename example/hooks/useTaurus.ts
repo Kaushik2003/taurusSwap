@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import algosdk from "algosdk";
 import { TaurusClient } from "@taurusswap/sdk";
 
-// Define token configuration constants
 export interface TokenInfo {
   index: number;
   symbol: string;
@@ -15,18 +14,18 @@ export interface TokenInfo {
 }
 
 export const TOKENS: TokenInfo[] = [
-  { index: 0, symbol: "USDC", name: "USD Coin", asaId: 758284451, decimals: 6, color: "#2775CA" },
-  { index: 1, symbol: "USDT", name: "Tether USD", asaId: 758284464, decimals: 6, color: "#26A17B" },
-  { index: 2, symbol: "USDD", name: "Decentralized USD", asaId: 758284465, decimals: 6, color: "#00E2FE" },
-  { index: 3, symbol: "DAI", name: "Dai Stablecoin", asaId: 758284466, decimals: 6, color: "#F2994A" },
-  { index: 4, symbol: "FRAX", name: "Frax Share", asaId: 758284467, decimals: 6, color: "#A259FF" },
+  { index: 0, symbol: "USDC",  name: "USD Coin",          asaId: 758284451, decimals: 6, color: "#2775CA" },
+  { index: 1, symbol: "USDT",  name: "Tether USD",        asaId: 758284464, decimals: 6, color: "#26A17B" },
+  { index: 2, symbol: "USDD",  name: "Decentralized USD", asaId: 758284465, decimals: 6, color: "#00E2FE" },
+  { index: 3, symbol: "DAI",   name: "Dai Stablecoin",    asaId: 758284466, decimals: 6, color: "#F2994A" },
+  { index: 4, symbol: "FRAX",  name: "Frax Share",        asaId: 758284467, decimals: 6, color: "#A259FF" },
 ];
 
 export interface ConnectedWallet {
   address: string;
   connectorType: "pera" | "defly";
-  balances: { [key: number]: bigint }; // ASA ID -> raw amount
-  algoBalance: bigint; // raw microAlgos
+  balances: { [key: number]: bigint };
+  algoBalance: bigint;
 }
 
 export interface UserPosition {
@@ -37,151 +36,135 @@ export interface UserPosition {
   depegPrice: number;
 }
 
-export function useTaurus() {
-  const [client, setClient] = useState<TaurusClient | null>(null);
-  const [poolState, setPoolState] = useState<any>(null);
-  const [prices, setPrices] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export interface SdkLogEntry {
+  id: string;
+  method: string;
+  code: string;
+  status: "pending" | "success" | "error";
+  startedAt: number;
+  duration?: number;
+  error?: string;
+}
 
-  // Real Wallet Connectors State
-  const [peraWallet, setPeraWallet] = useState<any>(null);
-  const [deflyWallet, setDeflyWallet] = useState<any>(null);
+export function useTaurus() {
+  const [client, setClient]       = useState<TaurusClient | null>(null);
+  const [poolState, setPoolState] = useState<any>(null);
+  const [prices, setPrices]       = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError]         = useState<string | null>(null);
+  const [sdkLog, setSdkLog]       = useState<SdkLogEntry[]>([]);
+
+  const [peraWallet,      setPeraWallet]      = useState<any>(null);
+  const [deflyWallet,     setDeflyWallet]     = useState<any>(null);
   const [activeConnector, setActiveConnector] = useState<"pera" | "defly" | null>(null);
 
-  // Connected Wallet State
-  const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
-  const [isWalletLoading, setIsWalletLoading] = useState<boolean>(false);
-  const [positions, setPositions] = useState<UserPosition[]>([]);
+  const [wallet,          setWallet]          = useState<ConnectedWallet | null>(null);
+  const [isWalletLoading, setIsWalletLoading] = useState(false);
+  const [positions,       setPositions]       = useState<UserPosition[]>([]);
 
-  // Periodical refresher ref
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Initialize Taurus Client
+  // Wraps any async SDK call: adds a pending entry, resolves to success/error
+  const trackCall = useCallback(async <T>(
+    method: string,
+    code: string,
+    fn: () => Promise<T>,
+  ): Promise<T> => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const startedAt = Date.now();
+    setSdkLog(prev => [{ id, method, code, status: "pending", startedAt }, ...prev.slice(0, 49)]);
+    try {
+      const result = await fn();
+      const duration = Date.now() - startedAt;
+      setSdkLog(prev => prev.map(e => e.id === id ? { ...e, status: "success", duration } : e));
+      return result;
+    } catch (err: any) {
+      const duration = Date.now() - startedAt;
+      setSdkLog(prev => prev.map(e => e.id === id ? { ...e, status: "error", duration, error: err?.message } : e));
+      throw err;
+    }
+  }, []);
+
+  // 1. Initialize TaurusClient with testnet defaults
   useEffect(() => {
     try {
-      // Default configurations trigger Algorand Testnet with proper Pool App ID
-      const taurusClient = new TaurusClient();
-      setClient(taurusClient);
+      setClient(new TaurusClient());
     } catch (err: any) {
-      console.error("Failed to initialize Taurus Client:", err);
       setError(err?.message || "Failed to initialize TaurusSwap Client");
       setIsLoading(false);
     }
   }, []);
 
-  // 2. Client-side dynamic instantiating of Pera and Defly Wallet Connect
+  // 2. Dynamic wallet connector init (avoids SSR issues)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const initConnectors = async () => {
-        try {
-          const { PeraWalletConnect } = await import("@perawallet/connect");
-          const { DeflyWalletConnect } = await import("@blockshake/defly-connect");
-
-          const pera = new PeraWalletConnect({ shouldShowSignTxnToast: false });
-          const defly = new DeflyWalletConnect({ shouldShowSignTxnToast: false });
-
-          setPeraWallet(pera);
-          setDeflyWallet(defly);
-        } catch (err) {
-          console.error("Failed to dynamically load wallet client SDKs:", err);
-        }
-      };
-      initConnectors();
-    }
+    if (typeof window === "undefined") return;
+    (async () => {
+      try {
+        const { PeraWalletConnect }  = await import("@perawallet/connect");
+        const { DeflyWalletConnect } = await import("@blockshake/defly-connect");
+        setPeraWallet(new PeraWalletConnect({ shouldShowSignTxnToast: false }));
+        setDeflyWallet(new DeflyWalletConnect({ shouldShowSignTxnToast: false }));
+      } catch (err) {
+        console.error("Failed to load wallet SDKs:", err);
+      }
+    })();
   }, []);
 
-  // 3. Fetch live pool state from network
+  // 3. Pool state — tracked so every refresh shows in the activity log
   const refreshPoolState = useCallback(async (taurusClient: TaurusClient) => {
     try {
-      const state = await taurusClient.getPoolState();
+      const state = await trackCall(
+        "client.getPoolState",
+        "// Fetches full pool state (10s TTL cache)\nconst pool = await client.getPoolState();\n// { n, ticks[], reserves[], feeBps, totalR, sqrtN, ... }",
+        () => taurusClient.getPoolState(),
+      );
       setPoolState(state);
-
-      const spotPrices = await taurusClient.getAllPrices(0);
+      const spotPrices = await taurusClient.getAllPrices(0); // uses cache
       setPrices(spotPrices);
       setError(null);
     } catch (err: any) {
-      console.error("Failed to fetch pool state:", err);
       setError(err?.message || "Failed to update pool state");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [trackCall]);
 
-  // Trigger state refresh on client init and configure interval
   useEffect(() => {
     if (!client) return;
-
     refreshPoolState(client);
-
-    refreshIntervalRef.current = setInterval(() => {
-      refreshPoolState(client);
-    }, 15000); // refresh every 15s
-
-    return () => {
-      if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
-    };
+    refreshIntervalRef.current = setInterval(() => refreshPoolState(client), 15_000);
+    return () => { if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current); };
   }, [client, refreshPoolState]);
 
-  // 4. Fetch user wallet balances and positions
+  // 4. Wallet balances + LP positions
   const refreshWalletState = useCallback(async () => {
     if (!client || !wallet) return;
     setIsWalletLoading(true);
-
     try {
-      const { algod } = client;
-      
-      // Fetch Algos and ASA balances
-      const accountInfo = await algod.accountInformation(wallet.address).do();
+      const accountInfo = await client.algod.accountInformation(wallet.address).do();
       const algoBalance = BigInt(accountInfo.amount || 0);
-
       const balances: { [key: number]: bigint } = {};
-      
-      // Initialize balances to 0 for tracking
-      TOKENS.forEach(t => {
-        balances[t.asaId] = 0n;
+      TOKENS.forEach(t => { balances[t.asaId] = 0n; });
+      (accountInfo.assets || []).forEach((asset: any) => {
+        balances[Number(asset["asset-id"])] = BigInt(asset["amount"] || 0);
       });
+      setWallet(prev => prev ? { ...prev, algoBalance, balances } : null);
 
-      // Map assets
-      const assets = accountInfo.assets || [];
-      assets.forEach((asset: any) => {
-        const id = Number(asset["asset-id"]);
-        const amount = BigInt(asset["amount"] || 0);
-        balances[id] = amount;
-      });
-
-      // Update local wallet state
-      setWallet(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          algoBalance,
-          balances,
-        };
-      });
-
-      // Fetch user positions for all active ticks
-      if (poolState && poolState.ticks) {
+      if (poolState?.ticks) {
         const activePositions: UserPosition[] = [];
-        
         for (const tick of poolState.ticks) {
           try {
-            const positionInfo = await client.getPosition(wallet.address, tick.id);
-            if (positionInfo && positionInfo.shares > 0n) {
-              // Convert tick geometry variables to depeg bounds
-              const depegPrice = 1.0 - (Number(tick.r) / 1000000.0);
-
+            const info = await client.getPosition(wallet.address, tick.id);
+            if (info && info.shares > 0n) {
               activePositions.push({
-                tickId: tick.id,
-                shares: positionInfo.shares,
-                depositPerToken: positionInfo.positionR, // position balance
-                claimableFees: positionInfo.claimableFees || TOKENS.map(() => 0n),
-                depegPrice,
+                tickId:          tick.id,
+                shares:          info.shares,
+                depositPerToken: info.positionR,
+                claimableFees:   info.claimableFees || TOKENS.map(() => 0n),
+                depegPrice:      1.0 - Number(tick.r) / 1_000_000,
               });
             }
-          } catch (posErr) {
-            console.error(`Error reading position in tick #${tick.id}:`, posErr);
-          }
+          } catch { /* tick exists in state but position box may not */ }
         }
         setPositions(activePositions);
       }
@@ -192,258 +175,140 @@ export function useTaurus() {
     }
   }, [client, wallet?.address, poolState]);
 
-  // Refresh wallet state whenever address changes or pool state changes
   useEffect(() => {
-    if (wallet?.address && poolState) {
-      refreshWalletState();
-    }
+    if (wallet?.address && poolState) refreshWalletState();
   }, [wallet?.address, poolState, refreshWalletState]);
 
-  // 5. Connect Session Restoration
+  // 5. Session restoration on mount
   useEffect(() => {
     if (!peraWallet || !deflyWallet) return;
-
-    const savedConnector = localStorage.getItem("taurus_wallet_connector");
-    if (savedConnector === "pera") {
-      peraWallet
-        .reconnectSession()
+    const saved = localStorage.getItem("taurus_wallet_connector");
+    if (saved === "pera") {
+      peraWallet.reconnectSession()
         .then((accounts: string[]) => {
           if (accounts.length > 0) {
             setActiveConnector("pera");
-            setWallet({
-              address: accounts[0],
-              connectorType: "pera",
-              balances: {},
-              algoBalance: 0n,
-            });
-            // Setup listener
-            peraWallet.listenToSignTxnCancelled(() => {
-              setIsWalletLoading(false);
-            });
+            setWallet({ address: accounts[0], connectorType: "pera", balances: {}, algoBalance: 0n });
+            peraWallet.listenToSignTxnCancelled(() => setIsWalletLoading(false));
           }
-        })
-        .catch((err: any) => console.log("Pera reconnect session failed", err));
-    } else if (savedConnector === "defly") {
-      deflyWallet
-        .reconnectSession()
+        }).catch(console.error);
+    } else if (saved === "defly") {
+      deflyWallet.reconnectSession()
         .then((accounts: string[]) => {
           if (accounts.length > 0) {
             setActiveConnector("defly");
-            setWallet({
-              address: accounts[0],
-              connectorType: "defly",
-              balances: {},
-              algoBalance: 0n,
-            });
+            setWallet({ address: accounts[0], connectorType: "defly", balances: {}, algoBalance: 0n });
           }
-        })
-        .catch((err: any) => console.log("Defly reconnect session failed", err));
+        }).catch(console.error);
     }
   }, [peraWallet, deflyWallet]);
 
-  // 6. Connect wallet triggers
+  // 6. Connect
   const connectWallet = useCallback(async (type: "pera" | "defly") => {
-    if (type === "pera" && peraWallet) {
-      setIsWalletLoading(true);
-      try {
-        const accounts = await peraWallet.connect();
-        if (accounts.length > 0) {
-          const address = accounts[0];
-          setActiveConnector("pera");
-          localStorage.setItem("taurus_wallet_connector", "pera");
-          setWallet({
-            address,
-            connectorType: "pera",
-            balances: {},
-            algoBalance: 0n,
-          });
-          peraWallet.listenToSignTxnCancelled(() => {
-            setIsWalletLoading(false);
-          });
-        }
-      } catch (err) {
-        console.error("Pera Wallet Connect failed:", err);
-      } finally {
-        setIsWalletLoading(false);
+    const connector = type === "pera" ? peraWallet : deflyWallet;
+    if (!connector) return;
+    setIsWalletLoading(true);
+    try {
+      const accounts = await connector.connect();
+      if (accounts.length > 0) {
+        setActiveConnector(type);
+        localStorage.setItem("taurus_wallet_connector", type);
+        setWallet({ address: accounts[0], connectorType: type, balances: {}, algoBalance: 0n });
+        if (type === "pera") peraWallet.listenToSignTxnCancelled(() => setIsWalletLoading(false));
       }
-    } else if (type === "defly" && deflyWallet) {
-      setIsWalletLoading(true);
-      try {
-        const accounts = await deflyWallet.connect();
-        if (accounts.length > 0) {
-          const address = accounts[0];
-          setActiveConnector("defly");
-          localStorage.setItem("taurus_wallet_connector", "defly");
-          setWallet({
-            address,
-            connectorType: "defly",
-            balances: {},
-            algoBalance: 0n,
-          });
-        }
-      } catch (err) {
-        console.error("Defly Wallet Connect failed:", err);
-      } finally {
-        setIsWalletLoading(false);
-      }
+    } catch (err) {
+      console.error("Wallet connect failed:", err);
+    } finally {
+      setIsWalletLoading(false);
     }
   }, [peraWallet, deflyWallet]);
 
-  // 7. Disconnect wallet
+  // 7. Disconnect
   const disconnectWallet = useCallback(async () => {
-    if (activeConnector === "pera" && peraWallet) {
-      await peraWallet.disconnect().catch(console.error);
-    } else if (activeConnector === "defly" && deflyWallet) {
-      await deflyWallet.disconnect().catch(console.error);
-    }
+    const connector = activeConnector === "pera" ? peraWallet : deflyWallet;
+    if (connector) await connector.disconnect().catch(console.error);
     localStorage.removeItem("taurus_wallet_connector");
     setActiveConnector(null);
     setWallet(null);
     setPositions([]);
   }, [activeConnector, peraWallet, deflyWallet]);
 
-  // 8. Unified transaction signing & broadcasting pipeline via Wallet client SDKs
+  // 8. Sign + submit helper
   const signAndSubmitTxns = useCallback(async (txns: algosdk.Transaction[]): Promise<string> => {
-    if (!client || !wallet || !activeConnector) {
-      throw new Error("Wallet session or Taurus Client is not active");
+    if (!client || !wallet || !activeConnector) throw new Error("Wallet not connected");
+    const group = txns.map(txn => ({ txn, signers: [wallet.address] }));
+    let signed: Uint8Array[];
+    if (activeConnector === "pera" && peraWallet) {
+      signed = await peraWallet.signTransaction([group]);
+    } else if (activeConnector === "defly" && deflyWallet) {
+      signed = await deflyWallet.signTransaction([group]);
+    } else {
+      throw new Error("No active wallet connector");
     }
-
-    const { algod } = client;
-    let signedTxns: Uint8Array[];
-
-    // Structure transaction groups array formatted for client connectors
-    const formattedTxnGroup = txns.map((txn) => ({
-      txn,
-      signers: [wallet.address],
-    }));
-
-    try {
-      if (activeConnector === "pera" && peraWallet) {
-        signedTxns = await peraWallet.signTransaction([formattedTxnGroup]);
-      } else if (activeConnector === "defly" && deflyWallet) {
-        signedTxns = await deflyWallet.signTransaction([formattedTxnGroup]);
-      } else {
-        throw new Error("No active wallet provider connector connected");
-      }
-
-      // Send raw signed transaction chunks
-      const { txid } = await algod.sendRawTransaction(signedTxns).do();
-      
-      // Await node consensus validation
-      await algosdk.waitForConfirmation(algod, txid, 4);
-      
-      // Force refreshing immediate stats
-      refreshPoolState(client);
-      setTimeout(() => {
-        refreshWalletState();
-      }, 1200);
-
-      return txid;
-    } catch (err: any) {
-      console.error("Signing / Broadcasting rejected:", err);
-      throw err;
-    }
+    const { txid } = await client.algod.sendRawTransaction(signed).do();
+    await algosdk.waitForConfirmation(client.algod, txid, 4);
+    refreshPoolState(client);
+    setTimeout(refreshWalletState, 1200);
+    return txid;
   }, [client, wallet, activeConnector, peraWallet, deflyWallet, refreshPoolState, refreshWalletState]);
 
-  // 9. Swap Operations Executer
+  // 9. Swap — calls client.buildSwapTxns (tracked)
   const executeSwap = useCallback(async (
     fromIndex: number,
     toIndex: number,
     amountIn: bigint,
-    slippageBps = 50
+    slippageBps = 50,
   ): Promise<string> => {
     if (!client || !wallet) throw new Error("Wallet not connected");
+    const addr = wallet.address.slice(0, 8);
+    const code = `const txns = await client.buildSwapTxns({\n  sender: "${addr}…",\n  fromIndex: ${fromIndex},  // ${TOKENS[fromIndex]?.symbol ?? "?"}\n  toIndex:   ${toIndex},    // ${TOKENS[toIndex]?.symbol ?? "?"}\n  amountIn:  ${amountIn}n,\n  slippageBps: ${slippageBps}, // ${slippageBps / 100}%\n});\n// Returns unsigned algosdk.Transaction[] — sign with wallet`;
+    const txns = await trackCall("client.buildSwapTxns", code,
+      () => client.buildSwapTxns({ sender: wallet.address, fromIndex, toIndex, amountIn, slippageBps }),
+    );
+    return signAndSubmitTxns(txns);
+  }, [client, wallet, trackCall, signAndSubmitTxns]);
 
-    try {
-      const txns = await client.buildSwapTxns({
-        sender: wallet.address,
-        fromIndex,
-        toIndex,
-        amountIn,
-        slippageBps,
-      });
-
-      return await signAndSubmitTxns(txns);
-    } catch (err: any) {
-      console.error("Swap execution failed:", err);
-      throw err;
-    }
-  }, [client, wallet, signAndSubmitTxns]);
-
-  // 10. Liquidity Add Executer
+  // 10. Add liquidity — tickParamsFromDepegPrice + buildAddLiquidityTxns (both tracked)
   const executeAddLiquidity = useCallback(async (
     depegPrice: number,
-    depositPerTokenRaw: bigint
+    depositPerTokenRaw: bigint,
   ): Promise<{ txid: string; tickId: number; depositPerToken: bigint }> => {
     if (!client || !wallet) throw new Error("Wallet not connected");
 
-    try {
-      // 1. Calculate r and k based on boundary depeg price
-      const { r, k } = await client.tickParamsFromDepegPrice(
-        depegPrice,
-        depositPerTokenRaw
-      );
+    const paramsCode = `// Step 1: convert depeg price → tick geometry params\nconst { r, k } = await client.tickParamsFromDepegPrice(\n  ${depegPrice},         // $${depegPrice.toFixed(3)} boundary\n  ${depositPerTokenRaw}n, // target deposit per token\n);`;
+    const { r, k } = await trackCall("client.tickParamsFromDepegPrice", paramsCode,
+      () => client.tickParamsFromDepegPrice(depegPrice, depositPerTokenRaw),
+    );
 
-      // 2. Build the add liquidity transaction group
-      const { txns, depositPerTokenRaw: calculatedDeposit, tickId } = await client.buildAddLiquidityTxns({
-        sender: wallet.address,
-        r,
-        k,
-      });
+    const addCode = `// Step 2: build add-liquidity transaction group\nconst { txns, tickId, depositPerTokenRaw } =\n  await client.buildAddLiquidityTxns({\n    sender: "${wallet.address.slice(0, 8)}…",\n    r: ${r}n, // tick radius\n    k: ${k}n, // plane constant\n  });\n// tickId: newly assigned tick index`;
+    const { txns, depositPerTokenRaw: calculatedDeposit, tickId } = await trackCall(
+      "client.buildAddLiquidityTxns", addCode,
+      () => client.buildAddLiquidityTxns({ sender: wallet.address, r, k }),
+    );
 
-      // 3. Sign and broadcast transactions
-      const txid = await signAndSubmitTxns(txns);
+    const txid = await signAndSubmitTxns(txns);
+    return { txid, tickId, depositPerToken: calculatedDeposit };
+  }, [client, wallet, trackCall, signAndSubmitTxns]);
 
-      return {
-        txid,
-        tickId,
-        depositPerToken: calculatedDeposit,
-      };
-    } catch (err: any) {
-      console.error("Add liquidity failed:", err);
-      throw err;
-    }
-  }, [client, wallet, signAndSubmitTxns]);
-
-  // 11. Liquidity Remove Executer
-  const executeRemoveLiquidity = useCallback(async (
-    tickId: number,
-    shares: bigint
-  ): Promise<string> => {
+  // 11. Remove liquidity (tracked)
+  const executeRemoveLiquidity = useCallback(async (tickId: number, shares: bigint): Promise<string> => {
     if (!client || !wallet) throw new Error("Wallet not connected");
+    const code = `const txns = await client.buildRemoveLiquidityTxns({\n  sender: "${wallet.address.slice(0, 8)}…",\n  tickId: ${tickId},\n  shares: ${shares}n, // LP shares to redeem\n});\n// Receive tokens proportional to share of tick reserves`;
+    const txns = await trackCall("client.buildRemoveLiquidityTxns", code,
+      () => client.buildRemoveLiquidityTxns({ sender: wallet.address, tickId, shares }),
+    );
+    return signAndSubmitTxns(txns);
+  }, [client, wallet, trackCall, signAndSubmitTxns]);
 
-    try {
-      const txns = await client.buildRemoveLiquidityTxns({
-        sender: wallet.address,
-        tickId,
-        shares,
-      });
-
-      return await signAndSubmitTxns(txns);
-    } catch (err: any) {
-      console.error("Remove liquidity failed:", err);
-      throw err;
-    }
-  }, [client, wallet, signAndSubmitTxns]);
-
-  // 12. Claim Accrued Fees Executer
-  const executeClaimFees = useCallback(async (
-    tickId: number
-  ): Promise<string> => {
+  // 12. Claim fees (tracked)
+  const executeClaimFees = useCallback(async (tickId: number): Promise<string> => {
     if (!client || !wallet) throw new Error("Wallet not connected");
-
-    try {
-      const txns = await client.buildClaimFeesTxns({
-        sender: wallet.address,
-        tickId,
-      });
-
-      return await signAndSubmitTxns(txns);
-    } catch (err: any) {
-      console.error("Claim fees failed:", err);
-      throw err;
-    }
-  }, [client, wallet, signAndSubmitTxns]);
+    const code = `const txns = await client.buildClaimFeesTxns({\n  sender: "${wallet.address.slice(0, 8)}…",\n  tickId: ${tickId},\n});\n// Sweeps accrued feeGrowth → wallet`;
+    const txns = await trackCall("client.buildClaimFeesTxns", code,
+      () => client.buildClaimFeesTxns({ sender: wallet.address, tickId }),
+    );
+    return signAndSubmitTxns(txns);
+  }, [client, wallet, trackCall, signAndSubmitTxns]);
 
   return {
     client,
@@ -451,16 +316,14 @@ export function useTaurus() {
     prices,
     isLoading,
     error,
-    
-    // Sandbox wallet API
+    sdkLog,
+    trackCall,
     wallet,
     isWalletLoading,
     positions,
     connectWallet,
     disconnectWallet,
     refreshWalletState,
-    
-    // Operational execution API
     executeSwap,
     executeAddLiquidity,
     executeRemoveLiquidity,
