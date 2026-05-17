@@ -63,6 +63,7 @@ export function useTaurus() {
   const [positions,       setPositions]       = useState<UserPosition[]>([]);
 
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRefreshingWalletRef = useRef(false);
 
   // Wraps any async SDK call: adds a pending entry, resolves to success/error
   const trackCall = useCallback(async <T>(
@@ -139,39 +140,50 @@ export function useTaurus() {
   // 4. Wallet balances + LP positions
   const refreshWalletState = useCallback(async () => {
     if (!client || !wallet) return;
+    if (isRefreshingWalletRef.current) return;
+    isRefreshingWalletRef.current = true;
     setIsWalletLoading(true);
     try {
       const accountInfo = await client.algod.accountInformation(wallet.address).do();
-      const algoBalance = BigInt(accountInfo.amount || 0);
+      // algosdk v3 returns BigInt amounts and camelCase keys (assetId, not asset-id)
+      const algoBalance = BigInt(accountInfo.amount ?? 0n);
       const balances: { [key: number]: bigint } = {};
       TOKENS.forEach(t => { balances[t.asaId] = 0n; });
       (accountInfo.assets || []).forEach((asset: any) => {
-        balances[Number(asset["asset-id"])] = BigInt(asset["amount"] || 0);
+        const id = Number(asset.assetId ?? asset["asset-id"]);
+        const amt = BigInt(asset.amount ?? 0);
+        balances[id] = amt;
       });
       setWallet(prev => prev ? { ...prev, algoBalance, balances } : null);
 
       if (poolState?.ticks) {
-        const activePositions: UserPosition[] = [];
-        for (const tick of poolState.ticks) {
+        const promises = poolState.ticks.map(async (tick: any) => {
           try {
             const info = await client.getPosition(wallet.address, tick.id);
             if (info && info.shares > 0n) {
-              activePositions.push({
+              return {
                 tickId:          tick.id,
                 shares:          info.shares,
                 depositPerToken: info.positionR,
                 claimableFees:   info.claimableFees || TOKENS.map(() => 0n),
                 depegPrice:      1.0 - Number(tick.r) / 1_000_000,
-              });
+              };
             }
-          } catch { /* tick exists in state but position box may not */ }
-        }
+          } catch {
+            /* tick exists in state but position box may not */
+          }
+          return null;
+        });
+
+        const results = await Promise.all(promises);
+        const activePositions = results.filter((p): p is UserPosition => p !== null);
         setPositions(activePositions);
       }
     } catch (err) {
       console.error("Failed to refresh wallet state:", err);
     } finally {
       setIsWalletLoading(false);
+      isRefreshingWalletRef.current = false;
     }
   }, [client, wallet?.address, poolState]);
 
