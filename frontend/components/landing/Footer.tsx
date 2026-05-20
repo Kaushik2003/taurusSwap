@@ -156,6 +156,9 @@ const Footer = () => {
                                 <li className='text-xl font-medium'>
                                     <Link href='https://github.com/paramarshlabs'>Projects</Link>
                                 </li>
+                                <li className='text-xl font-medium'>
+                                    <Link href='/careers'>Careers</Link>
+                                </li>
                             </ul>
                             <ul>
                                 <li className='text-2xl pb-2 text-black font-semibold'>
