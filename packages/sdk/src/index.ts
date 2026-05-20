@@ -1,5 +1,39 @@
+// ── Client (main entry point) ─────────────────────────────────────────────────
+export { TaurusClient } from "./client";
+export type {
+  TaurusClientConfig,
+  QuoteParams,
+  BuildSwapParams,
+  BuildAddLiquidityParams,
+  BuildRemoveLiquidityParams,
+  BuildClaimFeesParams,
+  BuildZapParams,
+  EstimateRemovalResult,
+  EstimateAPRResult,
+} from "./client";
+
+// ── Errors ────────────────────────────────────────────────────────────────────
+export {
+  TaurusError,
+  SwapTooSmallError,
+  InsufficientLiquidityError,
+  TickNotFoundError,
+  InvalidTickParamsError,
+  InvalidSlippageError,
+  ZapAmountTooSmallError,
+  IndexerNotConfiguredError,
+} from "./errors";
+
+// ── Zap ───────────────────────────────────────────────────────────────────────
+export { computeZap } from "./pool/zap";
+export type { ZapPlan, ZapSwap } from "./pool/zap";
+
+// ── Indexer ───────────────────────────────────────────────────────────────────
+export { fetchPoolStats, fetchTransactions } from "./indexer";
+export type { PoolStats, AMMTransaction } from "./indexer";
+
 // ── Pool operations ───────────────────────────────────────────────────────────
-export { executeSwap, getSwapQuote } from "./pool/swap";
+export { executeSwap, getSwapQuote, buildSwapTxns } from "./pool/swap";
 export { readPoolState, readPosition } from "./pool/state-reader";
 export {
   getAllPrices,
