@@ -48,6 +48,7 @@ const navStructure = [
       { label: 'Adding Liquidity', href: '/docs/sdk/adding-liquidity' },
       { label: 'Managing Positions', href: '/docs/sdk/managing-positions' },
       { label: 'API Reference', href: '/docs/sdk/api-reference' },
+      { label: 'Example Use', href: '/docs/sdk/example-app' },
     ],
   },
   {

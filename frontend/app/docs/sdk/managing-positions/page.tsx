@@ -4,272 +4,234 @@ export default function ManagingPositions() {
       <h1>Managing Positions</h1>
 
       <p>
-        Once you&apos;ve added liquidity, you&apos;ll need to monitor your position,
-        claim fees, and eventually remove liquidity. This page covers all three.
+        Once you&apos;ve added liquidity, the SDK gives you three operations: read your
+        position and claimable fees, claim fees without removing principal, and remove
+        liquidity (partially or fully).
       </p>
 
       <h2 id="reading-a-position">Reading a Position</h2>
 
-      <pre><code className="language-typescript">{`import { readPosition } from '@taurus-swap/sdk';
+      <pre><code className="language-typescript">{`import { readPosition } from '@taurusswap/sdk';
 
+const pool     = await readPoolState(algod, POOL_APP_ID);
+const tick     = pool.ticks.find((t) => t.id === tickId);
+
+// Returns null if the address has no position in this tick
 const position = await readPosition(
-  algodClient,
+  algod,
   POOL_APP_ID,
-  address,
-  tickId
+  'OWNER_ADDRESS',
+  tickId,
+  pool.n,
+  pool.feeGrowth,
+  tick!,
 );
 
-console.log('Position:', {
-  shares: position.shares,
-  pendingFees: position.pendingFees,
-  feeCheckpoints: position.feeCheckpoints
+if (position) {
+  console.log('Shares:',          position.shares);
+  console.log('Position r:',      position.positionR);  // AMOUNT_SCALE units
+  console.log('Claimable fees:',  position.claimableFees.map((f, i) =>
+    \`Token \${i}: \${Number(f) / 1e6} USD\`
+  ));
+}`}</code></pre>
+
+      <p>Via <code>TaurusClient</code> (simpler — handles pool state internally):</p>
+
+      <pre><code className="language-typescript">{`const position = await client.getPosition('OWNER_ADDRESS', tickId);
+// → PositionInfo | null`}</code></pre>
+
+      <h2 id="position-type">PositionInfo Type</h2>
+
+      <pre><code className="language-typescript">{`interface PositionInfo {
+  tickId:        number;    // Which tick
+  shares:        bigint;    // Your share count in this tick
+  positionR:     bigint;    // tick.r × shares / tick.totalShares  (AMOUNT_SCALE units)
+                            // = your proportional contribution to total liquidity
+  claimableFees: bigint[];  // [n] per-token fees in raw microunits — ready for display
+}`}</code></pre>
+
+      <h2 id="fee-mechanics">How Fee Accounting Works</h2>
+
+      <p>
+        Each tick position stores a <code>feeGrowthCheckpoint[i]</code> per token. When a
+        swap collects fees, the global <code>pool.feeGrowth[i]</code> accumulator grows.
+        Your claimable fee for token <code>i</code> is:
+      </p>
+
+      <pre><code>{`claimable[i] = positionR × (feeGrowth[i] − checkpoint[i]) / PRECISION`}</code></pre>
+
+      <p>
+        After claiming, the contract resets your checkpoint to the current{' '}
+        <code>feeGrowth[i]</code>, so you can&apos;t double-claim.
+        When you remove liquidity, fees are claimed atomically as part of the same
+        transaction — you never need a separate claim before removing.
+      </p>
+
+      <h2 id="estimating-removal">Estimating What You&apos;ll Receive</h2>
+
+      <p>
+        Before building a removal transaction, preview the amounts:
+      </p>
+
+      <pre><code className="language-typescript">{`const { receivePerTokenRaw, claimableFeesRaw } = await client.estimateRemoval(
+  'OWNER_ADDRESS',
+  tickId,
+  shares,          // how many shares to remove (pass tick.totalShares for full exit)
+);
+
+receivePerTokenRaw.forEach((amt, i) => {
+  console.log(\`Token \${i} principal: \${Number(amt) / 1e6} USD\`);
+});
+claimableFeesRaw.forEach((fee, i) => {
+  console.log(\`Token \${i} fees:      \${Number(fee) / 1e6} USD\`);
 });`}</code></pre>
 
-      <h2 id="position-type">Position Type</h2>
-
-      <pre><code className="language-typescript">{`interface Position {
-  shares: bigint;           // Your share of tick's total liquidity
-  pendingFees: bigint[];    // Accrued fees per token (computed client-side)
-  feeCheckpoints: bigint[]; // Fee growth snapshot per token (on-chain)
-}`}</code></pre>
-
-      <h2 id="computing-pending-fees">Computing Pending Fees</h2>
+      <h2 id="claim-fees">Claiming Fees</h2>
 
       <p>
-        The SDK computes pending fees using the fee growth formula:
+        Claim all accrued fees without touching your principal:
       </p>
 
-      <pre><code className="language-typescript">{`// From @taurus-swap/sdk/pool/fees.ts
+      <pre><code className="language-typescript">{`// Via TaurusClient
+const txns = await client.buildClaimFeesTxns({ sender: 'YOUR_ADDRESS', tickId });
 
-export function computePendingFees(
-  positionShares: bigint,
-  feeGrowth: bigint[],
-  feeCheckpoints: bigint[],
-  tickTotalR: bigint
-): bigint[] {
-  return feeGrowth.map((growth, i) => {
-    const deltaGrowth = growth - feeCheckpoints[i];
-    return (positionShares * deltaGrowth) / PRECISION / tickTotalR;
-  });
-}`}</code></pre>
+// Via low-level function
+import { claimFees } from '@taurusswap/sdk';
+const { txId } = await claimFees({
+  client: algod,
+  poolAppId: POOL_APP_ID,
+  sender: account.addr,
+  tickId,
+  signer: async (txns) => txns.map((t) => t.signTxn(account.sk)),
+});
 
-      <p>
-        This is called automatically by <code>readPosition</code>, so you get
-        <code>pendingFees</code> ready to display.
-      </p>
+// Sign and submit (wallet path)
+const signedTxns = await wallet.signTransaction(txns);
+const { txid } = await client.algod.sendRawTransaction(signedTxns).do();
+await algosdk.waitForConfirmation(client.algod, txid, 4);
+console.log('Fees claimed:', txid);`}</code></pre>
 
-      <h2 id="claiming-fees">Claiming Fees</h2>
+      <h3>Claim Transaction Group Layout</h3>
 
-      <pre><code className="language-typescript">{`import { buildClaimFeesGroup } from '@taurus-swap/sdk';
+      <pre><code>{`┌──────────────────────────────────────────┐
+│ Tx 0: App call  claim_fees(tickId)       │
+│   inner txs: pool → user  (n fee tokens) │
+└──────────────────────────────────────────┘`}</code></pre>
 
-async function claimFees(tickId: number) {
-  const { txGroup } = await buildClaimFeesGroup(
-    algodClient,
-    POOL_APP_ID,
-    account,
-    tickId
-  );
+      <h2 id="remove-liquidity">Removing Liquidity</h2>
 
-  const signedTxns = await wallet.signTransaction(
-    txGroup.map((tx) => tx.txn)
-  );
+      <h3>Full Exit</h3>
 
-  const result = await algodClient
-    .sendGroupTransaction(signedTxns)
-    .do();
+      <pre><code className="language-typescript">{`// Via TaurusClient
+const pool     = await client.getPoolState();
+const tick     = pool.ticks.find((t) => t.id === tickId)!;
 
-  await algosdk.waitForConfirmation(algodClient, result.txId, 4);
+const txns = await client.buildRemoveLiquidityTxns({
+  sender: 'YOUR_ADDRESS',
+  tickId,
+  shares: tick.totalShares, // full exit — remove all of your shares
+});
 
-  console.log('Fees claimed!', result.txId);
-}`}</code></pre>
+// Via low-level function
+import { removeLiquidity } from '@taurusswap/sdk';
+const { txId } = await removeLiquidity({
+  client: algod,
+  poolAppId: POOL_APP_ID,
+  sender: account.addr,
+  tickId,
+  shares: tick.totalShares,
+  signer: async (txns) => txns.map((t) => t.signTxn(account.sk)),
+});`}</code></pre>
 
-      <h2 id="fee-checkpoint-mechanic">Fee Checkpoint Mechanic</h2>
+      <h3>Partial Exit</h3>
 
-      <p>
-        When you claim fees, your checkpoint is updated to the current fee growth:
-      </p>
+      <pre><code className="language-typescript">{`const position = await client.getPosition('YOUR_ADDRESS', tickId);
+if (!position) throw new Error('No position');
 
-      <pre><code>{`Before claim:
-  feeCheckpoints = [100, 200, 150, ...]
-  feeGrowth = [150, 250, 180, ...]
-  pending = feeGrowth - checkpoint = [50, 50, 30, ...]
-
-After claim:
-  feeCheckpoints = [150, 250, 180, ...]  ← Updated to current
-  pending = [0, 0, 0, ...]  ← Reset`}</code></pre>
-
-      <p>
-        This ensures you don&apos;t claim the same fees twice.
-      </p>
-
-      <h2 id="removing-liquidity">Removing Liquidity</h2>
-
-      <p>
-        To withdraw your entire position:
-      </p>
-
-      <pre><code className="language-typescript">{`import { buildRemoveLiquidityGroup } from '@taurus-swap/sdk';
-
-async function removeLiquidity(tickId: number) {
-  const position = await readPosition(
-    algodClient,
-    POOL_APP_ID,
-    account.addr,
-    tickId
-  );
-
-  const { txGroup } = await buildRemoveLiquidityGroup(
-    algodClient,
-    POOL_APP_ID,
-    account,
-    {
-      tickId,
-      sharesToRemove: position.shares  // Remove everything
-    }
-  );
-
-  const signedTxns = await wallet.signTransaction(
-    txGroup.map((tx) => tx.txn)
-  );
-
-  const result = await algodClient
-    .sendGroupTransaction(signedTxns)
-    .do();
-
-  await algosdk.waitForConfirmation(algodClient, result.txId, 4);
-
-  console.log('Liquidity removed!', result.txId);
-}`}</code></pre>
-
-      <h2 id="partial-removal">Partial Removal</h2>
-
-      <p>
-        To remove only some of your liquidity:
-      </p>
-
-      <pre><code className="language-typescript">{`const position = await readPosition(...);
-
-// Remove 50% of shares
+// Remove 50% of your shares
 const sharesToRemove = position.shares / 2n;
 
-const { txGroup } = await buildRemoveLiquidityGroup(
-  algodClient,
-  POOL_APP_ID,
-  account,
-  {
-    tickId,
-    sharesToRemove
-  }
-);`}</code></pre>
+const txns = await client.buildRemoveLiquidityTxns({
+  sender: 'YOUR_ADDRESS',
+  tickId,
+  shares: sharesToRemove,
+});
+// Your remaining shares stay in the pos: box — fees continue accruing`}</code></pre>
+
+      <h3>Remove Transaction Group Layout</h3>
+
+      <pre><code>{`┌──────────────────────────────────────────┐
+│ Tx 0: App call  remove_liquidity(        │
+│         tickId, shares)                  │
+│   inner txs: pool → user  (n tokens)     │
+│     = pro-rata reserves + accrued fees   │
+└──────────────────────────────────────────┘`}</code></pre>
+
+      <h2 id="what-you-receive">What You Receive on Removal</h2>
+
+      <pre><code>{`For each token i:
+  principal[i] = positionR × actualReserves[i] / pool.totalR  (raw microunits)
+  fees[i]      = positionR × (feeGrowth[i] − checkpoint[i]) / PRECISION
+  total[i]     = principal[i] + fees[i]`}</code></pre>
 
       <p>
-        Your remaining shares stay in the position box. Fees continue to accrue.
+        The contract sends all n token amounts atomically as inner transactions.
+        You do not need to claim fees separately before removing.
       </p>
 
-      <h2 id="what-you-receive">What You Receive</h2>
+      <h2 id="react-hook">React Hook: Position Dashboard</h2>
 
-      <p>
-        When removing liquidity, you get:
-      </p>
+      <pre><code className="language-typescript">{`import { useState, useEffect } from 'react';
+import { type PositionInfo, TickNotFoundError } from '@taurusswap/sdk';
+import { taurusClient } from '@/lib/taurus';
 
-      <ol>
-        <li>
-          <strong>Proportional reserves</strong> — Your share of each token&apos;s reserves
-        </li>
-        <li>
-          <strong>All pending fees</strong> — Automatically claimed and added to output
-        </li>
-      </ol>
-
-      <pre><code>{`Output per token i:
-  baseAmount = shares * reserves[i] / tick.totalShares
-  feeAmount = pendingFees[i]
-  total = baseAmount + feeAmount`}</code></pre>
-
-      <h2 id="position-nft">Position NFT</h2>
-
-      <p>
-        Each LP position is uniquely identified by:
-      </p>
-
-      <pre><code>{String.raw`positionKey = \`pos:\${address}\${tickId}\``}</code></pre>
-
-      <p>
-        This key is the box name. Only the address owner can modify or remove the position.
-      </p>
-
-      <h2 id="monitoring-multiple-positions">Monitoring Multiple Positions</h2>
-
-      <pre><code className="language-typescript">{`import { readAllPositions } from '@taurus-swap/sdk';
-
-// Get all positions for an address
-const positions = await readAllPositions(
-  algodClient,
-  POOL_APP_ID,
-  address
-);
-
-// positions is an array of { tickId, position }
-for (const { tickId, position } of positions) {
-  console.log(\`Tick \${tickId}: \${position.shares} shares\`);
-  console.log(\`  Pending fees:\`, position.pendingFees);
-}`}</code></pre>
-
-      <h2 id="react-hook-example">React Hook Example</h2>
-
-      <pre><code className="language-typescript">{`function useLiquidityPosition(tickId: number) {
-  const { address } = useWallet();
-  const [position, setPosition] = useState<Position | null>(null);
+export function usePosition(address: string | null, tickId: number | null) {
+  const [position, setPosition] = useState<PositionInfo | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!address || !tickId) return;
+    if (!address || tickId == null) return;
+    let active = true;
+    setLoading(true);
 
-    const fetch = async () => {
-      const pos = await readPosition(algodClient, POOL_APP_ID, address, tickId);
-      setPosition(pos);
-    };
+    taurusClient.getPosition(address, tickId)
+      .then((p) => { if (active) setPosition(p); })
+      .catch((err) => {
+        if (err instanceof TickNotFoundError) setPosition(null);
+        else console.error(err);
+      })
+      .finally(() => { if (active) setLoading(false); });
 
-    fetch();
-    const interval = setInterval(fetch, 60_000);  // Refresh every minute
-    return () => clearInterval(interval);
+    return () => { active = false; };
   }, [address, tickId]);
 
-  return position;
+  return { position, loading };
 }
 
-// Usage in component:
+// Usage
 function PositionCard({ tickId }: { tickId: number }) {
-  const position = useLiquidityPosition(tickId);
+  const { activeAddress } = useWallet();
+  const { position, loading } = usePosition(activeAddress, tickId);
 
-  if (!position) return <div>Loading...</div>;
+  if (loading) return <span>Loading...</span>;
+  if (!position) return <span>No position</span>;
 
   return (
     <div>
       <div>Shares: {position.shares.toString()}</div>
-      <div>Pending Fees:</div>
-      {position.pendingFees.map((fee, i) => (
-        <div key={i}>Token {i}: {formatAmount(fee)}</div>
+      <div>Claimable fees:</div>
+      {position.claimableFees.map((fee, i) => (
+        <div key={i}>Token {i}: {(Number(fee) / 1e6).toFixed(4)} USD</div>
       ))}
-      <button onClick={() => claimFees(tickId)}>Claim Fees</button>
     </div>
   );
 }`}</code></pre>
 
-      <blockquote>
-        <strong>Next:</strong> See <a href="/docs/sdk/api-reference">API Reference</a> for complete type definitions.
-      </blockquote>
-
       <div className="mt-12 flex justify-between items-center pt-8 border-t-2 border-border">
-        <a
-          href="/docs/sdk/adding-liquidity"
-          className="text-dark-green/70 hover:text-dark-green font-medium"
-        >
+        <a href="/docs/sdk/adding-liquidity" className="text-dark-green/70 hover:text-dark-green font-medium">
           ← Adding Liquidity
         </a>
-        <a
-          href="/docs/sdk/api-reference"
-          className="px-4 py-2 bg-[#6ea96a] text-white font-bold rounded-lg border-2 border-dark-green hover:bg-dark-green/90 transition-colors"
-        >
+        <a href="/docs/sdk/api-reference" className="px-4 py-2 bg-[#6ea96a] text-white font-bold rounded-lg border-2 border-dark-green hover:bg-dark-green/90 transition-colors">
           API Reference →
         </a>
       </div>

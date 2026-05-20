@@ -4,238 +4,182 @@ export default function QuotingSwaps() {
       <h1>Quoting Swaps</h1>
 
       <p>
-        The <code>getSwapQuote</code> function computes the output amount for a swap by
-        solving the torus invariant. It handles tick crossings automatically.
+        <code>getSwapQuote</code> is a <strong>synchronous, pure function</strong>. It runs
+        the full Newton-bisection solver and tick-crossing logic off-chain, producing an exact
+        quote that matches what the on-chain contract will compute. No Algod calls needed
+        once you have a <code>PoolState</code>.
       </p>
 
-      <h2 id="usage">Usage</h2>
+      <h2 id="signature">Signature</h2>
 
-      <pre><code className="language-typescript">{`import { getSwapQuote } from '@taurus-swap/sdk';
+      <pre><code className="language-typescript">{`function getSwapQuote(
+  poolState: PoolState,
+  tokenInIdx:  number, // index into pool.tokenAsaIds
+  tokenOutIdx: number,
+  amountInRaw: bigint, // raw microunits (1 USDC = 1_000_000n)
+): SwapQuote`}</code></pre>
 
-const quote = await getSwapQuote(poolState, {
-  tokenInIndex: 0,      // Selling USDC
-  tokenOutIndex: 1,     // Buying USDT
-  amountIn: 100_000_000n // 100 USDC (microunits)
-});
+      <h2 id="basic-usage">Basic Usage</h2>
 
-console.log('Output:', quote.amountOut);
-console.log('Price impact:', quote.priceImpact);
-console.log('Fee:', quote.fee);`}</code></pre>
+      <pre><code className="language-typescript">{`import { readPoolState, getSwapQuote } from '@taurusswap/sdk';
+
+const pool  = await readPoolState(algod, POOL_APP_ID);
+
+// Sell 10 USDC (token 0) → buy USDT (token 1)
+const quote = getSwapQuote(pool, 0, 1, 10_000_000n);
+
+console.log('You receive:',   Number(quote.amountOut) / 1e6, 'USDT');
+console.log('Effective rate:', quote.effectivePrice.toFixed(6));
+console.log('Price impact:',  (quote.priceImpact * 100).toFixed(4) + '%');
+console.log('Ticks crossed:', quote.ticksCrossed);`}</code></pre>
+
+      <p>Via <code>TaurusClient</code> (async — fetches pool state from cache first):</p>
+
+      <pre><code className="language-typescript">{`const quote = await client.quote({
+  fromIndex: 0,
+  toIndex:   1,
+  amountIn:  10_000_000n,
+});`}</code></pre>
 
       <h2 id="swapquote-type">SwapQuote Type</h2>
 
       <pre><code className="language-typescript">{`interface SwapQuote {
-  // Output
-  amountOut: bigint;    // Amount of output token (microunits)
-
-  // Pricing
-  priceImpact: number;  // Price impact as decimal (0.0014 = 0.14%)
-  effectivePrice: number; // Output/Input ratio
-
-  // Fees
-  fee: bigint;          // Fee amount (in input token microunits)
-  feeBps: number;       // Fee in basis points
-
-  // Path info
-  ticksCrossed: number; // Number of ticks crossed
-  segments: TradeSegment[]; // Trade path segments
-
-  // Validation
-  minOut: bigint;       // Minimum output after slippage
+  amountIn:           bigint;        // raw microunits — the input you provided
+  amountOut:          bigint;        // raw microunits — what you receive
+  priceImpact:        number;        // 0.001 = 0.1% — how much the trade moves price
+  instantaneousPrice: number;        // spot price before the trade (dimensionless ratio)
+  effectivePrice:     number;        // amountOut / amountIn — actual average rate
+  ticksCrossed:       number;        // 0 = simple swap; >0 = swap_with_crossings on-chain
+  route:              TradeSegment[]; // internal segments (AMOUNT_SCALE units)
 }
 
 interface TradeSegment {
-  amountIn: bigint;
-  amountOut: bigint;
-  tickCrossedId: number;  // 0 if no crossing
-  newTickState: number;
+  amountIn:       bigint;        // AMOUNT_SCALE units
+  amountOut:      bigint;        // AMOUNT_SCALE units
+  tickCrossedId:  number | null; // which tick was exited (null = no crossing in this segment)
+  newTickState:   TickState | null; // state the crossed tick transitions to
 }`}</code></pre>
 
-      <h2 id="field-descriptions">Field Descriptions</h2>
-
-      <h3 id="output">Output</h3>
-
-      <ul>
-        <li>
-          <code>amountOut</code> — The exact output amount in microunits. Use this for
-          the user&apos;s &quot;You will receive&quot; display.
-        </li>
-      </ul>
-
-      <h3 id="pricing">Pricing</h3>
-
-      <ul>
-        <li>
-          <code>priceImpact</code> — How much the trade moves the price. 0.0014 means
-          0.14% price slippage from mid-price.
-        </li>
-        <li>
-          <code>effectivePrice</code> — The actual exchange rate: amountOut / amountIn.
-          For stablecoin swaps, this should be close to 1.0.
-        </li>
-      </ul>
-
-      <h3 id="fees">Fees</h3>
-
-      <ul>
-        <li>
-          <code>fee</code> — The fee amount in input token microunits. Deducted before
-          the trade is computed.
-        </li>
-        <li>
-          <code>feeBps</code> — Fee in basis points. 30 = 0.3%.
-        </li>
-      </ul>
-
-      <h3 id="path-info">Path Info</h3>
-
-      <ul>
-        <li>
-          <code>ticksCrossed</code> — Number of tick boundaries crossed. More crossings
-          = more complex transaction.
-        </li>
-        <li>
-          <code>segments</code> — The trade path. Each segment is a portion of the trade
-          between crossings.
-        </li>
-      </ul>
-
-      <h3 id="validation">Validation</h3>
-
-      <ul>
-        <li>
-          <code>minOut</code> — amountOut minus slippage tolerance. Pass this to the
-          transaction builder.
-        </li>
-      </ul>
-
-      <h2 id="full-example-with-slippage">Full Example with Slippage</h2>
-
-      <pre><code className="language-typescript">{`const quote = await getSwapQuote(poolState, {
-  tokenInIndex: 0,
-  tokenOutIndex: 1,
-  amountIn: 100_000_000n
-});
-
-// Apply slippage tolerance (0.5% = 50 bps)
-const SLIPPAGE_BPS = 50;
-const minOut = quote.amountOut * (10000n - BigInt(SLIPPAGE_BPS)) / 10000n;
-
-console.log(\`Expected output: \${quote.amountOut} USDT\`);
-console.log(\`Minimum output: \${minOut} USDT (\${SLIPPAGE_BPS} bps slippage)\`);
-console.log(\`Price impact: \${(quote.priceImpact * 100).toFixed(2)}%\`);
-
-// Warn if price impact is high
-if (quote.priceImpact > 0.01) {  // > 1%
-  alert('High price impact! Consider splitting into smaller trades.');
-}`}</code></pre>
-
-      <h2 id="debouncing-quotes">Debouncing Quotes</h2>
+      <h2 id="understanding-price-impact">Understanding Price Impact</h2>
 
       <p>
-        In a React UI, debounce user input to avoid excessive quote requests:
+        <code>priceImpact</code> is computed as:
       </p>
+
+      <pre><code>{`priceImpact = 1 − (effectivePrice / instantaneousPrice)`}</code></pre>
+
+      <p>
+        For a 100 USDC → USDT swap, if the spot rate is 1.0000 and you receive 99.97 USDT,
+        the effective price is 0.9997 and price impact is 0.03%.
+      </p>
+
+      <p>Guidelines for stablecoin swaps:</p>
+
+      <table>
+        <thead>
+          <tr><th>Price Impact</th><th>Interpretation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>&lt; 0.01%</td><td>Normal — deep pool, small trade</td></tr>
+          <tr><td>0.01% – 0.1%</td><td>Acceptable — moderate-sized trade</td></tr>
+          <tr><td>0.1% – 1%</td><td>Warn the user</td></tr>
+          <tr><td>&gt; 1%</td><td>High — consider splitting the trade</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="tick-crossings">Tick Crossings</h2>
+
+      <p>
+        The pool uses concentrated liquidity ticks. A large swap may exhaust one tick and
+        &quot;cross&quot; into the next. The SDK handles this automatically:
+      </p>
+
+      <ul>
+        <li><code>ticksCrossed === 0</code> — Simple path. The contract calls <code>swap()</code>.</li>
+        <li><code>ticksCrossed &gt; 0</code> — Multi-segment path. The contract calls <code>swap_with_crossings()</code> with a serialised <code>trade_recipe</code>.</li>
+      </ul>
+
+      <p>
+        <code>buildSwapTxns</code> (and <code>client.buildSwapTxns</code>) automatically
+        chooses the right contract method — you don&apos;t need to handle this manually.
+      </p>
+
+      <h2 id="slippage">Applying Slippage Tolerance</h2>
+
+      <pre><code className="language-typescript">{`const quote = getSwapQuote(pool, 0, 1, 10_000_000n);
+
+const SLIPPAGE_BPS = 50; // 0.5%
+const minAmountOut = (quote.amountOut * BigInt(10_000 - SLIPPAGE_BPS)) / 10_000n;
+
+console.log('Expected:', Number(quote.amountOut) / 1e6);
+console.log('Minimum: ', Number(minAmountOut) / 1e6);`}</code></pre>
+
+      <p>
+        When you pass <code>slippageBps</code> to <code>buildSwapTxns</code>, it applies
+        this formula automatically and encodes <code>minAmountOut</code> into the
+        transaction as a contract-enforced floor.
+      </p>
+
+      <h2 id="getting-prices">Spot Prices</h2>
+
+      <pre><code className="language-typescript">{`// Get all token prices relative to token 0 (= 1.0)
+const prices = await client.getAllPrices();
+// prices[0] = 1.0  (base token)
+// prices[1] = 0.9998  (USDT/USDC spot rate)
+// prices[2] = 1.0001  etc.
+
+// Or with explicit base:
+const pricesRelativeToUSDT = await client.getAllPrices(1);`}</code></pre>
+
+      <p>
+        Under the hood this calls <code>getAllPrices(poolState, baseTokenIdx)</code> which
+        uses <code>getPrice(reserves, rInt, i, j)</code> from the sphere math module.
+      </p>
+
+      <h2 id="react-hook">React Hook: Live Quote</h2>
 
       <pre><code className="language-typescript">{`import { useState, useEffect, useCallback } from 'react';
-import { getSwapQuote, debounce } from '@taurus-swap/sdk';
+import { type SwapQuote, SwapTooSmallError, InsufficientLiquidityError } from '@taurusswap/sdk';
+import { taurusClient } from '@/lib/taurus';
 
-function SwapForm({ poolState }: { poolState: PoolState }) {
-  const [amountIn, setAmountIn] = useState('');
+export function useSwapQuote(
+  fromIndex: number,
+  toIndex: number,
+  amountIn: bigint | null,
+) {
   const [quote, setQuote] = useState<SwapQuote | null>(null);
-
-  const fetchQuote = useCallback(
-    debounce(async (input: string) => {
-      if (!input || !poolState) return;
-
-      const amountIn = parseAmountToMicrounits(input, 6);
-      const q = await getSwapQuote(poolState, {
-        tokenInIndex: 0,
-        tokenOutIndex: 1,
-        amountIn
-      });
-      setQuote(q);
-    }, 300),
-    [poolState]
-  );
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchQuote(amountIn);
-  }, [amountIn, fetchQuote]);
+    if (!amountIn || amountIn <= 0n) { setQuote(null); return; }
 
-  return (
-    <input
-      value={amountIn}
-      onChange={(e) => setAmountIn(e.target.value)}
-      placeholder="Amount in"
-    />
-    {quote && <div>You receive: {formatAmount(quote.amountOut)}</div>}
-  );
+    let cancelled = false;
+    setLoading(true);
+
+    taurusClient
+      .quote({ fromIndex, toIndex, amountIn })
+      .then((q) => { if (!cancelled) { setQuote(q); setError(null); } })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof SwapTooSmallError)          setError('Amount too small');
+        else if (err instanceof InsufficientLiquidityError) setError('Insufficient liquidity');
+        else setError('Quote failed');
+        setQuote(null);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [fromIndex, toIndex, amountIn?.toString()]);
+
+  return { quote, error, loading };
 }`}</code></pre>
-
-      <h2 id="handling-stale-state">Handling Stale State</h2>
-
-      <p>
-        Quotes are valid only for the pool state they were computed from. If the pool
-        changes between quote and execution, the transaction may fail:
-      </p>
-
-      <pre><code className="language-typescript">{`try {
-  const { txGroup } = await buildSwapTransactionGroup(
-    algodClient,
-    POOL_APP_ID,
-    account,
-    {
-      ...tradeParams,
-      claimedOut: quote.amountOut,
-      minOut: quote.minOut
-    }
-  );
-  await sendTransaction(txGroup);
-} catch (err) {
-  if (err.message.includes('invariant check failed')) {
-    // Pool state changed - re-quote and retry
-    const freshQuote = await getSwapQuote(freshPoolState, tradeParams);
-    // Retry with fresh quote...
-  }
-}`}</code></pre>
-
-      <h2 id="large-trades">Large Trades</h2>
-
-      <p>
-        For trades that cross many ticks, the quote includes a trade recipe:
-      </p>
-
-      <pre><code className="language-typescript">{`const quote = await getSwapQuote(poolState, {
-  tokenInIndex: 0,
-  tokenOutIndex: 1,
-  amountIn: 1_000_000_000n  // 1000 USDC - large trade
-});
-
-console.log(\`Crossing \${quote.ticksCrossed} ticks\`);
-console.log('Trade segments:', quote.segments);
-
-// Use swap_with_crossings instead of swap
-const method = quote.ticksCrossed > 0
-  ? 'swap_with_crossings'
-  : 'swap';`}</code></pre>
-
-      <blockquote>
-        <strong>Note:</strong> The SDK automatically selects the correct method when you
-        use <code>buildSwapTransactionGroup</code>. You don&apos;t need to handle this
-        manually.
-      </blockquote>
 
       <div className="mt-12 flex justify-between items-center pt-8 border-t-2 border-border">
-        <a
-          href="/docs/sdk/reading-pool-state"
-          className="text-dark-green/70 hover:text-dark-green font-medium"
-        >
+        <a href="/docs/sdk/reading-pool-state" className="text-dark-green/70 hover:text-dark-green font-medium">
           ← Reading Pool State
         </a>
-        <a
-          href="/docs/sdk/executing-swaps"
-          className="px-4 py-2 bg-[#6ea96a] text-white font-bold rounded-lg border-2 border-dark-green hover:bg-dark-green/90 transition-colors"
-        >
+        <a href="/docs/sdk/executing-swaps" className="px-4 py-2 bg-[#6ea96a] text-white font-bold rounded-lg border-2 border-dark-green hover:bg-dark-green/90 transition-colors">
           Executing Swaps →
         </a>
       </div>
