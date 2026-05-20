@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useInView } from "framer-motion";
+import { usePoolStats } from "@/hooks/usePoolStats";
 
-const stats = [
-  { label: "All time volume", value: "$2.5B+", color: "#FFFFFF", accent: false },
-  { label: "Total value locked", value: "$850M", color: "FFFFFF", accent: false },
-  { label: "Active swappers", value: "2.5M+", color: "#FFFFFF", accent: false },
-  { label: "24H swap volume", value: "$45M", color: "#21C95E", accent: true },
-];
+function fmtUsd(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
 
 function SlotChar({ char, delay = 0, accent }: { char: string; delay?: number; accent: boolean }) {
   const [displayed, setDisplayed] = useState("0");
@@ -170,6 +170,14 @@ export default function Features() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const visible = isInView;
+  const pool = usePoolStats();
+
+  const stats = [
+    { label: "Total value locked", value: pool.isLoading ? "…" : fmtUsd(pool.tvlUsd), accent: false },
+    { label: "24H volume", value: pool.isLoading ? "…" : fmtUsd(pool.volume24hUsd), accent: false },
+    { label: "24H fees", value: pool.isLoading ? "…" : fmtUsd(pool.fees24hUsd), accent: false },
+    { label: "24H swaps", value: pool.isLoading ? "…" : String(pool.swapCount24h), accent: true },
+  ];
 
   return (
     <div
@@ -248,11 +256,12 @@ export default function Features() {
           </div>
 
           <div>
-            <button
-              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-10 h-12 rounded-full font-bold uppercase tracking-widest text-xs shadow-[0_0_0_2px_#052c05,0_0_0_4px_#89f589] hover:brightness-110 transition-all flex items-center justify-center"
+            <a
+              href="/trade"
+              className="bg-[#052c05] text-[#89f589] border-[1.5px] border-[#89f589] px-10 h-12 rounded-full font-bold uppercase tracking-widest text-xs shadow-[0_0_0_2px_#052c05,0_0_0_4px_#89f589] hover:brightness-110 transition-all inline-flex items-center justify-center"
             >
               Start Trading
-            </button>
+            </a>
           </div>
         </div>
 

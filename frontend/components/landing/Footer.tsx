@@ -34,25 +34,14 @@ const Footer = () => {
 
     const handleNewsLetterData = (e: FormEvent) => {
         e.preventDefault();
-        console.log(e);
-        e.preventDefault();
         const target = e.target as HTMLFormElement;
         const formData = new FormData(target);
-
-        const clientEmail = formData.get('newsletter_email')!;
-
-        // const data: ClientData = {
-        //   email: clientEmail.toString(),
-        // }
-
-        // Send(data)
+        const clientEmail = formData.get('newsletter_email')?.toString() ?? '';
+        const mailto = `mailto:paramarshlabs2000@gmail.com?subject=Newsletter%20Sign-up&body=${encodeURIComponent(clientEmail)}`;
+        window.open(mailto, '_self');
         setOpenPopUp(true);
         target.reset();
-        if (setOpenPopUp) {
-            setTimeout(() => {
-                setOpenPopUp(false);
-            }, 2000);
-        }
+        setTimeout(() => setOpenPopUp(false), 2000);
     };
 
     return (
@@ -122,7 +111,7 @@ const Footer = () => {
                                             type='email'
                                             name='newsletter_email'
                                             suppressHydrationWarning
-                                            className='border-none bg-transparent  py-3 px-6  col-span-5'
+                                            className='border-none bg-transparent py-3 px-6 col-span-5 text-white placeholder:text-white/50 outline-none'
                                             placeholder='Your Email * '
                                         />{' '}
                                         <button
@@ -158,14 +147,14 @@ const Footer = () => {
                                     <Link href='/'>Home</Link>
                                 </li>
                                 <li className='text-xl font-medium'>
-                                    <Link href='/about'>About us</Link>
+                                    <Link href='/docs'>Docs</Link>
                                 </li>
                                 <li className='text-xl font-medium'>
-                                    <Link href='/services'>Our Services</Link>
+                                    <Link href='https://cal.com/paramarsh-labs-tiw8tv'>Our Services</Link>
                                 </li>
 
                                 <li className='text-xl font-medium'>
-                                    <Link href='/projects'>Projects</Link>
+                                    <Link href='https://github.com/paramarshlabs'>Projects</Link>
                                 </li>
                             </ul>
                             <ul>

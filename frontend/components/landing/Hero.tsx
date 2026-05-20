@@ -24,10 +24,9 @@ const Hero = () => {
   const stats = usePoolStats();
 
   const liveStats = [
-    { label: 'Total TVL',   value: stats.isLoading ? '…' : fmtUsd(stats.tvlUsd) },
-    { label: '24H Volume',  value: stats.isLoading ? '…' : fmtUsd(stats.volume24hUsd) },
-    { label: '24H Fees',    value: stats.isLoading ? '…' : fmtUsd(stats.fees24hUsd) },
-    { label: 'Active Ticks', value: stats.isLoading ? '…' : String(stats.activeTicks) },
+    { label: 'Total TVL',  value: stats.isLoading ? '…' : fmtUsd(stats.tvlUsd) },
+    { label: '24H Volume', value: stats.isLoading ? '…' : fmtUsd(stats.volume24hUsd) },
+    { label: '24H Fees',   value: stats.isLoading ? '…' : fmtUsd(stats.fees24hUsd) },
   ];
 
   return (
