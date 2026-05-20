@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { PositionInfo } from "@taurusswap/sdk";
+import { PositionInfo } from "@taurus-swap/sdk";
 import { useTaurusClient } from "../context";
 
 export interface UsePositionResult {

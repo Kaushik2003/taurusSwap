@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "@taurusswap/sdk": "^0.1.0"
+    "@taurus-swap/sdk": "^0.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

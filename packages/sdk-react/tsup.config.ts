@@ -9,7 +9,7 @@ export default defineConfig({
   splitting: false,
   treeshake: true,
   minify: false,
-  external: ["react", "react/jsx-runtime", "@taurusswap/sdk"],
+  external: ["react", "react/jsx-runtime", "@taurus-swap/sdk"],
   outDir: "dist",
   esbuildOptions(options) {
     options.jsx = "automatic";

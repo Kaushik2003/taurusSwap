@@ -10,7 +10,7 @@ export default function ManagingPositions() {
 
       <h2 id="reading-a-position">Reading a Position</h2>
 
-      <pre><code className="language-typescript">{`import { readPosition } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPosition } from '@taurus-swap/sdk';
 
 const position = await readPosition(
   algodClient,
@@ -39,7 +39,7 @@ console.log('Position:', {
         The SDK computes pending fees using the fee growth formula:
       </p>
 
-      <pre><code className="language-typescript">{`// From @taurusswap/sdk/pool/fees.ts
+      <pre><code className="language-typescript">{`// From @taurus-swap/sdk/pool/fees.ts
 
 export function computePendingFees(
   positionShares: bigint,
@@ -60,7 +60,7 @@ export function computePendingFees(
 
       <h2 id="claiming-fees">Claiming Fees</h2>
 
-      <pre><code className="language-typescript">{`import { buildClaimFeesGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { buildClaimFeesGroup } from '@taurus-swap/sdk';
 
 async function claimFees(tickId: number) {
   const { txGroup } = await buildClaimFeesGroup(
@@ -108,7 +108,7 @@ After claim:
         To withdraw your entire position:
       </p>
 
-      <pre><code className="language-typescript">{`import { buildRemoveLiquidityGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { buildRemoveLiquidityGroup } from '@taurus-swap/sdk';
 
 async function removeLiquidity(tickId: number) {
   const position = await readPosition(
@@ -200,7 +200,7 @@ const { txGroup } = await buildRemoveLiquidityGroup(
 
       <h2 id="monitoring-multiple-positions">Monitoring Multiple Positions</h2>
 
-      <pre><code className="language-typescript">{`import { readAllPositions } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readAllPositions } from '@taurus-swap/sdk';
 
 // Get all positions for an address
 const positions = await readAllPositions(

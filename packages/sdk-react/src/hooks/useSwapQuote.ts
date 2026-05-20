@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SwapQuote } from "@taurusswap/sdk";
+import { SwapQuote } from "@taurus-swap/sdk";
 import { useTaurusClient } from "../context";
 
 export interface UseSwapQuoteResult {

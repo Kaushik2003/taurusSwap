@@ -10,7 +10,7 @@ export default function ExecutingSwaps() {
 
       <h2 id="building-the-transaction-group">Building the Transaction Group</h2>
 
-      <pre><code className="language-typescript">{`import { buildSwapTransactionGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { buildSwapTransactionGroup } from '@taurus-swap/sdk';
 
 const { txGroup, signer } = await buildSwapTransactionGroup(
   algodClient,
@@ -150,7 +150,7 @@ console.log('Confirmed in round:', confirmation['confirmed-round']);`}</code></p
   InsufficientLiquidityError,
   SlippageExceededError,
   InvariantCheckFailedError
-} from '@taurusswap/sdk';
+} from '@taurus-swap/sdk';
 
 async function executeSwap() {
   try {

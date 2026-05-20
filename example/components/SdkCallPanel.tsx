@@ -158,7 +158,7 @@ export default function SdkCallPanel({ method, code, status, duration, error }: 
           background: "rgba(0,242,254,0.07)", border: "1px solid rgba(0,242,254,0.18)",
           color: "#00F2FE", borderRadius: 4, padding: "1px 5px",
           fontSize: "9px", fontWeight: 700, letterSpacing: "0.02em",
-        }}>@taurusswap/sdk</span>
+        }}>@taurus-swap/sdk</span>
 
         {/* Method name */}
         <span style={{ color: "#A3E635", fontWeight: 700, flex: 1 }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import algosdk from "algosdk";
-import { TaurusClient } from "@taurusswap/sdk";
+import { TaurusClient } from "@taurus-swap/sdk";
 
 export interface TokenInfo {
   index: number;
@@ -201,7 +201,6 @@ export function useTaurus() {
           if (accounts.length > 0) {
             setActiveConnector("pera");
             setWallet({ address: accounts[0], connectorType: "pera", balances: {}, algoBalance: 0n });
-            peraWallet.listenToSignTxnCancelled(() => setIsWalletLoading(false));
           }
         }).catch(console.error);
     } else if (saved === "defly") {
@@ -221,12 +220,13 @@ export function useTaurus() {
     if (!connector) return;
     setIsWalletLoading(true);
     try {
+      // Clear any stale WalletConnect session before opening a fresh one
+      await connector.disconnect().catch(() => {});
       const accounts = await connector.connect();
       if (accounts.length > 0) {
         setActiveConnector(type);
         localStorage.setItem("taurus_wallet_connector", type);
         setWallet({ address: accounts[0], connectorType: type, balances: {}, algoBalance: 0n });
-        if (type === "pera") peraWallet.listenToSignTxnCancelled(() => setIsWalletLoading(false));
       }
     } catch (err) {
       console.error("Wallet connect failed:", err);

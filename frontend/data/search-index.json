@@ -111,7 +111,7 @@
     "title": "Installation",
     "slug": "/docs/sdk/installation",
     "section": "SDK",
-    "content": "Install taurusSwap SDK: npm install @taurusswap/sdk. Peer dependency algosdk v3.5.0+. TypeScript configuration, strict mode, moduleResolution. yarn add, package setup."
+    "content": "Install taurusSwap SDK: npm install @taurus-swap/sdk. Peer dependency algosdk v3.5.0+. TypeScript configuration, strict mode, moduleResolution. yarn add, package setup."
   },
   {
     "title": "Reading Pool State",

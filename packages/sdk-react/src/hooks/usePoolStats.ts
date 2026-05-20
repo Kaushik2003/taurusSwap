@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { PoolStats } from "@taurusswap/sdk";
+import { PoolStats } from "@taurus-swap/sdk";
 import { useTaurusClient } from "../context";
 
 export interface UsePoolStatsResult {

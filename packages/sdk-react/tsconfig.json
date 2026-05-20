@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "paths": {
-      "@taurusswap/sdk": ["../sdk/dist/index.d.ts"]
+      "@taurus-swap/sdk": ["../sdk/dist/index.d.ts"]
     }
   },
   "include": ["src"],

@@ -10,7 +10,7 @@ export default function ReadingPoolState() {
 
       <h2 id="usage">Usage</h2>
 
-      <pre><code className="language-typescript">{`import { readPoolState } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPoolState } from '@taurus-swap/sdk';
 
 const poolState = await readPoolState(algodClient, POOL_APP_ID);`}</code></pre>
 
@@ -145,7 +145,7 @@ formattedReserves.forEach((r, i) => console.log(\`  Token \${i}: \${r}\`));`}</c
         A newly deployed pool may not have all boxes initialized. Handle gracefully:
       </p>
 
-      <pre><code className="language-typescript">{`import { readPoolState, BoxNotFoundError } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPoolState, BoxNotFoundError } from '@taurus-swap/sdk';
 
 try {
   const poolState = await readPoolState(algodClient, POOL_APP_ID);
@@ -166,7 +166,7 @@ try {
       </p>
 
       <pre><code className="language-typescript">{`import { useEffect, useState } from 'react';
-import { readPoolState } from '@taurusswap/sdk';
+import { readPoolState } from '@taurus-swap/sdk';
 
 function usePoolState(appId: number) {
   const [state, setState] = useState<PoolState | null>(null);
@@ -187,7 +187,7 @@ function usePoolState(appId: number) {
 
       <h2 id="reading-tick-state">Reading Tick State</h2>
 
-      <pre><code className="language-typescript">{`import { readTickState } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readTickState } from '@taurus-swap/sdk';
 
 const tick = await readTickState(algodClient, POOL_APP_ID, tickId);
 
@@ -201,7 +201,7 @@ console.log('Tick state:', {
 
       <h2 id="reading-position-state">Reading Position State</h2>
 
-      <pre><code className="language-typescript">{`import { readPosition } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPosition } from '@taurus-swap/sdk';
 
 const position = await readPosition(
   algodClient,

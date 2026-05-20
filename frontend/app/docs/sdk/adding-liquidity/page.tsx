@@ -27,7 +27,7 @@ export default function AddingLiquidity() {
         Instead of computing k directly, use the helper that converts from a depeg price:
       </p>
 
-      <pre><code className="language-typescript">{`import { kFromDepegPrice } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { kFromDepegPrice } from '@taurus-swap/sdk';
 
 // For a 0.99 depeg threshold (1% depeg allowed)
 const k = kFromDepegPrice(r, 0.99, n);`}</code></pre>
@@ -38,7 +38,7 @@ const k = kFromDepegPrice(r, 0.99, n);`}</code></pre>
         The SDK computes how much of each token you need to deposit:
       </p>
 
-      <pre><code className="language-typescript">{`import { computeDepositPerToken } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { computeDepositPerToken } from '@taurus-swap/sdk';
 
 const deposits = computeDepositPerToken(
   poolState,
@@ -69,7 +69,7 @@ console.log('Deposit amounts:', deposits);`}</code></pre>
   computeDepositPerToken,
   kFromDepegPrice,
   buildAddLiquidityGroup
-} from '@taurusswap/sdk';
+} from '@taurus-swap/sdk';
 
 async function addLiquidity() {
   // 1. Read current pool state
@@ -152,7 +152,7 @@ Total: n + 1 transactions`}</code></pre>
         Before adding liquidity, ensure you&apos;re opted in to all pool tokens:
       </p>
 
-      <pre><code className="language-typescript">{`import { checkAssetOptIn, buildAssetOptInTx } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { checkAssetOptIn, buildAssetOptInTx } from '@taurus-swap/sdk';
 
 // Check opt-in status
 const optIns = await Promise.all(
@@ -216,7 +216,7 @@ console.log('Pending fees:', position.pendingFees);`}</code></pre>
         To remove liquidity (withdraw your share):
       </p>
 
-      <pre><code className="language-typescript">{`import { buildRemoveLiquidityGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { buildRemoveLiquidityGroup } from '@taurus-swap/sdk';
 
 const { txGroup } = await buildRemoveLiquidityGroup(
   algodClient,
@@ -241,7 +241,7 @@ const result = await executeAndSend(txGroup, wallet);
         To claim fees without removing liquidity:
       </p>
 
-      <pre><code className="language-typescript">{`import { buildClaimFeesGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { buildClaimFeesGroup } from '@taurus-swap/sdk';
 
 const { txGroup } = await buildClaimFeesGroup(
   algodClient,

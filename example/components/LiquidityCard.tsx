@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaurusClient } from "@taurusswap/sdk";
+import { TaurusClient } from "@taurus-swap/sdk";
 import { TOKENS } from "../hooks/useTaurus";
 import SdkCallPanel from "./SdkCallPanel";
 import type { SdkCallStatus } from "./SdkCallPanel";

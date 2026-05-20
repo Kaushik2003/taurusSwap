@@ -8,7 +8,7 @@ export default function ApiReference() {
         taurusSwap SDK. Organized by module.
       </p>
 
-      <h2 id="math-module">@taurusswap/sdk/math</h2>
+      <h2 id="math-module">@taurus-swap/sdk/math</h2>
 
       <h3 id="solveTorusInvariant">solveTorusInvariant</h3>
 
@@ -62,7 +62,7 @@ export default function ApiReference() {
         <li><code>depegPrice = 0.95</code> → 5% depeg allowed</li>
       </ul>
 
-      <h2 id="pool-module">@taurusswap/sdk/pool</h2>
+      <h2 id="pool-module">@taurus-swap/sdk/pool</h2>
 
       <h3 id="getSwapQuote">getSwapQuote</h3>
 
@@ -104,7 +104,7 @@ export default function ApiReference() {
         Computes accrued fees for a position using the fee growth formula.
       </p>
 
-      <h2 id="algorand-module">@taurusswap/sdk/algorand</h2>
+      <h2 id="algorand-module">@taurus-swap/sdk/algorand</h2>
 
       <h3 id="readPoolState">readPoolState</h3>
 
@@ -207,7 +207,7 @@ export default function ApiReference() {
         Builds the transaction group for claiming fees.
       </p>
 
-      <h2 id="types">@taurusswap/sdk/types</h2>
+      <h2 id="types">@taurus-swap/sdk/types</h2>
 
       <h3 id="PoolState">PoolState</h3>
 

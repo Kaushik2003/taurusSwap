@@ -10,7 +10,7 @@ export default function QuotingSwaps() {
 
       <h2 id="usage">Usage</h2>
 
-      <pre><code className="language-typescript">{`import { getSwapQuote } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { getSwapQuote } from '@taurus-swap/sdk';
 
 const quote = await getSwapQuote(poolState, {
   tokenInIndex: 0,      // Selling USDC
@@ -137,7 +137,7 @@ if (quote.priceImpact > 0.01) {  // > 1%
       </p>
 
       <pre><code className="language-typescript">{`import { useState, useEffect, useCallback } from 'react';
-import { getSwapQuote, debounce } from '@taurusswap/sdk';
+import { getSwapQuote, debounce } from '@taurus-swap/sdk';
 
 function SwapForm({ poolState }: { poolState: PoolState }) {
   const [amountIn, setAmountIn] = useState('');

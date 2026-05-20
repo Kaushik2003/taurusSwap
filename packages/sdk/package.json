@@ -1,7 +1,28 @@
 {
-  "name": "@taurusswap/sdk",
+  "name": "@taurus-swap/sdk",
   "version": "0.1.0",
   "description": "TypeScript SDK for TaurusSwap — a concentrated-liquidity stablecoin AMM on Algorand",
+  "license": "MIT",
+  "author": "Kaushik Samadder",
+  "keywords": [
+    "algorand",
+    "amm",
+    "defi",
+    "stablecoin",
+    "swap",
+    "taurusswap",
+    "concentrated-liquidity",
+    "algosdk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kaushik2003/taurusSwap.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/Kaushik2003/taurusSwap#readme",
+  "bugs": {
+    "url": "https://github.com/Kaushik2003/taurusSwap/issues"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -17,6 +38,7 @@
     "README.md"
   ],
   "scripts": {
+    "prepublishOnly": "npm run build",
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",

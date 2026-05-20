@@ -1,4 +1,4 @@
-# @taurusswap/sdk
+# @taurus-swap/sdk
 
 TypeScript SDK for **TaurusSwap** — a concentrated-liquidity stablecoin AMM on Algorand.
 
@@ -9,9 +9,9 @@ Built on the Orbital AMM protocol, TaurusSwap uses n-dimensional torus geometry 
 ## Installation
 
 ```bash
-npm install @taurusswap/sdk algosdk
+npm install @taurus-swap/sdk algosdk
 # or
-yarn add @taurusswap/sdk algosdk
+yarn add @taurus-swap/sdk algosdk
 ```
 
 `algosdk` is a peer dependency — install it alongside this package.
@@ -21,7 +21,7 @@ yarn add @taurusswap/sdk algosdk
 ## Quick start
 
 ```typescript
-import { TaurusClient } from "@taurusswap/sdk";
+import { TaurusClient } from "@taurus-swap/sdk";
 
 // Connects to testnet by default (pool app ID 758284478)
 const client = new TaurusClient();
@@ -164,7 +164,7 @@ import {
   xMin, xMax, kMin, kMax, kFromDepegPrice, capitalEfficiency,
   // Types
   TickState,
-} from "@taurusswap/sdk";
+} from "@taurus-swap/sdk";
 import algosdk from "algosdk";
 
 const algod = new algosdk.Algodv2("", "https://testnet-api.algonode.cloud");

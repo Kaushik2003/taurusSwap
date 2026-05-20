@@ -10,7 +10,7 @@ export default function Quickstart() {
 
       <h2 id="step-1-install-the-sdk">Step 1: Install the SDK</h2>
 
-      <pre><code>{`npm install @taurusswap/sdk algosdk`}</code></pre>
+      <pre><code>{`npm install @taurus-swap/sdk algosdk`}</code></pre>
 
       <p>
         The SDK has <code>algosdk</code> as a peer dependency. Make sure you&apos;re using
@@ -46,7 +46,7 @@ const algodClient = new algosdk.Algodv2(
 
       <h2 id="step-3-read-pool-state">Step 3: Read Pool State</h2>
 
-      <pre><code className="language-typescript">{`import { readPoolState } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPoolState } from '@taurus-swap/sdk';
 
 const POOL_APP_ID = 758284478; // Testnet deployment
 
@@ -75,7 +75,7 @@ console.log('Pool state:', poolState);
 
       <h2 id="step-4-get-a-swap-quote">Step 4: Get a Swap Quote</h2>
 
-      <pre><code className="language-typescript">{`import { getSwapQuote } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { getSwapQuote } from '@taurus-swap/sdk';
 
 const quote = await getSwapQuote(
   poolState,
@@ -102,7 +102,7 @@ console.log('Quote:', quote);
 
       <h2 id="step-5-execute-the-swap">Step 5: Execute the Swap</h2>
 
-      <pre><code className="language-typescript">{`import { executeSwap, buildSwapTransactionGroup } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { executeSwap, buildSwapTransactionGroup } from '@taurus-swap/sdk';
 import { Account } from 'algosdk';
 
 const { txGroup, signer } = await buildSwapTransactionGroup(

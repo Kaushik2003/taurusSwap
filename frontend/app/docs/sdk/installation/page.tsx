@@ -10,13 +10,13 @@ export default function Installation() {
 
       <h2 id="install-the-package">Install the Package</h2>
 
-      <pre><code>{`npm install @taurusswap/sdk`}</code></pre>
+      <pre><code>{`npm install @taurus-swap/sdk`}</code></pre>
 
       <p>
         Or with yarn:
       </p>
 
-      <pre><code>{`yarn add @taurusswap/sdk`}</code></pre>
+      <pre><code>{`yarn add @taurus-swap/sdk`}</code></pre>
 
       <h2 id="peer-dependencies">Peer Dependencies</h2>
 
@@ -65,7 +65,7 @@ export default function Installation() {
         Here&apos;s a minimal example that reads pool state and prints the current reserves:
       </p>
 
-      <pre><code className="language-typescript">{`import { readPoolState } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { readPoolState } from '@taurus-swap/sdk';
 import algosdk from 'algosdk';
 
 const algodClient = new algosdk.Algodv2(
@@ -93,7 +93,7 @@ main().catch(console.error);`}</code></pre>
         The SDK returns reserves in microunits. To display in human-readable format:
       </p>
 
-      <pre><code className="language-typescript">{`import { formatTokenAmount } from '@taurusswap/sdk';
+      <pre><code className="language-typescript">{`import { formatTokenAmount } from '@taurus-swap/sdk';
 
 const poolState = await readPoolState(algodClient, POOL_APP_ID);
 
@@ -168,7 +168,7 @@ export const getAlgodClient = (network: 'testnet' | 'mainnet') => {
 
       <pre><code className="language-json">{`"lib": ["ES2020", "BigInt"]`}</code></pre>
 
-      <h3 id="module-not-found">&quot;Module not found: @taurusswap/sdk&quot;</h3>
+      <h3 id="module-not-found">&quot;Module not found: @taurus-swap/sdk&quot;</h3>
 
       <p>
         Clear npm cache and reinstall:

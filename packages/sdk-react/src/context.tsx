@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { TaurusClient, TaurusClientConfig } from "@taurusswap/sdk";
+import { TaurusClient, TaurusClientConfig } from "@taurus-swap/sdk";
 
 const TaurusContext = createContext<TaurusClient | null>(null);
 

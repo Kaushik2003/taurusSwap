@@ -47,17 +47,17 @@ export default function SDKOverview() {
       <h2 id="architecture">Three-Layer Architecture</h2>
 
       <pre><code>{`┌─────────────────────────────────┐
-│  @taurusswap/sdk/algorand       │  ← Transaction builders
+│  @taurus-swap/sdk/algorand       │  ← Transaction builders
 │  - buildSwapTransactionGroup()  │
 │  - buildAddLiquidityGroup()     │
 │  - signAndSend()                │
 ├─────────────────────────────────┤
-│  @taurusswap/sdk/pool           │  ← Pool-level operations
+│  @taurus-swap/sdk/pool           │  ← Pool-level operations
 │  - readPoolState()              │
 │  - getSwapQuote()               │
 │  - computeDepositPerToken()     │
 ├─────────────────────────────────┤
-│  @taurusswap/sdk/math           │  ← Pure math (BigInt)
+│  @taurus-swap/sdk/math           │  ← Pure math (BigInt)
 │  - solveTorusInvariant()        │
 │  - polarDecompose()             │
 │  - consolidateTicks()           │
@@ -89,7 +89,7 @@ export default function SDKOverview() {
   readPoolState,
   getSwapQuote,
   buildSwapTransactionGroup
-} from '@taurusswap/sdk';
+} from '@taurus-swap/sdk';
 import algosdk from 'algosdk';
 
 // Initialize
@@ -142,19 +142,19 @@ console.log('TX ID:', result.txId);`}</code></pre>
         </thead>
         <tbody>
           <tr>
-            <td><code>@taurusswap/sdk/math</code></td>
+            <td><code>@taurus-swap/sdk/math</code></td>
             <td>Pure math: torus invariant, polar decomposition, tick geometry</td>
           </tr>
           <tr>
-            <td><code>@taurusswap/sdk/pool</code></td>
+            <td><code>@taurus-swap/sdk/pool</code></td>
             <td>Pool operations: quotes, deposits, fee calculations</td>
           </tr>
           <tr>
-            <td><code>@taurusswap/sdk/algorand</code></td>
+            <td><code>@taurus-swap/sdk/algorand</code></td>
             <td>Algorand integration: transaction builders, state readers</td>
           </tr>
           <tr>
-            <td><code>@taurusswap/sdk/types</code></td>
+            <td><code>@taurus-swap/sdk/types</code></td>
             <td>Type definitions: PoolState, SwapQuote, Position, etc.</td>
           </tr>
         </tbody>
@@ -171,7 +171,7 @@ console.log('TX ID:', result.txId);`}</code></pre>
   InvalidTradeDirectionError,
   TickCrossingError,
   BoxNotFoundError
-} from '@taurusswap/sdk';
+} from '@taurus-swap/sdk';
 
 try {
   const quote = await getSwapQuote(poolState, trade);
